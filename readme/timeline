@@ -1,0 +1,74 @@
+
+// Record the important events of development.
+
+1.TODO
+
+1.1 docs & misc
+1.Finish documents & code samples.
+2.Finish adding test-code.
+3.Checking code-style.
+4.Finish function of exception throw.
+5.Finish binary compatibity.
+
+1.2 code
+1.Finish cppfoundation/cf_demultiplexer.
+2.Finish cpplibrary/netserver, epoll/kqueue/poll.
+3.Finish cppfoundation/cf_ipc/class MsgQ.
+4.Finish cppfoundation/class Process.
+5.Finish cppfoundation/class Application.
+6.Finish cpplibrary/dbaccess, using prepare statement,mysql.
+7.Finish cpplibrary/config, using shared memory.
+8.Finish cppfoundation/class TaskPool.
+9.Finish cpplibrary/logserver.
+10.Finish cpplibrary/tinymq, simple message queue like ZeroMQ.
+
+
+2.Hierarchy
+
+2.1cppfoundation
+    memory
+        cf_New(),cf_PlacementNew(),cf_NewA(),CF_NEWOBJ(),CF_NEWOBJ_A(Pointer, Class, arraySize),cf_Delete(Type * & rp),cf_DeleteA(Type * & rp),cf_Free(Type *&rp)
+    exception
+        class BaseException, Fatal,Error,UnsupportedSyscallError,SyscallExecuteError,NullPointerError,ValueError,UnimplementedError,AllocateMemoryError, Warning,RuntimeWarning, Info,TimeoutInfo,WouldBlockInfo,AlreadyLockedInfo,SignalIntrInfo,ElementNotFoundInfo
+    synchronization
+        class FakeMutex,FakeRWMutex,PthreadMutex,RawPthreadMutex,PosixSemaphore,RawPthreadRWMutex,RawFileRWMutex,RWMutex,FileWriteLock
+    ipc
+        class Pipe,SocketpairPipe,MsgQ,PosixMsgQ,SysVMsgQ,MemMappedFile,PosixShM,SysVShM
+    container
+        class RawQueue,RawFastFindQueue,TYPEQueue,RawMap,TYPEMap,MapSmartManager,CRawSequenceContainer,TYPESequenceContainer,RawSet,RawNotifySet,TYPESet
+    demultiplexer
+    algorithm
+        BinarySearchAscending,BinarySearchDescending
+    condition
+        class PthreadCond,RawPthreadCondition
+    thread
+        class Runnable,Thread,ThreadPool,TaskPool
+    process
+        class Process
+    utility
+        GetHostByName,SetProcessDaemon,IgnoreSignals,PointerTraits,SetBlocking,IsSocketBroken,OutputWait,InputWait,SendSegmentSync,RecvSegmentSync,SendFds,RecvFds
+    application
+        class Application
+
+2.2cpplibrary
+    dataaccess
+        config
+        dbaccess
+    datastructure
+        circularqueue
+    log
+        log
+        logserver
+    memory
+        spool
+    net
+        netserver
+    transport
+        smq
+    tool
+        (toadd)
+    crypto
+        (toadd)
+    serialization
+        (toadd)
+
