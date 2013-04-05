@@ -1,7 +1,7 @@
 cppfastdevelop
 ==============
 
-A simple but powerful c++ project called "cppfastdevelop" ("cfd") which makes your develop fast. The "cfd" project include "cppfoundation" ("cf") and "cpplibrary" ("cl") projects.
+A simple but powerful c++ project called "cppfastdevelop" (a.k.a. "cfd") which makes your develop fast. The "cfd" project include "cppfoundation" (a.k.a. "cf") and "cpplibrary" (a.k.a. "cl") projects.
 
 WE PROVIDE:
 
@@ -20,4 +20,12 @@ ATTENTION:
 2."cfd" will be compatible with linux and bsd ( maybe also mac os x ,ibm aix and windows , if we have enough time to do that ).
 
 3.We hope you to join us to make the project more perfect.
+
+
+cfd project website(up-to-date):
+https://github.com/dungeonsnd/cppfastdevelop
+
+other website(maybe not up-to-date)
+https://code.google.com/p/cppfastdevelop/
+https://sourceforge.net/projects/cppfastdevelop/
 

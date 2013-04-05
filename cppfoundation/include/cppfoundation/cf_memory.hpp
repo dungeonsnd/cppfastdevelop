@@ -119,14 +119,7 @@ inline cf_int cf_DeleteA(Type * & rp)
     cf_int rt =0;
     if (rp != NULL)
     {
-        try
-        {
-            delete [] rp;
-            rp = NULL;
-        }catch (std::bad_alloc& ba)
-        {
-            rt =-1;
-        }
+        delete [] rp;
         rp = NULL;
     }
     return rt;

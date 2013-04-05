@@ -276,18 +276,18 @@ ssize_t RecvFds(const int fd, int *recvfdarray, const size_t fdarraylen, void *d
           &&  cmptr->cmsg_len == CMSG_LEN(sizeof(int)*fdarraylen) 
        ) 
     {
-    if (cmptr->cmsg_level != SOL_SOCKET)
-    {
-        //printf("control level != SOL_SOCKET");
-        return -1;
-    }
-    if (cmptr->cmsg_type != SCM_RIGHTS)
-    {
-        //err_quit("control type != SCM_RIGHTS");
-        return -2;
-    }
-    for(size_t i=0;i<fdarraylen;i++)
-        recvfdarray[i] =*( (int *) (CMSG_DATA(cmptr)+sizeof(int)*i) ); // 找对正确的偏移量!!!
+        if (cmptr->cmsg_level != SOL_SOCKET)
+        {
+            //printf("control level != SOL_SOCKET");
+            return -1;
+        }
+        if (cmptr->cmsg_type != SCM_RIGHTS)
+        {
+            //err_quit("control type != SCM_RIGHTS");
+            return -2;
+        }
+        for(size_t i=0;i<fdarraylen;i++)
+            recvfdarray[i] =*( (int *) (CMSG_DATA(cmptr)+sizeof(int)*i) ); 
 
     } 
     else
