@@ -142,8 +142,8 @@ ElementOp::eWriteCase ElementOp::QueueWriteCase(cf_uint64 bodySize) cf_const
     else if(_pMeta->qTotalSize < _pMeta->headIndex + HeaderSize())
         c =QUEUE_CASE3;
     else if (  (_pMeta->qTotalSize > _pMeta->headIndex + HeaderSize()) &&
-		    (_pMeta->qTotalSize < _pMeta->headIndex + HeaderSize()+bodySize)
-		)
+            (_pMeta->qTotalSize < _pMeta->headIndex + HeaderSize()+bodySize)
+        )
         c =QUEUE_CASE4;
     else if ( _pMeta->qTotalSize == _pMeta->headIndex + HeaderSize() )
         c =QUEUE_CASE5;
@@ -373,7 +373,7 @@ cf_void ElementOp::write(cf_cpvoid pData,cf_const cf_uint64 size)
         _THROW_FMT(cf::ValueError, "_pMeta->qTotalSize{%lu} < _pMeta->headIndex{%lu}+1 ", _pMeta->qTotalSize , _pMeta->headIndex)
 
 ////
-//printf("** After write:qTotalSize=%lu, qLeftSize=%lu, elementCount=%lu, headIndex=%lu, tailIndex=%lu, serialNO=%lu, operationTime=%d, operationPid=%d, status=%d, sizeof(QMeta)=%lu, sizeof(ElementHeader)=%lu, size=%lu, pData=%s \n",	_pMeta->qTotalSize,_pMeta->qLeftSize,_pMeta->elementCount,_pMeta->headIndex,_pMeta->tailIndex,_pMeta->serialNO,int(_pMeta->operationTime),_pMeta->operationPid,int(_pMeta->status),(cf_uint64)(sizeof(QMeta)),(cf_uint64)(sizeof(ElementHeader)),size,(char*)pData );
+//printf("** After write:qTotalSize=%lu, qLeftSize=%lu, elementCount=%lu, headIndex=%lu, tailIndex=%lu, serialNO=%lu, operationTime=%d, operationPid=%d, status=%d, sizeof(QMeta)=%lu, sizeof(ElementHeader)=%lu, size=%lu, pData=%s \n",   _pMeta->qTotalSize,_pMeta->qLeftSize,_pMeta->elementCount,_pMeta->headIndex,_pMeta->tailIndex,_pMeta->serialNO,int(_pMeta->operationTime),_pMeta->operationPid,int(_pMeta->status),(cf_uint64)(sizeof(QMeta)),(cf_uint64)(sizeof(ElementHeader)),size,(char*)pData );
 ////
 
 }

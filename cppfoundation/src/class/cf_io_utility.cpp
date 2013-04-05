@@ -157,40 +157,40 @@ bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,ssize_t & has
 // Send fd over unix domain socket.
 namespace ioutilitydefs
 {
-	union control_un_single{
-	  struct cmsghdr cm;
-	  char control[ CMSG_SPACE(sizeof(int)*1) ];
-	} ;
+    union control_un_single{
+        struct cmsghdr cm;
+        char control[ CMSG_SPACE(sizeof(int)*1) ];
+    } ;
     const size_t sizeof_control_un_single =sizeof(control_un_single);
-    
-	union control_un_tiny{
-	  struct cmsghdr cm;
-	  char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_TINY) ];
-	} ;
+
+    union control_un_tiny{
+        struct cmsghdr cm;
+        char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_TINY) ];
+    } ;
     const size_t sizeof_control_un_tiny =sizeof(control_un_single);
-    
-	union control_un_small{
-	  struct cmsghdr cm;
-	  char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_SMALL) ];
-	} ;
+
+    union control_un_small{
+        struct cmsghdr cm;
+        char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_SMALL) ];
+    } ;
     const size_t sizeof_control_un_small =sizeof(control_un_single);
-    
-	union control_un_medium{
-	  struct cmsghdr cm;
-	  char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_MEDIUM) ];
-	} ;
+
+    union control_un_medium{
+        struct cmsghdr cm;
+        char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_MEDIUM) ];
+    } ;
     const size_t sizeof_control_un_medium =sizeof(control_un_single);
-    
-	union control_un_large{
-	  struct cmsghdr cm;
-	  char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_LARGE) ];
-	} ;
+
+    union control_un_large{
+        struct cmsghdr cm;
+        char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_LARGE) ];
+    } ;
     const size_t sizeof_control_un_large =sizeof(control_un_single);
-    
-	union control_un_verylarge{
-	  struct cmsghdr cm;
-	  char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_VERYLARGE) ];
-	} ;
+
+    union control_un_verylarge{
+        struct cmsghdr cm;
+        char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_VERYLARGE) ];
+    } ;
     const size_t sizeof_control_un_verylarge =sizeof(control_un_single);
     
 } // namespace ioutilitydefs
@@ -213,33 +213,32 @@ ssize_t SendFds(const int fd, const int * sendfdarray,const size_t fdarraylen, v
     else
         _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen)
         
-	struct msghdr	msg;
+    struct msghdr   msg;
     msg.msg_control = (void*)(control_un[0]);
     msg.msg_controllen = control_un.size();
-    
-	struct cmsghdr	*cmptr;
-	cmptr = CMSG_FIRSTHDR(&msg);
-	cmptr->cmsg_len  =CMSG_LEN( sizeof(int)*fdarraylen );
-	cmptr->cmsg_level = SOL_SOCKET;
-	cmptr->cmsg_type = SCM_RIGHTS;
+
+    struct cmsghdr  *cmptr;
+    cmptr = CMSG_FIRSTHDR(&msg);
+    cmptr->cmsg_len  =CMSG_LEN( sizeof(int)*fdarraylen );
+    cmptr->cmsg_level = SOL_SOCKET;
+    cmptr->cmsg_type = SCM_RIGHTS;
     for(size_t i=0;i<fdarraylen;i++)
         *( (int *) (CMSG_DATA(cmptr)+sizeof(int)*i) ) = sendfdarray[i]; 
 
-	msg.msg_name = NULL;
-	msg.msg_namelen = 0;
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
 
-	struct iovec	iov[1];
-	iov[0].iov_base = dataExtra;
-	iov[0].iov_len = dataExtraBytes;
-	msg.msg_iov = iov;
-	msg.msg_iovlen = 1;
+    struct iovec    iov[1];
+    iov[0].iov_base = dataExtra;
+    iov[0].iov_len = dataExtraBytes;
+    msg.msg_iov = iov;
+    msg.msg_iovlen = 1;
 
-	return (sendmsg(fd, &msg, 0));
+    return (sendmsg(fd, &msg, 0));
 }
 
 ssize_t RecvFds(const int fd, int *recvfdarray, const size_t fdarraylen, void *dataExtra, size_t dataExtraBytes)
 {
-
     std::string control_un(0,'\0');
     if(fdarraylen==1)
         control_un.resize(ioutilitydefs::sizeof_control_un_single);
@@ -255,25 +254,25 @@ ssize_t RecvFds(const int fd, int *recvfdarray, const size_t fdarraylen, void *d
         control_un.resize(ioutilitydefs::sizeof_control_un_verylarge);
     else
         _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen)
-	struct msghdr	msg;
+    struct msghdr   msg;
     msg.msg_control = (void*)(control_un[0]);
     msg.msg_controllen = control_un.size();
 
-	struct cmsghdr	*cmptr;
-	msg.msg_name = NULL;
-	msg.msg_namelen = 0;
+    struct cmsghdr  *cmptr;
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
 
-	struct iovec	iov[1];
-	iov[0].iov_base = dataExtra;
-	iov[0].iov_len = dataExtraBytes;
-	msg.msg_iov = iov;
-	msg.msg_iovlen = 1;
+    struct iovec    iov[1];
+    iov[0].iov_base = dataExtra;
+    iov[0].iov_len = dataExtraBytes;
+    msg.msg_iov = iov;
+    msg.msg_iovlen = 1;
 
-	ssize_t n =recvmsg(fd, &msg, 0);
-	if (n<=0)
-		return(n);
+    ssize_t n =recvmsg(fd, &msg, 0);
+    if (n<=0)
+        return(n);
 
-	if ( (cmptr = CMSG_FIRSTHDR(&msg)) != NULL 
+    if ( (cmptr = CMSG_FIRSTHDR(&msg)) != NULL 
           &&  cmptr->cmsg_len == CMSG_LEN(sizeof(int)*fdarraylen) 
        ) 
     {
@@ -290,11 +289,11 @@ ssize_t RecvFds(const int fd, int *recvfdarray, const size_t fdarraylen, void *d
     for(size_t i=0;i<fdarraylen;i++)
         recvfdarray[i] =*( (int *) (CMSG_DATA(cmptr)+sizeof(int)*i) ); // 找对正确的偏移量!!!
 
-	} 
+    } 
     else
-		recvfdarray[0] = -1;		// descriptor was not passed
+        recvfdarray[0] = -1;        // descriptor was not passed
 
-	return n;
+    return n;
 }
 
 

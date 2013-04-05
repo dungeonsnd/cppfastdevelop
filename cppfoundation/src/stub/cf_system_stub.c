@@ -238,12 +238,12 @@ cf_int cf_poll(struct pollfd *fds, nfds_t nfds, cf_int timeout)
 
 key_t cf_ftok(cf_cpstr pathname, cf_int id)
 {
-	if(ISNULL(pathname))
-	{
-		errno = CF_E_NULLPARAMS;
-		return -1;
-	}
-	return ftok(pathname,id);
+    if(ISNULL(pathname))
+    {
+        errno = CF_E_NULLPARAMS;
+        return -1;
+    }
+    return ftok(pathname,id);
 }
 
 
@@ -338,7 +338,7 @@ cf_int cf_shm_open(cf_cpstr name, cf_int oflag, mode_t mode)
 {
         if (ISNULL(name))
         {
-	     errno = CF_E_NULLPARAMS;
+         errno = CF_E_NULLPARAMS;
              return -1;
         }
         return shm_open(name, oflag, mode);
@@ -754,47 +754,47 @@ struct hostent *cf_gethostbyname(cf_cpstr name)
 sem_t *cf_sem_open(cf_cpstr name, cf_int oflag,
                        mode_t mode, cf_uint value)
 {
-	if (ISNULL(name))
-	{
-		errno = CF_E_NULLPARAMS;
-		return SEM_FAILED;
-	}
-	return sem_open(name,oflag,mode,value);
+    if (ISNULL(name))
+    {
+        errno = CF_E_NULLPARAMS;
+        return SEM_FAILED;
+    }
+    return sem_open(name,oflag,mode,value);
 }
 
 cf_int cf_sem_getvalue(sem_t *sem, cf_int *  sval)
 {
-	return sem_getvalue(sem, sval);
+    return sem_getvalue(sem, sval);
 }
 
 cf_int cf_sem_wait(sem_t *sem)
 {
-	return sem_wait(sem);
+    return sem_wait(sem);
 }
 
 cf_int cf_sem_trywait(sem_t *sem)
 {
-	return sem_trywait(sem);
+    return sem_trywait(sem);
 }
 
 cf_int cf_sem_post(sem_t *sem)
 {
-	return sem_post(sem);
+    return sem_post(sem);
 }
 
 cf_int cf_sem_unlink(cf_cpstr name)
 {
-	if (ISNULL(name))
-	{
-		errno = CF_E_NULLPARAMS;
-		return -1;
-	}
-	return sem_unlink(name);
+    if (ISNULL(name))
+    {
+        errno = CF_E_NULLPARAMS;
+        return -1;
+    }
+    return sem_unlink(name);
 }
 
 cf_int cf_sem_close(sem_t *sem)
 {
-	return sem_close(sem);
+    return sem_close(sem);
 }
 
 
@@ -835,10 +835,10 @@ cf_int cf_mkfifo(cf_cpstr pathname, mode_t mode)
     if(ISNULL(pathname))
     {
         errno = CF_E_NULLPARAMS;
-	return -1;
+    return -1;
     }
     else
-	return mkfifo(pathname, mode);
+    return mkfifo(pathname, mode);
 }
 
 cf_int cf_socketpair(cf_int domain, cf_int type, cf_int protocol, cf_int sv[2])
@@ -962,20 +962,20 @@ cf_int cf_getrlimit(cf_int resource, struct rlimit *rlp)
     if(ISNULL(rlp))
     {
         errno = CF_E_NULLPARAMS;
-	return -1;
+    return -1;
     }
     else
-	return getrlimit(resource, rlp);
+    return getrlimit(resource, rlp);
 }
 cf_int cf_setrlimit(cf_int resource, cf_const struct rlimit *rlp)
 {
     if(ISNULL(rlp))
     {
         errno = CF_E_NULLPARAMS;
-	return -1;
+    return -1;
     }
     else
-	return setrlimit(resource, rlp);
+    return setrlimit(resource, rlp);
 }
 
 cf_sighandler_t cf_signal(cf_int signum, cf_sighandler_t handler)
@@ -983,10 +983,10 @@ cf_sighandler_t cf_signal(cf_int signum, cf_sighandler_t handler)
     if(ISNULL(handler))
     {
         errno = CF_E_NULLPARAMS;
-	return SIG_ERR;
+    return SIG_ERR;
     }
     else
-	return signal(signum, handler);
+    return signal(signum, handler);
 }
 
 cf_int cf_access(cf_cpstr pathname, cf_int mode)

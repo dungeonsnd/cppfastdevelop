@@ -122,14 +122,14 @@ cf_void RawPthreadMutex::TryLock() cf_const
 
 
 PosixSemaphore::PosixSemaphore(cf_const std::string &name, mode_t mode,bool autoClose):
-	      _name(name),_autoClose(autoClose)
+          _name(name),_autoClose(autoClose)
 {
     this->open(name.c_str(), mode);
 }
 cf_void PosixSemaphore::open(cf_const std::string &name, mode_t mode, cf_uint defaultValue)
 {
     if ( SEM_FAILED==(_sem=cf_sem_open(name.c_str(), lockdefs::FLAG_CREATE,
-				mode, defaultValue)) )
+                mode, defaultValue)) )
         _THROW(SyscallExecuteError, "Failed to execute cf_sem_open !")
 }
 
@@ -151,9 +151,9 @@ cf_void PosixSemaphore::TryLock() cf_const
 {
     if (0 != cf_sem_trywait(_sem))
     {
-	if(EAGAIN==errno)
+    if(EAGAIN==errno)
         _THROW(WouldBlockInfo, "Failed to execute cf_sem_trywait, would block !")
-	else
+    else
         _THROW(SyscallExecuteError, "Failed to execute cf_sem_trywait !")
     }    
 }
@@ -177,7 +177,7 @@ cf_void PosixSemaphore::Close()
 PosixSemaphore::~PosixSemaphore()
 {
     if(_autoClose)
-	Close();
+    Close();
 }
 
 
@@ -241,7 +241,7 @@ cf_void RawPthreadRWMutex::UnLock() cf_const
 
 
 RawFileRWMutex::RawFileRWMutex(cf_const std::string &file)
-	:_fd(cf_open(file.c_str(), lockdefs::FLAG_CREATE, lockdefs::MODE_DEFAULT))
+    :_fd(cf_open(file.c_str(), lockdefs::FLAG_CREATE, lockdefs::MODE_DEFAULT))
 {
     if (_fd == -1)
         _THROW(SyscallExecuteError, "Failed to execute cf_open !")
@@ -294,9 +294,9 @@ cf_void RawFileRWMutex::TryWriteLock()cf_const
     cf_int rt =cf_fcntl(_fd, F_SETLK, &lock);
     if(-1==rt)
     {
-	if(EACCES==rt || EAGAIN==rt)
+    if(EACCES==rt || EAGAIN==rt)
         _THROW_FMT(AlreadyLockedInfo, "Failed to execute cf_fcntl , rt=%d , already locked!",rt)
-	else
+    else
         _THROW(SyscallExecuteError, "Failed to execute cf_fcntl !")
     }
 }
@@ -327,7 +327,7 @@ bool RawFileRWMutex::IsLock()cf_const
         if(F_UNLCK == lock.l_type)
             locked =false;
     }
-    return locked;	
+    return locked;  
 }
 bool RawFileRWMutex::IsLock(pid_t  lockedpid)cf_const
 {
@@ -336,7 +336,7 @@ bool RawFileRWMutex::IsLock(pid_t  lockedpid)cf_const
     lock.l_whence = SEEK_SET;
     lock.l_start = 0;
     lock.l_len = 0;
-	  lock.l_pid = -1;
+      lock.l_pid = -1;
     cf_int rt = cf_fcntl(_fd, F_GETLK, &lock);
     bool locked =true;
     if (-1==rt)
@@ -345,15 +345,15 @@ bool RawFileRWMutex::IsLock(pid_t  lockedpid)cf_const
     {
         if(F_UNLCK == lock.l_type)
             locked =false;
-	else
-	    lockedpid =lock.l_pid;
+    else
+        lockedpid =lock.l_pid;
     }
-    return locked;	
+    return locked;  
 }
 RawFileRWMutex::~RawFileRWMutex()
 {
     cf_close(_fd);
-    _fd = -1;	
+    _fd = -1;   
 }
 
 

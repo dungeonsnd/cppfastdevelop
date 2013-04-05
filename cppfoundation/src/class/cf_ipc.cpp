@@ -24,8 +24,8 @@ namespace cf
 
   
 PosixMsgQ::PosixMsgQ(cf_cpstr name,cf_int oflag, mode_t mode,
-		       bool autoUnlink,bool autoClose):
-	  _name(name),_autoUnlink(autoUnlink),_autoClose(autoClose)
+               bool autoUnlink,bool autoClose):
+      _name(name),_autoUnlink(autoUnlink),_autoClose(autoClose)
 {
     if ( -1==(_fd=cf_mq_open(name,oflag,mode,NULL)) )
         _THROW(SyscallExecuteError, "Failed to execute cf_mq_open !")
@@ -62,7 +62,7 @@ cf_void PosixMsgQ::Send(cf_cpstr msg_ptr,size_t msg_len, cf_uint msg_prio)
         _THROW(SyscallExecuteError, "Failed to execute cf_mq_send !")
 }
 cf_void PosixMsgQ::Send(cf_cpstr msg_ptr,size_t msg_len, cf_uint msg_prio,
-		      cf_const struct timespec *abs_timeout)
+              cf_const struct timespec *abs_timeout)
 {
     if(0!=cf_mq_timedsend(_fd, msg_ptr,msg_len, msg_prio,abs_timeout))
         _THROW(SyscallExecuteError, "Failed to execute cf_mq_timedsend !")
@@ -76,7 +76,7 @@ ssize_t PosixMsgQ::Recv(cf_char * msg_ptr,size_t msg_len, cf_uint *  msg_prio)
     return rt;
 }
 ssize_t PosixMsgQ::Recv(cf_char * msg_ptr,size_t msg_len, cf_uint *  msg_prio,
-		      cf_const struct timespec *abs_timeout)
+              cf_const struct timespec *abs_timeout)
 {
     ssize_t rt =0;
     if( -1==(rt=cf_mq_timedreceive(_fd, msg_ptr,msg_len, msg_prio,abs_timeout)) )
@@ -215,7 +215,7 @@ off_t MemMappedFile::GetSize() cf_const
 }
 
 PosixShM::PosixShM(cf_cpstr name, size_t size, cf_int oflag, cf_int prot , mode_t mode,
-	  bool autoUnlink,bool autoClose):
+      bool autoUnlink,bool autoClose):
      _name(name),
      _size(size),
      _autoUnlink(autoUnlink),
@@ -245,7 +245,7 @@ PosixShM::~PosixShM()
 cf_pvoid PosixShM::Mmap(cf_int fd, cf_int prot)
 {   
     cf_pvoid pShm = cf_mmap(NULL,_size, prot,
-				ipcdefs::MMAPFLAG_DEFAULT, fd, 0);    
+                ipcdefs::MMAPFLAG_DEFAULT, fd, 0);    
     if ( MAP_FAILED==pShm )
         _THROW(SyscallExecuteError, "Failed to execute cf_mmap !")
     return pShm;

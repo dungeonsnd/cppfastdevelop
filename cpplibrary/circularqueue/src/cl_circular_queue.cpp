@@ -177,7 +177,7 @@ cf_void CircularQueue::CheckProcessAndRestoreLock()
 {
     pid_t & pid =_qMetaOp->OperationPid();
     if(pid<=0)
-	return ; // ok
+    return ; // ok
 
     cf_char proc[64] = {0};
     cf_snprintf(proc, sizeof(proc), "/proc/%d/",pid);

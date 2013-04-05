@@ -33,8 +33,8 @@ public:
     }
     ~PthreadCondAttrGuard()
     {
-	if(0!=pthread_condattr_destroy(&_Attr))
-	    ;
+    if(0!=pthread_condattr_destroy(&_Attr))
+        ;
     }
 private:
     pthread_condattr_t & _Attr;

@@ -29,20 +29,20 @@ namespace cf
 
 namespace lockdefs
 {
-	enum {
-		MODE_DEFAULT = (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH)
-	};
-	enum {
-		FLAG_CREATE_EXCL = (O_RDWR|O_CREAT|O_EXCL),
-		FLAG_CREATE = (O_RDWR|O_CREAT),
-		FLAG_RDWR = O_RDWR,
-		FLAG_RD = O_RDONLY,
-		FLAG_WR = O_WRONLY
-	};
-	enum LOCK_TYPE {
-		READ,
-		WRITE
-	};
+    enum {
+        MODE_DEFAULT = (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH)
+    };
+    enum {
+        FLAG_CREATE_EXCL = (O_RDWR|O_CREAT|O_EXCL),
+        FLAG_CREATE = (O_RDWR|O_CREAT),
+        FLAG_RDWR = O_RDWR,
+        FLAG_RD = O_RDONLY,
+        FLAG_WR = O_WRONLY
+    };
+    enum LOCK_TYPE {
+        READ,
+        WRITE
+    };
 } // namespace lockdefs
 
 
@@ -105,8 +105,8 @@ class PosixSemaphore : public NonCopyable
 public:
 
     PosixSemaphore(cf_const std::string &name,
-				mode_t mode = lockdefs::MODE_DEFAULT,
-				bool autoClose=true);
+                mode_t mode = lockdefs::MODE_DEFAULT,
+                bool autoClose=true);
     ~PosixSemaphore();
     cf_int GetValue() cf_const;
     cf_void Lock() cf_const;
@@ -140,17 +140,17 @@ private:
 class RawFileRWMutex : public NonCopyable
 {
 public:
-	  RawFileRWMutex(cf_const std::string &file);
-	  ~RawFileRWMutex();
-	  cf_void ReadLock() cf_const;
-	  cf_void TryReadLock() cf_const;	  
-	  cf_void WriteLock() cf_const;
-	  cf_void TryWriteLock() cf_const;
-	  cf_void UnLock() cf_const;
-	  bool IsLock() cf_const;
-	  bool IsLock(pid_t  lockedpid) cf_const;
+      RawFileRWMutex(cf_const std::string &file);
+      ~RawFileRWMutex();
+      cf_void ReadLock() cf_const;
+      cf_void TryReadLock() cf_const;     
+      cf_void WriteLock() cf_const;
+      cf_void TryWriteLock() cf_const;
+      cf_void UnLock() cf_const;
+      bool IsLock() cf_const;
+      bool IsLock(pid_t  lockedpid) cf_const;
 private:
-	  cf_int _fd;
+      cf_int _fd;
 };
 
 template < typename T_RawRWMutex =RawPthreadRWMutex >
@@ -216,8 +216,8 @@ public:
     }
 
     FileWriteLock(cf_const std::string &fileName)
-		  : RWMutex<RawFileRWMutex>(NewWithException(fileName)),
-		    _fileLock((RawFileRWMutex*)&_lock)
+          : RWMutex<RawFileRWMutex>(NewWithException(fileName)),
+            _fileLock((RawFileRWMutex*)&_lock)
     {
     }
     ~FileWriteLock()

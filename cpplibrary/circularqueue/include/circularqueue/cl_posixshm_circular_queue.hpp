@@ -58,8 +58,8 @@ public:
     cf_void TryGet(std::string & data) { _queue->TryGet(data); }
     cf_void TimedGet(std::string & data,cf_int32 timeoutMilliseconds) { _queue->TimedGet(data,timeoutMilliseconds); }
 protected:
-	std::shared_ptr < cf::PosixShM > _shm;
-	std::shared_ptr < CircularQueue > _queue;
+    std::shared_ptr < cf::PosixShM > _shm;
+    std::shared_ptr < CircularQueue > _queue;
 };
 
 } // namespace cq

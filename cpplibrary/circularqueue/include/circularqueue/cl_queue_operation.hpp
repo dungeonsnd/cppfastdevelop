@@ -83,41 +83,41 @@ class ElementOp : public QueueOperation
 {
 public:
     enum eQueueScene{
-	QUEUE_SCENE1=1, // head > tail
-	QUEUE_SCENE2=2, // head < tail
-	QUEUE_SCENE3=3, // head == tail,count=0
-	QUEUE_SCENE4=4 // head == tail,count!=0
+    QUEUE_SCENE1=1, // head > tail
+    QUEUE_SCENE2=2, // head < tail
+    QUEUE_SCENE3=3, // head == tail,count=0
+    QUEUE_SCENE4=4 // head == tail,count!=0
     };
     
     enum eWriteCase{
-	QUEUE_CASE1=1, // over-head>sizeof(Element) , write all element.
-	QUEUE_CASE2=2, // over-head=sizeof(Element) , write all element.
-	QUEUE_CASE3=3, // over-head<sizeof(ElementHeader) , only write some header.
-	QUEUE_CASE4=4, // over-head>sizeof(ElementHeader) && over-head<sizeof(Element), only write some body.
-	QUEUE_CASE5=5 // over-head=sizeof(ElementHeader) , only write header.
+    QUEUE_CASE1=1, // over-head>sizeof(Element) , write all element.
+    QUEUE_CASE2=2, // over-head=sizeof(Element) , write all element.
+    QUEUE_CASE3=3, // over-head<sizeof(ElementHeader) , only write some header.
+    QUEUE_CASE4=4, // over-head>sizeof(ElementHeader) && over-head<sizeof(Element), only write some body.
+    QUEUE_CASE5=5 // over-head=sizeof(ElementHeader) , only write header.
     };
     
     ElementOp(PQMeta pMeta):_pMeta(pMeta)
     {
-	_pQueue =_pMeta->elementBegin;	
+    _pQueue =_pMeta->elementBegin;  
     }
     virtual ~ElementOp(){}
     cf_void Write(cf_cpvoid pData,cf_const cf_uint64 size)
     {
-	checkPointer();
-	write(pData,size);
+    checkPointer();
+    write(pData,size);
     }
     cf_void Read(std::string & data)
     {
-	checkPointer();
-	read(data);
+    checkPointer();
+    read(data);
     }
 
 private:
     inline cf_void checkPointer() cf_const
     {
-	if(NULL==_pMeta)
-	    _THROW(cf::NullPointerError, "NULL==_pMeta !")
+    if(NULL==_pMeta)
+        _THROW(cf::NullPointerError, "NULL==_pMeta !")
     }
     
     eQueueScene QueueScene() cf_const;

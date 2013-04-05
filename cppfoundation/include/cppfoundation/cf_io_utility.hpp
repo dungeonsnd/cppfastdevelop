@@ -28,13 +28,13 @@ namespace cf
 
 namespace ioutilitydefs
 {
-	enum {
-		SEND_FDS_SUMMAX_TINY = 4,
-		SEND_FDS_SUMMAX_SMALL = 16,
-		SEND_FDS_SUMMAX_MEDIUM = 32,
-		SEND_FDS_SUMMAX_LARGE = 64,
-		SEND_FDS_SUMMAX_VERYLARGE = 128
-	};
+    enum {
+        SEND_FDS_SUMMAX_TINY = 4,
+        SEND_FDS_SUMMAX_SMALL = 16,
+        SEND_FDS_SUMMAX_MEDIUM = 32,
+        SEND_FDS_SUMMAX_LARGE = 64,
+        SEND_FDS_SUMMAX_VERYLARGE = 128
+    };
 } // namespace ioutilitydefs
 
 cf_void SetBlocking(cf_int sockfd,bool blocking);

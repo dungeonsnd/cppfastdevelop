@@ -30,13 +30,13 @@ class LockGuard : public NonCopyable
 {
 public:
     LockGuard(cf_const T & lock):_lock(lock)
-	{
-		_lock.Lock();
-	}
+    {
+        _lock.Lock();
+    }
     ~LockGuard()
-	{
-		_lock.UnLock();
-	}
+    {
+        _lock.UnLock();
+    }
 private:
     cf_const T & _lock;
 };
@@ -49,13 +49,13 @@ public:
     PtrLockGuard(cf_const T * lock):_lock(lock)
     {
         if(NULL == _lock)
-			_THROW(NullPointerError, "NULL == _lock !")
+            _THROW(NullPointerError, "NULL == _lock !")
         _lock->Lock();
     }
     ~PtrLockGuard()
-	{
-		_lock->UnLock();
-	}
+    {
+        _lock->UnLock();
+    }
 private:
     cf_const T * _lock;
 };

@@ -28,16 +28,16 @@ namespace cf
     
 namespace ipcdefs
 {
-	enum {
-		MODE_DEFAULT = (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH)
-	};
-	enum {
-		FLAG_CREATE_EXCL = (O_RDWR|O_CREAT|O_EXCL),
-		FLAG_CREATE = (O_RDWR|O_CREAT),
-		FLAG_RDWR = O_RDWR,
-		FLAG_RD = O_RDONLY,
-		FLAG_WR = O_WRONLY
-	};
+    enum {
+        MODE_DEFAULT = (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH)
+    };
+    enum {
+        FLAG_CREATE_EXCL = (O_RDWR|O_CREAT|O_EXCL),
+        FLAG_CREATE = (O_RDWR|O_CREAT),
+        FLAG_RDWR = O_RDWR,
+        FLAG_RD = O_RDONLY,
+        FLAG_WR = O_WRONLY
+    };
     
     enum{
         PROT_DEFAULT=PROT_READ|PROT_WRITE
@@ -53,25 +53,25 @@ class Pipe : public NonCopyable
 public:
     
     Pipe(cf_int type=SOCK_STREAM,bool autoClose=true):
-			_pipe(type,autoClose)
-	{
-	}
+            _pipe(type,autoClose)
+    {
+    }
     ~Pipe()
-	{
-	}
+    {
+    }
     
     inline cf_int Get0() cf_const
-	{
-		return _pipe.Get0();
-	}
+    {
+        return _pipe.Get0();
+    }
     inline cf_int Get1() cf_const
-	{
-		return _pipe.Get1();
-	}  
+    {
+        return _pipe.Get1();
+    }  
     inline cf_int operator[](cf_int index)
-	{
-		return _pipe[index];
-	}  
+    {
+        return _pipe[index];
+    }  
 private:
     PipeType _pipe;
 };
@@ -80,44 +80,44 @@ class SocketpairPipe : public NonCopyable
 {
 public:
     enum{
-		SOCKETPROTOCOL_DEFAULT=0
+        SOCKETPROTOCOL_DEFAULT=0
     };
     
     SocketpairPipe(cf_int type=SOCK_STREAM,bool autoClose=true):
-			_autoClose(autoClose)
-	{
-		if(0!=cf_socketpair(AF_LOCAL, type, SOCKETPROTOCOL_DEFAULT, _fds) )
+            _autoClose(autoClose)
+    {
+        if(0!=cf_socketpair(AF_LOCAL, type, SOCKETPROTOCOL_DEFAULT, _fds) )
             _THROW(SyscallExecuteError, "Failed to execute cf_socketpair !")
-	}
+    }
     ~SocketpairPipe()
-	{
-		if(_autoClose)
-		{
-			cf_close(_fds[0]);
-			cf_close(_fds[1]);
-		}
-	}
+    {
+        if(_autoClose)
+        {
+            cf_close(_fds[0]);
+            cf_close(_fds[1]);
+        }
+    }
     
     inline cf_int Get0() cf_const
-	{
-		return _fds[0];
-	}
+    {
+        return _fds[0];
+    }
     inline cf_int Get1() cf_const
-	{
-		return _fds[1];
-	}  
+    {
+        return _fds[1];
+    }  
     inline cf_int operator[](cf_int index)
-	{
-		if(0==index)
-			return Get0();
-		else if(1==index)
-			return Get1();
-		else
-		{
+    {
+        if(0==index)
+            return Get0();
+        else if(1==index)
+            return Get1();
+        else
+        {
             _THROW(ValueError, "Index error !")
-			return NULL;
-		}
-	}  
+            return NULL;
+        }
+    }  
 private:
     cf_int _fds[2];
     bool _autoClose;
@@ -128,12 +128,12 @@ class MsgQ : public NonCopyable
 {
 public:
     MsgQ()
-	{
+    {
         _THROW(UnimplementedError, "Unsupported temporarily !")
-	}
+    }
     ~MsgQ()
-	{
-	}
+    {
+    }
     cf_void Send(cf_cpstr msg_ptr,size_t msg_len)
     {
     }
@@ -149,18 +149,18 @@ class PosixMsgQ : public NonCopyable
 {
 public:
     PosixMsgQ(cf_cpstr name,cf_int oflag = ipcdefs::FLAG_CREATE, 
-		      mode_t mode = ipcdefs::MODE_DEFAULT,bool autoUnlink=false,bool autoClose=true);
+              mode_t mode = ipcdefs::MODE_DEFAULT,bool autoUnlink=false,bool autoClose=true);
     ~PosixMsgQ();
     
     cf_void Getattr(struct mq_attr * attr);
     cf_void Setattr(struct mq_attr *newattr,struct mq_attr *oldattr);
     cf_void Send(cf_cpstr msg_ptr,size_t msg_len, cf_uint msg_prio);
     cf_void Send(cf_cpstr msg_ptr,size_t msg_len, cf_uint msg_prio,
-			  cf_const struct timespec *abs_timeout);
+              cf_const struct timespec *abs_timeout);
     
     ssize_t Recv(cf_char * msg_ptr,size_t msg_len, cf_uint *  msg_prio);
     ssize_t Recv(cf_char * msg_ptr,size_t msg_len, cf_uint *  msg_prio,
-		      cf_const struct timespec *abs_timeout);
+              cf_const struct timespec *abs_timeout);
 
     cf_void Notify(cf_const struct sigevent *sevp);
 private:
@@ -192,7 +192,7 @@ class MemMappedFile : public NonCopyable
 {
 public:
     MemMappedFile(cf_const std::string & name, size_t size, cf_int prot =ipcdefs::PROT_DEFAULT, 
-				bool lock = false,bool autoUnmap =true);
+                bool lock = false,bool autoUnmap =true);
     ~MemMappedFile();
     cf_pvoid Get() cf_const;
     off_t GetSize() cf_const;
@@ -213,9 +213,9 @@ class PosixShM : public NonCopyable
 {
 public:
     PosixShM(cf_cpstr name, size_t size, cf_int oflag = ipcdefs::FLAG_CREATE, 
-		      cf_int prot =ipcdefs::PROT_DEFAULT,
-		      mode_t mode = ipcdefs::MODE_DEFAULT,
-		      bool autoUnlink =false,bool autoClose =true);
+              cf_int prot =ipcdefs::PROT_DEFAULT,
+              mode_t mode = ipcdefs::MODE_DEFAULT,
+              bool autoUnlink =false,bool autoClose =true);
     ~PosixShM();
     cf_pvoid Get() cf_const;
     cf_const std::string &GetName() cf_const;
@@ -238,7 +238,7 @@ class SysVShM : public NonCopyable
 {
 public:
     SysVShM(key_t key, size_t size, cf_int shmFlag = IPC_CREAT|ipcdefs::MODE_DEFAULT,
-		    bool autoRemove =false,bool autoDetach =true);
+            bool autoRemove =false,bool autoDetach =true);
     ~SysVShM();
     cf_pvoid GetShm() cf_const;
     cf_void  Detach();
