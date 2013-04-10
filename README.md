@@ -14,7 +14,7 @@ WE PROVIDE:
 
 ATTENTION:
 
-1.We'll never try to replace boost,poco,tbbase(tbnet) or any other c++ library.
+1.We'll never try to replace boost,poco,tbsys(tbnet) or any other c++ library.
   The "cfd" project only helps you to develop more easily when using cplusplus and other libraries are complementary to the "cfd" project. It gives you some choices to choose libraries . You may use "cf" as the main foundation classes.
   
 2."cfd" will be compatible with linux and bsd ( maybe also mac os x ,ibm aix and windows , if we have enough time to do that ).
