@@ -36,10 +36,14 @@ public:
     Handler()
     {
     }
-    ~Handler()
+    virtual ~Handler()
     {
     }
-    void OnAccept(int epfd, int fd)
+    virtual void OnAcceptComplete(cf_int fd) =0;
+    virtual void OnReadComplete(cf_int fd, void * buff, cf_uint32 bytes) =0;
+    virtual void OnWriteComplete(cf_int fd, cf_uint32 bytes) =0;
+
+    void Accept(int epfd, int fd)
     {
         struct sockaddr in_addr;
         socklen_t in_len =sizeof(in_addr);
@@ -68,32 +72,28 @@ public:
                 ; //Log.
             
             cf::SetBlocking(clientfd,false);
-            struct epoll_event event;
-            event.data.fd = clientfd;
-            event.events = EPOLLIN;
-            if (-1==cf_epoll_ctl (epfd, EPOLL_CTL_ADD, clientfd, &event))
-                _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
+            OnAcceptComplete(clientfd);
         }
     }
-    void OnRead(int fd)
+    void Read(int fd)
     {
         // cf_read
         // _netbuf.append()
     }
-    void OnWrite(int fd)
+    void Write(int fd)
     {
         // cf_write
         // _netbuf.remove()
     }
-    void OnTimeout()
+    void Timeout()
     {
     }
-    void OnClose(int fd)
+    void Close(int fd)
     {
         // cf_close
         // _netbuf.erase(fd)
     }
-    void OnError(int fd)
+    void Error(int fd)
     {
         // cf_close
         // _netbuf.erase(fd)

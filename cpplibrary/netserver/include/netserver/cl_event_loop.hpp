@@ -30,6 +30,7 @@ namespace cl
 namespace ns
 {
 
+template < typename HandlerType >
 class Epoll : public cf::NonCopyable
 {
 public:
@@ -50,6 +51,22 @@ public:
         int rt =close(_epfd);
         rt =0; // TODO: Log warning.
     }
+    
+    void AsyncRead(cf_int fd, cf_uint32 bytes)
+    {
+        _event.data.fd = fd;
+        _event.events = EPOLLIN | EPOLLONESHOT;
+        if (-1==cf_epoll_ctl (_epfd, EPOLL_CTL_ADD, _listenfd, &_event))
+            _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
+    }
+    void AsyncWrite(cf_int fd, const void * buff, cf_uint32 bytes)
+    {
+        _event.data.fd = fd;
+        _event.events = EPOLLOUT;
+        if (-1==cf_epoll_ctl (_epfd, EPOLL_CTL_DEL, _listenfd, &_event))
+            _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
+    }
+    
     cf_void WaitEvents(cf_int32 timeoutMilliseconds)
     {
         int n,i;
@@ -66,21 +83,21 @@ public:
                         if (!(_events[i].events & EPOLLIN))
                             continueloop =false;
                         else
-                            _handler.OnAccept(_epfd, _events[i].data.fd);
+                            _handler.Accept(_epfd, _events[i].data.fd);
                     }
                     else if (_events[i].events & EPOLLIN)
-                        _handler.OnRead(_events[i].data.fd);
+                        _handler.Read(_events[i].data.fd);
                     else if (_events[i].events & EPOLLOUT)
-                        _handler.OnWrite(_events[i].data.fd);
+                        _handler.Write(_events[i].data.fd);
                     else if (_events[i].events & EPOLLRDHUP)
-                        _handler.OnClose(_events[i].data.fd);
+                        _handler.Close(_events[i].data.fd);
                     else if (_events[i].events & EPOLLERR)
-                        _handler.OnError(_events[i].data.fd);
+                        _handler.Error(_events[i].data.fd);
                 }
             }
             else if(0==n)
             {
-                _handler.OnTimeout();
+                _handler.Timeout();
             }
             else 
                 _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_wait !")
@@ -94,7 +111,7 @@ private:
     struct epoll_event _event;
     std::vector < struct epoll_event > _events;
     
-    Handler _handler;
+    HandlerType _handler;
 };
 
 template < typename demux >
