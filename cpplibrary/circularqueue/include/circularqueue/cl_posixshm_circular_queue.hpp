@@ -31,7 +31,7 @@ namespace cq
 class PosixShmCircularQueue : public cf::NonCopyable
 {
 public:
-    PosixShmCircularQueue(cf_const std::string & name,bool creator,cf_uint64 memSize,       cf_int oflag = cf::ipcdefs::FLAG_RDWR,mode_t mode =cf::ipcdefs::MODE_DEFAULT)
+    PosixShmCircularQueue(cf_const std::string & name,bool creator,cf_uint64 memSize,cf_int oflag = cf::ipcdefs::FLAG_RDWR,mode_t mode =cf::ipcdefs::MODE_DEFAULT)
     {
         cf_int prot =cf::ipcdefs::PROT_DEFAULT;
         

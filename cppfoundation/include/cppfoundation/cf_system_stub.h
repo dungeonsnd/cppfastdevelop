@@ -82,6 +82,13 @@ cf_int cf_unlink(cf_cpstr pathname);
 struct hostent *cf_gethostbyname(cf_cpstr name);
 cf_int cf_socketpair(cf_int domain, cf_int type, cf_int protocol, cf_int sv[2]);
 
+cf_int cf_getaddrinfo(cf_const cf_char *node, cf_const cf_char *service,
+                cf_const struct addrinfo *hints,
+                struct addrinfo **res);
+cf_void cf_freeaddrinfo(struct addrinfo *res);
+cf_const cf_char * cf_gai_strerror(cf_int errcode);
+
+
 // SystemV message queue.
 cf_int cf_msgget(key_t key,cf_int oflag);
 cf_int cf_msgsnd(cf_int msqid, cf_cpvoid  buf, size_t length, cf_int flag);
@@ -183,14 +190,16 @@ cf_int cf_select(cf_int nfds, fd_set * readfds, fd_set * writefds,
 cf_int cf_poll(struct pollfd * fds, nfds_t nfds, cf_int timeout);
 #ifdef __linux__
 cf_int cf_epoll_wait(cf_int epfd, struct epoll_event * events,
-                   cf_int maxevents, cf_int timeout);
+                   cf_int maxevents, cf_int timeoutMS);
 cf_int cf_epoll_ctl(cf_int epfd, cf_int op, cf_int fd, struct epoll_event * event);
 cf_int cf_epoll_create(cf_int size);
+cf_int cf_epoll_create1(cf_int flags);
 
 cf_int cf_backtrace(cf_ppvoid buffer, cf_int size);
 cf_char **  cf_backtrace_symbols(cf_pcpvoid buffer, cf_int size);
 #endif // __linux__
 
+//
 
 #ifdef __cplusplus
 }

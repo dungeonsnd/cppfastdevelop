@@ -93,8 +93,12 @@ public:
     {
         if(_autoClose)
         {
-            cf_close(_fds[0]);
-            cf_close(_fds[1]);
+            int rt =cf_close(_fds[0]);
+            if(0!=rt)
+                ;
+            rt =cf_close(_fds[1]);
+            if(0!=rt)
+                ;
         }
     }
     

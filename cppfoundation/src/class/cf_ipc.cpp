@@ -35,12 +35,12 @@ PosixMsgQ::~PosixMsgQ()
     if(_autoUnlink)
     {
        if(0!=cf_mq_unlink(_name.c_str()))
-            _THROW(SyscallExecuteError, "Failed to execute cf_mq_unlink !")
+            ;//_THROW(SyscallExecuteError, "Failed to execute cf_mq_unlink !")
     }
     if(_autoClose)
     {
        if(0!=cf_mq_close(_fd))
-            _THROW(SyscallExecuteError, "Failed to execute cf_mq_close !")
+            ;//_THROW(SyscallExecuteError, "Failed to execute cf_mq_close !")
     }
 }
 
@@ -106,7 +106,7 @@ SysVMsgQ::~SysVMsgQ()
     if(_autoRemove)
     {
         if(0!=cf_msgctl(_msgId, IPC_RMID, NULL))
-            _THROW(SyscallExecuteError, "Failed to execute cf_msgctl !")
+            ;//_THROW(SyscallExecuteError, "Failed to execute cf_msgctl !")
     }
 }
 cf_void SysVMsgQ::Send(cf_cpvoid buf, size_t len) cf_const
@@ -176,7 +176,7 @@ cf_void MemMappedFile::Munmap()
     if (_pShm == MAP_FAILED)
         return;
     if (0!=cf_munmap(_pShm, _size))
-        _THROW(SyscallExecuteError, "Failed to execute cf_munmap !")
+        ;//_THROW(SyscallExecuteError, "Failed to execute cf_munmap !")
 }
 
 cf_pvoid MemMappedFile::Mmap(cf_int fd, cf_int prot)

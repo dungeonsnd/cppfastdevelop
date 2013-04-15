@@ -846,6 +846,23 @@ cf_int cf_socketpair(cf_int domain, cf_int type, cf_int protocol, cf_int sv[2])
     return socketpair(domain, type, protocol, sv);
 }
 
+cf_int cf_getaddrinfo(cf_const cf_char *node, cf_const cf_char *service,
+                cf_const struct addrinfo *hints,
+                struct addrinfo **res)
+{
+    return getaddrinfo(node,service,hints,res);
+}
+
+cf_void cf_freeaddrinfo(struct addrinfo *res)
+{
+    freeaddrinfo(res);
+}
+
+cf_const cf_char * cf_gai_strerror(cf_int errcode)
+{
+    return gai_strerror(errcode);
+}
+
 mqd_t cf_mq_open(cf_cpstr name, cf_int oflag, mode_t mode,struct mq_attr *attr)
 {
     if(ISNULL(name))
@@ -1039,5 +1056,13 @@ cf_int cf_epoll_create(cf_int size)
     }
     return epoll_create(size);
 }
+
+cf_int cf_epoll_create1(cf_int flags)
+{
+    return epoll_create1(flags);
+}
+
+
+
 #endif
        

@@ -42,6 +42,7 @@
 #include <sys/un.h>
 #include <poll.h>
 #include <arpa/inet.h>
+#include <netdb.h> // getaddrinfo
 
 #include <netdb.h>
 extern int h_errno;

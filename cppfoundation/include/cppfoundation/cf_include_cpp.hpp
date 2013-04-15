@@ -47,7 +47,7 @@
 // shared_ptr support.
 #if defined(__GNUC__) && __GNUC__ >= 4
     #ifndef __GXX_EXPERIMENTAL_CXX0X__ // std::tr1
-        #pragma message("$$$$ Using shared_ptr from <tr1/memory> !")
+//        #pragma message("$$$$ Using shared_ptr from <tr1/memory> !")
         #include <tr1/memory>
         namespace std 
         {
@@ -62,11 +62,11 @@
             using tr1::weak_ptr;
         }
     #else
-        #pragma message("$$$$ Using shared_ptr from <memory> !")
+//        #pragma message("$$$$ Using shared_ptr from <memory> !")
         #include <memory>
     #endif // __GXX_EXPERIMENTAL_CXX0X__
 #else
-    #pragma message("$$$$ Using shared_ptr from <boost/tr1/memory.hpp> !")
+//    #pragma message("$$$$ Using shared_ptr from <boost/tr1/memory.hpp> !")
     #include <boost/tr1/memory.hpp> // boost tr1
     namespace std 
     {

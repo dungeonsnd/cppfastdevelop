@@ -37,6 +37,14 @@ namespace ioutilitydefs
     };
 } // namespace ioutilitydefs
 
+// Create socket and bind it to the port.
+// return created socket, >0 successful, <0 Could not bind, or throw exception .
+int CreateServerSocket(const int port,const int socktype =SOCK_STREAM,const int backlog =32);
+
+// Create socket and bind it to the port.
+// return created socket, >0 successful, <0 Could not bind, or throw exception .
+int CreateLocalServerSocket(const std::string & path,const int socktype =SOCK_STREAM,const int backlog =32);
+
 cf_void SetBlocking(cf_int sockfd,bool blocking);
 
 // Just test socket fd is broken approximately!

@@ -22,7 +22,7 @@ if [ $REBUILD_ALL -eq 1 ] ; then
     make cleanall
 fi
 make
-cd ../../
+cd ..
 
 
 if [ $CLEAN_TMP -eq 1 ] ; then
