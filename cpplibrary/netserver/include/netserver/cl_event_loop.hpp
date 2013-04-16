@@ -30,46 +30,42 @@ namespace cl
 namespace ns
 {
 
-template < typename HandlerType >
 class Epoll : public cf::NonCopyable
 {
 public:
-    Epoll(cf_int listenfd, const int maxevents =256, cf_int createFlags =0):
+    Epoll(cf_int listenfd,IOComplete & iocomplete,cf_const cf_int maxevents =256, cf_int createFlags =0):
         _listenfd(listenfd),
+        _epfd(epoll_create1(createFlags)),
+        _handler(_listenfd,_epfd,iocomplete),
         _maxevents(maxevents)
     {
+        if(-1==_epfd)
+            _THROW(cf::SyscallExecuteError, "Failed to execute epoll_create1 !")
         cf::SetBlocking(_listenfd,false);
-        _epfd = epoll_create1(createFlags);
-        
-        _event.data.fd = _listenfd;
-        _event.events = EPOLLIN;
-        if (-1==cf_epoll_ctl (_epfd, EPOLL_CTL_ADD, _listenfd, &_event))
-            _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
+        cf::AddEventEpoll(_epfd, _listenfd,_event,EPOLLIN);
     }
     ~Epoll()
     {
-        int rt =close(_epfd);
+        cf_int rt =close(_epfd);
         rt =0; // TODO: Log warning.
     }
     
-    void AsyncRead(cf_int fd, cf_uint32 bytes)
+    cf_void AsyncRead(cf_int fd, cf_uint32 bytes)
     {
-        _event.data.fd = fd;
-        _event.events = EPOLLIN | EPOLLONESHOT;
-        if (-1==cf_epoll_ctl (_epfd, EPOLL_CTL_ADD, _listenfd, &_event))
-            _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
+        _handler.AsyncRead(fd, bytes);
     }
-    void AsyncWrite(cf_int fd, const void * buff, cf_uint32 bytes)
+    cf_void AsyncWrite(cf_int fd, cf_pvoid buff, cf_uint32 bytes)
     {
-        _event.data.fd = fd;
-        _event.events = EPOLLOUT;
-        if (-1==cf_epoll_ctl (_epfd, EPOLL_CTL_DEL, _listenfd, &_event))
-            _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
+        _handler.AsyncWrite(fd, buff, bytes);
+    }
+    cf_void AsyncClose(cf_int fd)
+    {
+        _handler.AsyncClose(fd);
     }
     
-    cf_void WaitEvents(cf_int32 timeoutMilliseconds)
+    cf_void Wait(cf_int32 timeoutMilliseconds)
     {
-        int n,i;
+        cf_int n,i;
         bool continueloop =true;
         while (continueloop)
         {
@@ -97,21 +93,19 @@ public:
             }
             else if(0==n)
             {
-                _handler.Timeout();
+                _handler.Timeout(_events[i].data.fd);
             }
             else 
                 _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_wait !")
         }
     }
 private:
-    
-    int _listenfd;
-    const int _maxevents;
-    int _epfd;
+    cf_int _listenfd;
+    cf_int _epfd;
+    Handler _handler;
+    cf_const cf_int _maxevents;
     struct epoll_event _event;
     std::vector < struct epoll_event > _events;
-    
-    HandlerType _handler;
 };
 
 template < typename demux >

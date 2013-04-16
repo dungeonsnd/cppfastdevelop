@@ -23,33 +23,108 @@
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
 #include "cppfoundation/cf_io_utility.hpp"
-#include "netserver/cl_net_buffer.hpp"
+#include "cppfoundation/cf_memory.hpp"
+#include "netserver/cl_channel_buffer.hpp"
 
 namespace cl
 {
 namespace ns
 {
 
+class IOComplete : public cf::NonCopyable
+{
+public:
+    virtual ~IOComplete()
+    {
+    }
+    virtual cf_void OnAcceptComplete(cf_int fd) =0;
+    virtual cf_void OnReadComplete(cf_int fd, cf_void * buff, cf_uint32 bytes) =0;
+    virtual cf_void OnWriteComplete(cf_int fd, cf_uint32 bytes) =0;
+    virtual cf_void OnCloseComplete(cf_int fd) =0;
+    virtual cf_void OnTimeoutComplete(cf_int fd) =0;
+    virtual cf_void OnErrorComplete(cf_int fd) =0;
+};
+
 class Handler : public cf::NonCopyable
 {
 public:
-    Handler()
+    typedef std::map < cf_int , std::shared_ptr<ChannelBuffer> > MapTypeBuffer;
+    typedef MapTypeBuffer::iterator IterTypeBuffer;
+    
+    Handler(cf_int listenfd,cf_int epfd, IOComplete & iocomplete):
+        _listenfd(listenfd),
+        _epfd(epfd),
+        _iocomplete(iocomplete)
     {
     }
     virtual ~Handler()
     {
     }
-    virtual void OnAcceptComplete(cf_int fd) =0;
-    virtual void OnReadComplete(cf_int fd, void * buff, cf_uint32 bytes) =0;
-    virtual void OnWriteComplete(cf_int fd, cf_uint32 bytes) =0;
-
-    void Accept(int epfd, int fd)
+    
+    cf_void AsyncRead(cf_int fd, cf_uint32 bytes)
+    {    
+        IterTypeBuffer it =_channel.find(fd);
+        if(it!=_channel.end())
+        {
+            std::shared_ptr<ChannelBuffer> p =it->second;
+            p->SetReadTotal(bytes);
+        }
+        else
+        {
+            CF_NEWOBJ(pbuf, ChannelBuffer)
+            if(NULL==pbuf)
+                _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
+            std::shared_ptr<ChannelBuffer> p(pbuf);
+            p->SetReadTotal(bytes);
+            _channel.insert( std::make_pair(fd,p) );
+        }
+        cf::AddEventEpoll(_epfd, _listenfd,_event,EPOLLIN|EPOLLONESHOT);
+    }
+    cf_void AsyncWrite(cf_int fd, cf_pvoid buff, cf_uint32 bytes)
+    {
+        IterTypeBuffer it =_channel.find(fd);
+        if(it!=_channel.end())
+        {
+            std::shared_ptr<ChannelBuffer> p =it->second;
+            p->SetWriteTotal(buff,bytes);
+        }
+        else
+        {
+            CF_NEWOBJ(pbuf, ChannelBuffer)
+            if(NULL==pbuf)
+                _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
+            std::shared_ptr<ChannelBuffer> p(pbuf);
+            p->SetWriteTotal(buff,bytes);
+            _channel.insert( std::make_pair(fd,p) );
+        }
+        cf::AddEventEpoll(_epfd, _listenfd,_event,EPOLLOUT|EPOLLONESHOT);
+    }
+    cf_void AsyncClose(cf_int fd)
+    {
+        IterTypeBuffer it =_channel.find(fd);
+        if(it!=_channel.end())
+        {
+            std::shared_ptr<ChannelBuffer> p =it->second;
+            p->SetAsyncClose();
+        }
+        else
+        {
+            CF_NEWOBJ(pbuf, ChannelBuffer)
+            if(NULL==pbuf)
+                _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
+            std::shared_ptr<ChannelBuffer> p(pbuf);
+            p->SetAsyncClose();
+            _channel.insert( std::make_pair(fd,p) );
+        }
+    }
+    
+    cf_void Accept(cf_int epfd, cf_int fd)
     {
         struct sockaddr in_addr;
         socklen_t in_len =sizeof(in_addr);
-        int clientfd =0;
-        int rt =0;
-         char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+        cf_int clientfd =0;
+        cf_int rt =0;
+        cf_char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
         while (1)
         {
             clientfd =cf_accept(fd, &in_addr, &in_len);
@@ -69,38 +144,121 @@ public:
               printf("Accepted connection on descriptor %d (host=%s, port=%s)\n", clientfd, hbuf, sbuf);
             }
             else
-                ; //Log.
+                ; // getnameinfo failed. Log.
             
             cf::SetBlocking(clientfd,false);
-            OnAcceptComplete(clientfd);
+            _iocomplete.OnAcceptComplete(clientfd);
         }
     }
-    void Read(int fd)
+    cf_void Read(cf_int fd)
     {
-        // cf_read
-        // _netbuf.append()
+        IterTypeBuffer it =_channel.find(fd);
+        if(it==_channel.end())
+            _THROW(cf::RuntimeWarning, "it==_channel.end() !")
+        std::shared_ptr<ChannelBuffer> channel =it->second;
+
+        ssize_t n =0;
+        bool goon =true;
+        while(channel->GetReadLeft()>0)
+        {
+            n =cf_recv( fd, channel->GetReadCurrentPtr(), size_t(channel->GetReadLeft()) ,0 );
+            if(n>0)
+            {
+                channel->AppendReadCount(cf_uint32(n));
+            }
+            else if (0==n)
+            {
+                _iocomplete.OnReadComplete(fd, channel->GetReadBuffer(),channel->GetHasRead());
+                Close(fd);
+            }
+            else
+            {
+                if (EAGAIN==errno || EWOULDBLOCK==errno)
+                {
+                    channel->AppendReadCount(cf_uint32(n));
+                }
+                else
+                {
+                    goon =false;
+                    Error(fd);
+                }
+                break;
+            }
+        }
+        if(channel->GetAsyncClose())
+            Close(fd);
+        else if(goon)
+            cf::AddEventEpoll(_epfd, _listenfd,_event,EPOLLIN|EPOLLONESHOT);
+        else
+            ; // Noting todo.
     }
-    void Write(int fd)
+    cf_void Write(cf_int fd)
     {
-        // cf_write
-        // _netbuf.remove()
+        IterTypeBuffer it =_channel.find(fd);
+        if(it==_channel.end())
+            _THROW(cf::RuntimeWarning, "it==_channel.end() !")
+        std::shared_ptr<ChannelBuffer> channel =it->second;
+
+        ssize_t n =0;
+        bool goon =true;
+        while(channel->GetWriteLeft()>0)
+        {
+            n =cf_send( fd, channel->GetWriteCurrentPtr(), size_t(channel->GetWriteLeft()) ,0 );
+            if(n>0)
+            {
+                channel->RemoveWriteCount(cf_uint32(n));
+            }
+            else
+            {
+                if (EAGAIN==errno || EWOULDBLOCK==errno)
+                {
+                    channel->RemoveWriteCount(cf_uint32(n));
+                }
+                else
+                {
+                    goon =false;
+                    Error(fd);
+                }
+                break;
+            }
+        }
+        if(channel->GetAsyncClose())
+            Close(fd);
+        else if(goon)
+            cf::AddEventEpoll(_epfd, _listenfd,_event,EPOLLOUT|EPOLLONESHOT);
+        else
+            ; // Noting todo.
     }
-    void Timeout()
+    cf_void Timeout(cf_int fd)
     {
+        _iocomplete.OnTimeoutComplete(fd);
     }
-    void Close(int fd)
+    cf_void Close(cf_int fd)
     {
-        // cf_close
-        // _netbuf.erase(fd)
+        _iocomplete.OnCloseComplete(fd);
+        CloseChannel(fd);
     }
-    void Error(int fd)
+    cf_void Error(cf_int fd)
     {
-        // cf_close
-        // _netbuf.erase(fd)
+        _iocomplete.OnErrorComplete(fd);
+        CloseChannel(fd);
     }
 
 private:
-    std::map < int , std::shared_ptr<NetBuffer> > _netbuf;
+    cf_void CloseChannel(cf_int fd)
+    {
+        int rt =cf_close(fd);
+        if(0!=rt)
+            _THROW(cf::SyscallExecuteError, "Failed to execute cf_close !")
+        if(1!=_channel.erase(fd))
+            _THROW(cf::RuntimeWarning, "1!=_channel.erase(fd) !")
+    }
+    
+    cf_int _listenfd;
+    cf_int _epfd;
+    struct epoll_event _event;
+    MapTypeBuffer _channel;
+    IOComplete & _iocomplete;
 };
 
 } // namespace ns

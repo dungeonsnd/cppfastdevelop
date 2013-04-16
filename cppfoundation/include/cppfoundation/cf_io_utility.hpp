@@ -88,6 +88,13 @@ dataExtra is extra data to send.
 ssize_t SendFds(const int fd, const int * sendfdarray,const size_t fdarraylen, void *dataExtra, const size_t dataExtraBytes);
 ssize_t RecvFds(const int fd, int *recvfdarray, const size_t fdarraylen, void *dataExtra, size_t dataExtraBytes); 
 
+#ifdef __linux__
+void AddEventEpoll(cf_int epfd, cf_int fd,struct epoll_event & event, cf_uint32 ev);
+void AddEventEpoll(cf_int epfd, cf_int fd, cf_uint32 ev);
+void DelEventEpoll(cf_int epfd, cf_int fd,struct epoll_event & event);
+void DelEventEpoll(cf_int epfd, cf_int fd);
+#endif // __linux__
+
 } // namespace cf
 
 #endif // _HEADER_FILE_CFD_CF_IO_UTILITY_HPP_

@@ -17,8 +17,8 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 //// 
 
-#ifndef _HEADER_FILE_CFD_CL_NET_BUFFER_HPP_
-#define _HEADER_FILE_CFD_CL_NET_BUFFER_HPP_
+#ifndef _HEADER_FILE_CFD_CL_CHANNEL_BUFFER_HPP_
+#define _HEADER_FILE_CFD_CL_CHANNEL_BUFFER_HPP_
 
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
@@ -28,20 +28,55 @@ namespace cl
 namespace ns
 {
 
-class NetBuffer : public cf::Object
+class ChannelBuffer : public cf::Object
 {
 public:
-    NetBuffer()
+    ChannelBuffer()
     {
     }
-    ~NetBuffer()
+    ~ChannelBuffer()
     {
+    }
+    void SetReadTotal(cf_uint32 bytes)
+    {
+        _bytes2read =bytes;
+        if(_buf2read.size()<_bytes2read)
+            _buf2read.resize(_bytes2read);
+    }
+    void SetWriteTotal(const void * buff,cf_uint32 bytes)
+    {
+        _bytes2write =bytes;
+        if(_bytes2write.size()<_bytes2write)
+            _buf2write.resize(_bytes2write);
+        memcpy(&_buf2write[0],buff,bytes);
+    }
+    void Append(cf_uint32 n)
+    {
+    }
+    void Remove()
+    {
+    }
+    
+    void * GetReadPtr()
+    {
+        char * p =&_buf2read[0];
+        return p+_bytesRead;
+    }
+    cf_uint32 GetReadLeft()
+    {
+        char * p =&_buf2read[0];
+        return p+_bytesRead;
     }
 private:
-    std::string _buf;
+    std::string _buf2read;
+    std::string _buf2write;
+    cf_uint32 _bytes2read;
+    cf_uint32 _bytes2write;
+    cf_uint32 _bytesRead;
+    cf_uint32 _bytesWritten;
 };
 
 } // namespace ns
 } // namespace cl
 
-#endif // _HEADER_FILE_CFD_CL_NET_BUFFER_HPP_
+#endif // _HEADER_FILE_CFD_CL_CHANNEL_BUFFER_HPP_
