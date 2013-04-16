@@ -25,25 +25,12 @@
 #include "cppfoundation/cf_io_utility.hpp"
 #include "cppfoundation/cf_memory.hpp"
 #include "netserver/cl_channel_buffer.hpp"
+#include "netserver/cl_io_complete.hpp"
 
 namespace cl
 {
 namespace ns
 {
-
-class IOComplete : public cf::NonCopyable
-{
-public:
-    virtual ~IOComplete()
-    {
-    }
-    virtual cf_void OnAcceptComplete(cf_int fd) =0;
-    virtual cf_void OnReadComplete(cf_int fd, cf_void * buff, cf_uint32 bytes) =0;
-    virtual cf_void OnWriteComplete(cf_int fd, cf_uint32 bytes) =0;
-    virtual cf_void OnCloseComplete(cf_int fd) =0;
-    virtual cf_void OnTimeoutComplete(cf_int fd) =0;
-    virtual cf_void OnErrorComplete(cf_int fd) =0;
-};
 
 class Handler : public cf::NonCopyable
 {

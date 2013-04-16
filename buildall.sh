@@ -20,5 +20,7 @@ cd ../../
 
 cd netserver/
 ./buildsrc.sh rc
-cd ../
+cd test
+./buildsrc.sh rc
+cd ../../
 

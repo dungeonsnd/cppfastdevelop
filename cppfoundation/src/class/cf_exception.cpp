@@ -58,6 +58,10 @@ BaseException::BaseException(cf_cpstr file,
 #else
     _errStr.assign(strerror_r(_errnum, buf, sizeof(buf)));
 #endif
+    if(CF_E_NULLPARAMS==_errnum)
+    {
+        _errStr.assign("Function parameter is NULL !");
+    }
 }
 BaseException::~BaseException() throw()
 {

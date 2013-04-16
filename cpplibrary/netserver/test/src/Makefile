@@ -11,10 +11,10 @@ LIBDIR	= -L. -L../../bin -L../../../../cppfoundation/bin
 LIB		= $(LIBDIR) -l$(G_TARGETNAME) -l$(G_STUBNAME) -l$(G_CLASSNAME)
 SYTMLIB     = -lpthread
 
-EXE0 =   test_queue_put
-EXE1 =   test_queue_get
-OBJ0 = test_queue_put.o
-OBJ1 = test_queue_get.o
+EXE0 =   test_server
+EXE1 =   test_client
+OBJ0 = test_server.o
+OBJ1 = test_client.o
 
 BINDIR =../bin
 

@@ -33,7 +33,8 @@ namespace ns
 class Epoll : public cf::NonCopyable
 {
 public:
-    Epoll(cf_int listenfd,IOComplete & iocomplete,cf_const cf_int maxevents =256, cf_int createFlags =0):
+    Epoll(  cf_int listenfd,IOComplete & iocomplete,
+            cf_const cf_int maxevents =256, cf_int createFlags =0):
         _listenfd(listenfd),
         _epfd(epoll_create1(createFlags)),
         _handler(_listenfd,_epfd,iocomplete),
@@ -41,6 +42,7 @@ public:
     {
         if(-1==_epfd)
             _THROW(cf::SyscallExecuteError, "Failed to execute epoll_create1 !")
+        _events.resize(_maxevents);
         cf::SetBlocking(_listenfd,false);
         cf::AddEventEpoll(_epfd, _listenfd,_event,EPOLLIN);
     }
@@ -65,7 +67,8 @@ public:
     
     cf_void Wait(cf_int32 timeoutMilliseconds)
     {
-        cf_int n,i;
+        cf_int n =0;
+        cf_int i =0;
         bool continueloop =true;
         while (continueloop)
         {
