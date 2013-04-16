@@ -17,8 +17,8 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 //// 
 
-#ifndef _HEADER_FILE_CFD_CL_NET_PROTOCOL_HPP_
-#define _HEADER_FILE_CFD_CL_NET_PROTOCOL_HPP_
+#ifndef _HEADER_FILE_CFD_CL_DEFAULT_PROTOCOL_HPP_
+#define _HEADER_FILE_CFD_CL_DEFAULT_PROTOCOL_HPP_
 
 #include "cppfoundation/cf_root.hpp"
 
@@ -27,20 +27,31 @@ namespace cl
 namespace ns
 {
 
-class DefProtocol : public cf::NonCopyable
+namespace protocoldefs
+{
+    enum {
+        DEFAULT_HEADLEN = 4
+    };
+} // namespace protocoldefs
+
+class DefaultProtocol : public cf::NonCopyable
 {
 public:
-    DefProtocol(cf_uint32 headlen =4):
-        _headlen(headlen),
+    DefaultProtocol():
+        _headlen(protocoldefs::DEFAULT_HEADLEN),
         _bodylen(0)
     {
     }
-    virtual ~DefProtocol()
+    virtual ~DefaultProtocol()
     {
     }
     cf_uint32 HeadLen() const
     {
         return _headlen;
+    }
+    cf_void SetBodyLen(cf_uint32 bodylen)
+    {
+        _bodylen =bodylen;
     }
     cf_uint32 BodyLen() const
     {
@@ -80,4 +91,4 @@ private:
 } // namespace ns
 } // namespace cl
 
-#endif // _HEADER_FILE_CFD_CL_NET_PROTOCOL_HPP_
+#endif // _HEADER_FILE_CFD_CL_DEFAULT_PROTOCOL_HPP_

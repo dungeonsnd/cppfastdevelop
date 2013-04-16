@@ -361,7 +361,14 @@ void AddEventEpoll(cf_int epfd, cf_int fd,struct epoll_event & event, cf_uint32 
 {
     event.data.fd = fd;
     event.events = ev;
-    if (-1==cf_epoll_ctl (epfd, EPOLL_CTL_ADD, fd, &event))
+    int rt =cf_epoll_ctl (epfd, EPOLL_CTL_ADD, fd, &event);
+    if (-1==rt && EEXIST==errno)
+    {
+        rt =cf_epoll_ctl (epfd, EPOLL_CTL_MOD, fd, &event);
+        if (-1==rt)
+            _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
+    }
+    else if (-1==rt)
         _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
 }
 void AddEventEpoll(cf_int epfd, cf_int fd, cf_uint32 ev)

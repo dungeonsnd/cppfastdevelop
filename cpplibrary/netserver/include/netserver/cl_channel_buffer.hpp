@@ -32,12 +32,28 @@ class ChannelBuffer : public cf::Object
 {
 public:
     ChannelBuffer():
-        _asyncClose(false)
+        _asyncClose(false),
+        _readTotal(0),
+        _hasRead(0),
+        _writeTotal(0),
+        _hasWritten(0)
+
     {
     }
     ~ChannelBuffer()
     {
     }
+    cf_void ClearRead()
+    {
+        _readTotal =0;
+        _hasRead =0;
+    }
+    cf_void ClearWrite()
+    {
+        _writeTotal =0;
+        _hasWritten =0;
+    }
+    
     cf_void SetAsyncClose()
     {
         _asyncClose =true;
@@ -49,9 +65,14 @@ public:
     
     cf_void SetReadTotal(cf_uint32 bytes)
     {
+        ClearRead();
         _readTotal =bytes;
         if(_buf2read.size()<_readTotal)
             _buf2read.resize(_readTotal);
+    }
+    cf_uint32 GetReadTotal() const
+    {
+        return _readTotal;
     }
     cf_pvoid GetReadCurrentPtr()
     {
@@ -60,49 +81,54 @@ public:
     }
     cf_uint32 GetHasRead() const
     {
-        return _readTotal-_hasRead;
+        return _hasRead;
     }
     cf_uint32 GetReadLeft() const
     {
-        return _readTotal-_hasRead;
+        return  _readTotal-_hasRead;
     }
     cf_pvoid GetReadBuffer()
     {
         return &_buf2read[0];
     }
-    cf_uint32 AppendReadCount(cf_uint32 n)
+    cf_void AppendReadCount(cf_uint32 n)
     {
-        return _hasRead+n;
+        _hasRead +=n;
     }
     
     
-    cf_void SetWriteTotal(cf_void * buff,cf_uint32 bytes)
+    cf_void SetWrittenTotal(cf_void * buff,cf_uint32 bytes)
     {
+        ClearWrite();
         _writeTotal =bytes;
         if(_buf2write.size()<_writeTotal)
             _buf2write.resize(_writeTotal);
         memcpy(&_buf2write[0],buff,bytes);
     }
-    cf_pvoid GetWriteCurrentPtr()
+    cf_uint32 GetWrittenTotal() const
+    {
+        return _writeTotal;
+    }
+    cf_pvoid GetWrittenCurrentPtr()
     {
         cf_char * p =&_buf2write[0];
         return p+_hasWritten;
     }
-    cf_uint32 GetHasWrite() const
+    cf_uint32 GetHasWritten() const
     {
-        return _writeTotal-_hasWritten;
+        return _hasWritten;
     }
-    cf_uint32 GetWriteLeft() const
+    cf_uint32 GetWrittenLeft() const
     {
-        return _writeTotal-_hasWritten;
+        return  _writeTotal-_hasWritten;
     }
-    cf_pvoid GetWriteBuffer()
+    cf_pvoid GetWrittenBuffer()
     {
         return &_buf2write[0];
     }
-    cf_uint32 RemoveWriteCount(cf_uint32 n)
+    cf_void RemoveWrittenCount(cf_uint32 n)
     {
-        return _hasWritten+n;
+        _hasWritten -=n;
     }
     
 private:

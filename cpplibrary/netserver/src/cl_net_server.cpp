@@ -17,24 +17,14 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 //// 
 
-#include "cppfoundation/cf_io_utility.hpp"
-#include "netserver/cl_net_server.hpp"
-#include "netserver/cl_default_protocol.hpp"
-#include "netserver/cl_default_complete.hpp"
+#include "netserver/cl_channel_buffer.hpp"
 
-class MyProtocol : public cl::ns::DefaultProtocol
+namespace cl
 {
-public:
-};
+namespace ns
+{
 
-cf_void Run()
-{
-    cl::ns::NetServer < cl::ns::DefaultComplete < MyProtocol > > server(8601);
-    server.Start();
-}
 
-cf_int main(cf_int argc,cf_char * argv[])
-{
-    Run();
-    return 0;
-}
+} // namespace ns
+} // namespace cl
+

@@ -26,6 +26,14 @@
 namespace cf
 {
 
+#ifndef ERR
+#define ERR(msg) \
+    { \
+        fprintf(stderr,"Error! %s,file=%s,line=%d,errno=%d\n",msg,__FILE__,__LINE__,errno); \
+        exit(1); \
+    }
+#endif // ERR
+
 cf_int GetHostByName(cf_const std::string &, struct hostent *phe);
 
 cf_void SetProcessDaemon();

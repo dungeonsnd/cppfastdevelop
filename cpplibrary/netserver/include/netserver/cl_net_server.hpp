@@ -29,55 +29,6 @@ namespace cl
 namespace ns
 {
 
-template < typename ProtocolType > 
-class DefComplete : public IOComplete
-{
-public:
-    DefComplete(cf_uint32 headlen):
-        _proto(headlen)
-    {
-    }
-    ~DefComplete()
-    {
-    }
-    void Initial(cl::ns::Epoll * epoll)
-    {
-        _epoll =epoll;
-    }
-    cf_void OnAcceptComplete(cf_int fd)
-    {
-        printf("OnAcceptComplete \n");
-        _proto.OnAcceptProcess(fd);
-    }
-    cf_void OnReadComplete(cf_int fd, cf_void * buff, cf_uint32 bytes)
-    {
-        printf("OnReadComplete \n");
-        _proto.OnReadProcess(fd);
-    }
-    cf_void OnWriteComplete(cf_int fd, cf_uint32 bytes)
-    {
-        printf("OnWriteComplete \n");
-        _proto.OnWriteProcess(fd);
-    }
-    cf_void OnCloseComplete(cf_int fd)
-    {
-        printf("OnCloseComplete \n");
-        _proto.OnCloseProcess(fd);
-    }
-    cf_void OnTimeoutComplete(cf_int fd)
-    {
-        printf("OnTimeoutComplete \n");
-        _proto.OnTimeoutProcess(fd);
-    }
-    cf_void OnErrorComplete(cf_int fd)
-    {
-        printf("OnErrorComplete \n");
-        _proto.OnErrorProcess(fd);
-    }
-private:
-    Epoll * _epoll;
-    ProtocolType _proto;
-};
 
 template < typename CompleteType >
 class NetServer : public cf::NonCopyable

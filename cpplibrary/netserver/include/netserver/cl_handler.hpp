@@ -55,6 +55,7 @@ public:
         {
             std::shared_ptr<ChannelBuffer> p =it->second;
             p->SetReadTotal(bytes);
+        printf("AsyncRead fd=%d,GetHasRead=%d,,GetReadTotal=%d,GetReadLeft=%d \n",fd,p->GetHasRead(),p->GetReadTotal(),p->GetReadLeft());
         }
         else
         {
@@ -64,8 +65,9 @@ public:
             std::shared_ptr<ChannelBuffer> p(pbuf);
             p->SetReadTotal(bytes);
             _channel.insert( std::make_pair(fd,p) );
+        printf("AsyncRead ,new, fd=%d,GetHasRead=%d,,GetReadTotal=%d,GetReadLeft=%d \n",fd,p->GetHasRead(),p->GetReadTotal(),p->GetReadLeft());
         }
-        cf::AddEventEpoll(_epfd, _listenfd,_event,EPOLLIN|EPOLLONESHOT);
+        cf::AddEventEpoll(_epfd, fd,_event,EPOLLIN|EPOLLONESHOT);
     }
     cf_void AsyncWrite(cf_int fd, cf_pvoid buff, cf_uint32 bytes)
     {
@@ -73,7 +75,8 @@ public:
         if(it!=_channel.end())
         {
             std::shared_ptr<ChannelBuffer> p =it->second;
-            p->SetWriteTotal(buff,bytes);
+            p->SetWrittenTotal(buff,bytes);
+        printf("++4++ fd=%d,GetHasRead=%d,GetWrittenLeft=%d \n",fd,p->GetHasRead(),p->GetWrittenLeft());
         }
         else
         {
@@ -81,10 +84,11 @@ public:
             if(NULL==pbuf)
                 _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
             std::shared_ptr<ChannelBuffer> p(pbuf);
-            p->SetWriteTotal(buff,bytes);
+            p->SetWrittenTotal(buff,bytes);
             _channel.insert( std::make_pair(fd,p) );
+        printf("++4++ fd=%d,GetWrittenLeft=%d \n",fd,p->GetWrittenLeft());
         }
-        cf::AddEventEpoll(_epfd, _listenfd,_event,EPOLLOUT|EPOLLONESHOT);
+        cf::AddEventEpoll(_epfd, fd,_event,EPOLLOUT|EPOLLONESHOT);
     }
     cf_void AsyncClose(cf_int fd)
     {
@@ -145,8 +149,10 @@ public:
         std::shared_ptr<ChannelBuffer> channel =it->second;
 
         ssize_t n =0;
-        bool goon =true;
-        while(channel->GetReadLeft()>0)
+        bool readComplete =true;
+        bool hasClosed =false;
+        printf("Read fd=%d,GetReadTotal=%d,GetHasRead=%d,GetReadLeft=%d \n",fd,channel->GetReadTotal(),channel->GetHasRead(),channel->GetReadLeft());
+        while(channel->GetReadLeft()>0 && channel->GetReadTotal()>0 )
         {
             n =cf_recv( fd, channel->GetReadCurrentPtr(), size_t(channel->GetReadLeft()) ,0 );
             if(n>0)
@@ -155,8 +161,11 @@ public:
             }
             else if (0==n)
             {
-                _iocomplete.OnReadComplete(fd, channel->GetReadBuffer(),channel->GetHasRead());
+                if(channel->GetHasRead()>0)
+                    _iocomplete.OnReadComplete(fd, channel->GetReadBuffer(),channel->GetHasRead());
                 Close(fd);
+                hasClosed =true;
+                break;
             }
             else
             {
@@ -166,21 +175,42 @@ public:
                 }
                 else
                 {
-                    goon =false;
+                    readComplete =false;
                     Error(fd);
+                    hasClosed =true;
                 }
                 break;
             }
         }
-        if(channel->GetAsyncClose())
-            Close(fd);
-        else if(goon)
-            cf::AddEventEpoll(_epfd, _listenfd,_event,EPOLLIN|EPOLLONESHOT);
-        else
-            ; // Noting todo.
+
+        if(false==hasClosed)
+        {
+            if(0==channel->GetReadLeft())
+            {
+                if(channel->GetHasRead()>0)
+                    _iocomplete.OnReadComplete(fd, channel->GetReadBuffer(),channel->GetHasRead());
+                readComplete =false;
+            }
+            
+            if(channel->GetAsyncClose())
+            {
+                if(channel->GetHasRead()>0)
+                    _iocomplete.OnReadComplete(fd, channel->GetReadBuffer(),channel->GetHasRead());
+                Close(fd);
+            }
+            else if(readComplete)
+            {
+                printf("++1++ fd=%d,GetReadLeft=%d \n",fd,channel->GetReadLeft());
+                cf::AddEventEpoll(_epfd, fd,_event,EPOLLIN|EPOLLONESHOT);
+                printf("--1-- fd=%d,GetReadLeft=%d \n",fd,channel->GetReadLeft());
+            }
+            else
+                ; // Noting todo.
+        }
     }
     cf_void Write(cf_int fd)
     {
+    printf("@@@@@@ Write \n");
         IterTypeBuffer it =_channel.find(fd);
         if(it==_channel.end())
             _THROW(cf::RuntimeWarning, "it==_channel.end() !")
@@ -188,33 +218,50 @@ public:
 
         ssize_t n =0;
         bool goon =true;
-        while(channel->GetWriteLeft()>0)
+        bool hasClosed =false;
+        while(channel->GetWrittenLeft()>0 && channel->GetWrittenTotal()>0)
         {
-            n =cf_send( fd, channel->GetWriteCurrentPtr(), size_t(channel->GetWriteLeft()) ,0 );
+            n =cf_send( fd, channel->GetWrittenCurrentPtr(), size_t(channel->GetWrittenLeft()) ,0 );
             if(n>0)
             {
-                channel->RemoveWriteCount(cf_uint32(n));
+                channel->RemoveWrittenCount(cf_uint32(n));
             }
             else
             {
                 if (EAGAIN==errno || EWOULDBLOCK==errno)
                 {
-                    channel->RemoveWriteCount(cf_uint32(n));
+                    channel->RemoveWrittenCount(cf_uint32(n));
                 }
                 else
                 {
                     goon =false;
                     Error(fd);
+                    hasClosed =true;
                 }
                 break;
             }
         }
-        if(channel->GetAsyncClose())
-            Close(fd);
-        else if(goon)
-            cf::AddEventEpoll(_epfd, _listenfd,_event,EPOLLOUT|EPOLLONESHOT);
-        else
-            ; // Noting todo.
+        
+        if(false==hasClosed)
+        {
+            if(0==channel->GetHasWritten())
+            {
+                if(channel->GetHasRead()>0)
+                    _iocomplete.OnWriteComplete(fd, channel->GetHasWritten());
+                goon =false;
+            }
+            
+            if(channel->GetAsyncClose())
+                Close(fd);
+            else if(goon)
+            {
+                printf("++2++ fd=%d,GetWrittenLeft=%d \n",fd,channel->GetWrittenLeft());
+                cf::AddEventEpoll(_epfd, fd,_event,EPOLLOUT|EPOLLONESHOT);
+                printf("--2-- fd=%d,GetWrittenLeft=%d \n",fd,channel->GetWrittenLeft());
+            }
+            else
+                ; // Noting todo.
+        }
     }
     cf_void Timeout(cf_int fd)
     {

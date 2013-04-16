@@ -73,6 +73,7 @@ public:
         while (continueloop)
         {
             n = cf_epoll_wait(_epfd, (epoll_event *)(&_events[0]), _maxevents, timeoutMilliseconds);
+            printf("\ncf_epoll_wait returned %d \n",n);
             if(n>0)
             {
                 for (i = 0; i < n; i++)
@@ -84,14 +85,16 @@ public:
                         else
                             _handler.Accept(_epfd, _events[i].data.fd);
                     }
+                    else if (_events[i].events & EPOLLERR)
+                        _handler.Error(_events[i].data.fd);
+                    else if (_events[i].events & EPOLLRDHUP)
+                        _handler.Close(_events[i].data.fd);
                     else if (_events[i].events & EPOLLIN)
                         _handler.Read(_events[i].data.fd);
                     else if (_events[i].events & EPOLLOUT)
                         _handler.Write(_events[i].data.fd);
-                    else if (_events[i].events & EPOLLRDHUP)
+                    else
                         _handler.Close(_events[i].data.fd);
-                    else if (_events[i].events & EPOLLERR)
-                        _handler.Error(_events[i].data.fd);
                 }
             }
             else if(0==n)
