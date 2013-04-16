@@ -30,11 +30,11 @@ sys     0m3.331s
 
 int main(int argc,char * argv[])
 {
-    cl::log::LogNonCache log("tmp.log");
-    std::string buf;
+    cl::log::LogNonCache < cf::FakeMutex > log("tmp.log");
+    std::string buf(1024,'@');
     buf ="abcdfeg";
     
-    for(int i=0;i<5;i++)
+    for(int i=0;i<1;i++)
         CLLOG(log,cl::log::WARN,buf.c_str(),buf.size());
     
     return 0;

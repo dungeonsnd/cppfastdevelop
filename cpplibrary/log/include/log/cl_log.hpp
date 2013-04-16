@@ -53,6 +53,7 @@ cf_char LEVELNAME[COUNT] ={'D','I','N','W','E','C','F'};
 #endif    
     
 // Thread-safe
+template < typename MutexType =cf::PthreadMutex /*or = cf::FakeMutex*/ > 
 class LogNonCache : public cf::NonCopyable
 {
 public:
@@ -71,9 +72,15 @@ public:
         if(-1==_fd)
             _THROW(cf::SyscallExecuteError, "Failed to execute cf_open !")
     }
+    LogNonCache(cf_int fd =stdout):
+                _fd(fd),
+                _level(NOTICE),
+                _lastSeconds(0)
+    {
+    }
     ~LogNonCache()
     {
-        if(_fd>0)
+        if(_fd>2)
         {
             int rt =0;
             rt =cf_fsync(_fd);
@@ -104,7 +111,7 @@ public:
         if(-1==gettimeofday(&tv, NULL))
             _THROW(cf::SyscallExecuteError, "Failed to execute gettimeofday !")
 
-        cf::LockGuard < cf::PthreadMutex > lock(_mutex);
+        cf::LockGuard<MutexType> lock(_mutex);
         memset(_destBuf,0,sizeof(_destBuf));
         
         if(tv.tv_sec!=_lastSeconds)
@@ -125,8 +132,8 @@ public:
         cf_snprintf(_destBuf+_idx,3," %c",LEVELNAME[level]);
         _idx +=3;
         
-        cf_snprintf(_destBuf+_idx,128," %s:",fileName);
-        _idx +=128;
+        cf_snprintf(_destBuf+_idx,32," %s:",fileName);
+        _idx +=32;
         
         cf_snprintf(_destBuf+_idx,6,"%04d ",lineNum);
         _idx +=6;
@@ -151,7 +158,7 @@ public:
         if(-1==gettimeofday(&tv, NULL))
             _THROW(cf::SyscallExecuteError, "Failed to execute gettimeofday !")
 
-        cf::LockGuard < cf::PthreadMutex > lock(_mutex);
+        cf::LockGuard<MutexType> lock(_mutex);
         memset(_destBuf,0,sizeof(_destBuf));
         
         if(tv.tv_sec!=_lastSeconds)
@@ -177,8 +184,8 @@ public:
         cf_snprintf(_destBuf+_idx,16," t%u",(unsigned int)tid);
         _idx +=16;
         
-        cf_snprintf(_destBuf+_idx,128," %s:",fileName);
-        _idx +=128;
+        cf_snprintf(_destBuf+_idx,32,"%s:",fileName);
+        _idx +=32;
         
         cf_snprintf(_destBuf+_idx,6,"%04d ",lineNum);
         _idx +=6;
@@ -200,7 +207,7 @@ private:
     cf_char _lastTimeCache[18];
     cf_char _destBuf[MAX_MSG_LEN];
     size_t _idx;
-    cf::PthreadMutex _mutex;
+    MutexType _mutex;
 };
 
 

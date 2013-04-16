@@ -17,62 +17,19 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 //// 
 
-#include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_io_utility.hpp"
-#include "netserver/cl_event_loop.hpp"
+#include "netserver/cl_net_server.hpp"
+#include "netserver/cl_net_protocol.hpp"
 
-class Complete : public cl::ns::IOComplete
+class MyProtocol : public cl::ns::DefProtocol
 {
 public:
-    ~Complete()
-    {
-    }
-    void Initial(cl::ns::Epoll * epoll)
-    {
-        _epoll =epoll;
-    }
-    cf_void OnAcceptComplete(cf_int fd)
-    {
-        printf("OnAcceptComplete \n");
-    }
-    cf_void OnReadComplete(cf_int fd, cf_void * buff, cf_uint32 bytes)
-    {
-        printf("OnReadComplete \n");
-    }
-    cf_void OnWriteComplete(cf_int fd, cf_uint32 bytes)
-    {
-        printf("OnWriteComplete \n");
-    }
-    cf_void OnCloseComplete(cf_int fd)
-    {
-        printf("OnCloseComplete \n");
-    }
-    cf_void OnTimeoutComplete(cf_int fd)
-    {
-        printf("OnTimeoutComplete \n");
-    }
-    cf_void OnErrorComplete(cf_int fd)
-    {
-        printf("OnErrorComplete \n");
-    }
-private:
-    cl::ns::Epoll * _epoll;
 };
 
 cf_void Run()
 {
-
-    int listenfd =cf::CreateServerSocket(8601,SOCK_STREAM,32);
-    if(listenfd<0)
-    {
-        printf("CreateServerSocket failed !\n");
-        exit(1);
-    }
-
-    Complete complete;
-    cl::ns::Epoll * _epoll =new cl::ns::Epoll(listenfd,complete);
-    complete.Initial(_epoll);
-    _epoll->Wait(-1);
+    cl::ns::NetServer < cl::ns::DefComplete < MyProtocol > > server(8601);
+    server.Start();
 }
 
 cf_int main(cf_int argc,cf_char * argv[])
