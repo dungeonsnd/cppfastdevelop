@@ -1,0 +1,41 @@
+#!/bin/bash
+# Use openssl to encrypt one folder.
+#
+# Usage:
+#       en infolder
+# Result:
+#       infolder.tar.gz.aes256cbc
+#
+# Note: 
+#     1) tar zcvf => openssl
+#     2) Don't use space in folder[or path]!
+#
+# Version:
+#      v0.1[20110721]
+# Author:
+#      JEF [dungeonsnd@126.com]
+#
+
+if [[ $# -lt 1 ]]; then
+    echo "Usage: en infolder"
+    exit
+fi
+
+folder=$1
+folder=${folder%/}
+
+tarname=$folder".tar.gz"
+extent=".aes256cbc"
+echo "==========================================="
+echo "[Now,tar will compress "$folder" to "$tarname",please wait......]"
+tar zcvf $tarname $folder
+
+
+echo "==========================================="
+echo "[Now,openssl will encrypt "$tarname" to "$tarname$extent",please wait......]"
+openssl enc -aes-256-cbc -e -a -in $tarname -out $tarname$extent
+rm -f $tarname
+
+echo "==========================================="
+echo "[Now,script finished successfully!]"
+
