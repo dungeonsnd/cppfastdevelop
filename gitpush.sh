@@ -8,13 +8,15 @@ if [[ $# -eq 1 ]]; then
     fi
 fi
 
-echo "push to bitbucket and github +++"
+echo "+++ push to bitbucket +++"
 git push bitbucket master
+echo "+++ push to bitbucket +++"
 git push github master
 
 if [ $PUSH_TO_ALL -eq 1 ] ; then
-    echo "push to googlecode and sourceforge +++"
+    echo "+++ push to googlecode +++"
     git push googlecode master
+    echo "+++ push to sourceforge +++"
     git push sourceforge master
 fi
 
