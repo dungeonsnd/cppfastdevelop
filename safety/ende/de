@@ -1,0 +1,37 @@
+#!/bin/bash
+# Use openssl to decrypt one folder.
+# Usage:
+#       de InFolder.tar.gz.aes256cbc
+# Note:
+#     1) Don't use space in InFolder!
+#     2) openssl => tar zxvf
+#
+#
+# Version:
+#      v0.1[20110721]
+# Author:
+#      JEF [dungeonsnd@126.com]
+#
+
+if [[ $# -lt 1 ]]; then
+    echo "Usage: de InFolder.tar.gz.aes256cbc"
+    exit
+fi
+
+fn=$1
+
+tarname=${fn%.*c}
+
+echo "==========================================="
+echo "[Now,openssl will decrypt "$fn" to "$tarname",please wait......]"
+openssl enc -aes-256-cbc -d -a -in $fn -out $tarname
+
+
+echo "==========================================="
+echo "[Now,tar will extract "$tarname"" to "${tarname%t*z},please wait......]"
+tar zxvf $tarname
+rm -f $tarname
+
+echo "==========================================="
+echo "[Now,script finished successfully!]"
+
