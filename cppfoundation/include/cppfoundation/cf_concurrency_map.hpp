@@ -15,7 +15,7 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #ifndef _HEADER_FILE_CFD_CF_CONCURRENCY_MAP_H_
 #define _HEADER_FILE_CFD_CF_CONCURRENCY_MAP_H_
@@ -36,114 +36,116 @@ template <typename MapType,typename K, typename V, typename Raw_RWMutex>
 class RawMap: public NonCopyable
 {
 public:
-    typedef typename MapType::iterator IteratorType;
-    typedef typename MapType::const_iterator ConstIteratorType;
-    typedef typename MapType::value_type ElementType;
-    typedef typename std::pair<IteratorType,bool> InsertResultType;
-    
-    typedef RWMutex < Raw_RWMutex > RWMutexType;
-    
-    RawMap()
-        :_readLock(_rawRWLock, lockdefs::READ),
-         _writeLock(_rawRWLock, lockdefs::WRITE)
-    {
-    }
-    ~RawMap()
-    {
-    }
-    
-    IteratorType Find(cf_const K &key)
-    {
-        LockGuard < RWMutexType > lock(_readLock);
-        return _map.find(key);
-    }
-    bool HasKey(cf_const K &key)
-    {
-        LockGuard < RWMutexType > lock(_readLock);
-        ConstIteratorType it = _map.find(key);
-        if (it == _map.end())
-            return false;
-        return true;
-    }
+   typedef typename MapType::iterator IteratorType;
+   typedef typename MapType::const_iterator ConstIteratorType;
+   typedef typename MapType::value_type ElementType;
+   typedef typename std::pair<IteratorType,bool> InsertResultType;
 
-    V FindEx(cf_const K &key) cf_const
-    {
-        LockGuard < RWMutexType > lock(_readLock);
-        ConstIteratorType it = _map.find(key);
-        if (it == _map.end())
-            _THROW(ElementNotFoundInfo, "Element not found!");
-        return it->second;
-    }
-    V Pop(cf_const K &key)
-    {
-        LockGuard < RWMutexType > lock(_writeLock);
-        IteratorType it = _map.find(key);
-        if (it == _map.end())
-            _THROW(ElementNotFoundInfo, "Element not found!");
+   typedef RWMutex < Raw_RWMutex > RWMutexType;
 
-        V v = it->second;
-        _map.erase(key);
-        return v;
-    }
-    IteratorType Begin()
-    {
-        LockGuard < RWMutexType > lock(_readLock);
-        return _map.begin();
-    }
-    IteratorType End()
-    {
-        LockGuard < RWMutexType > lock(_readLock);
-        return _map.end();
-    }
-    size_t Size() cf_const
-    {
-        LockGuard < RWMutexType > lock(_readLock);
-        return size_t(_map.size());
-    }
-    size_t Erase(cf_const K &key)
-    {
-        LockGuard < RWMutexType > lock(_writeLock);
-        return _map.erase(key);
-    }
-    cf_void Erase(IteratorType _b, IteratorType _e)
-    {
-        LockGuard < RWMutexType > lock(_writeLock);
-        _map.erase(_b, _e);
-    }
-    
-    // Insert or update.
-    InsertResultType Insert(cf_const ElementType &pair)
-    {
-        LockGuard <RWMutexType> lock(_writeLock);
-        return _map.insert(pair);
-    }
-    
-    // Only insert , never update.
-    V OnlyInsert(cf_const K &key)
-    {
-        typedef typename PointerTraits<V>::TraitsValueType VT;
-        LockGuard < RWMutexType > lock(_writeLock);
-        ConstIteratorType it = _map.find(key);
-        if (it == _map.end())
-        {
-            _map.insert(std::make_pair(key, new VT()));
-            it = _map.find(key);
+   RawMap()
+      :_readLock(_rawRWLock, lockdefs::READ),
+       _writeLock(_rawRWLock, lockdefs::WRITE)
+   {
+   }
+   ~RawMap()
+   {
+   }
 
-        }
-        return it->second;
-    }
+   IteratorType Find(cf_const K & key)
+   {
+      LockGuard < RWMutexType > lock(_readLock);
+      return _map.find(key);
+   }
+   bool HasKey(cf_const K & key)
+   {
+      LockGuard < RWMutexType > lock(_readLock);
+      ConstIteratorType it = _map.find(key);
+      if (it == _map.end())
+         return false;
+      return true;
+   }
+
+   V FindEx(cf_const K & key) cf_const
+   {
+      LockGuard < RWMutexType > lock(_readLock);
+      ConstIteratorType it = _map.find(key);
+      if (it == _map.end())
+         _THROW(ElementNotFoundInfo, "Element not found!");
+      return it->second;
+   }
+   V Pop(cf_const K & key)
+   {
+      LockGuard < RWMutexType > lock(_writeLock);
+      IteratorType it = _map.find(key);
+      if (it == _map.end())
+         _THROW(ElementNotFoundInfo, "Element not found!");
+
+      V v = it->second;
+      _map.erase(key);
+      return v;
+   }
+   IteratorType Begin()
+   {
+      LockGuard < RWMutexType > lock(_readLock);
+      return _map.begin();
+   }
+   IteratorType End()
+   {
+      LockGuard < RWMutexType > lock(_readLock);
+      return _map.end();
+   }
+   size_t Size() cf_const
+   {
+      LockGuard < RWMutexType > lock(_readLock);
+      return size_t(_map.size());
+   }
+   size_t Erase(cf_const K & key)
+   {
+      LockGuard < RWMutexType > lock(_writeLock);
+      return _map.erase(key);
+   }
+   cf_void Erase(IteratorType _b, IteratorType _e)
+   {
+      LockGuard < RWMutexType > lock(_writeLock);
+      _map.erase(_b, _e);
+   }
+
+   // Insert or update.
+   InsertResultType Insert(cf_const ElementType & pair)
+   {
+      LockGuard <RWMutexType> lock(_writeLock);
+      return _map.insert(pair);
+   }
+
+   // Only insert , never update.
+   V OnlyInsert(cf_const K & key)
+   {
+      typedef typename PointerTraits<V>::TraitsValueType VT;
+      LockGuard < RWMutexType > lock(_writeLock);
+      ConstIteratorType it = _map.find(key);
+      if (it == _map.end())
+      {
+         _map.insert(std::make_pair(key, new VT()));
+         it = _map.find(key);
+
+      }
+      return it->second;
+   }
 
 private:
-    Raw_RWMutex _rawRWLock;
-    RWMutexType _readLock;
-    RWMutexType _writeLock;
-    MapType _map;
+   Raw_RWMutex _rawRWLock;
+   RWMutexType _readLock;
+   RWMutexType _writeLock;
+   MapType _map;
 };
 
-template <typename KeyType, typename ValueType, typename Raw_RWMutex=RawPthreadRWMutex /* or FakeRWMutex/RawFileRWMutex */>
+template <typename KeyType, typename ValueType,
+         typename Raw_RWMutex=RawPthreadRWMutex /* or FakeRWMutex/RawFileRWMutex */>
 struct TYPEMap
 {
-    typedef RawMap < std::map< KeyType,ValueType >,KeyType,ValueType,Raw_RWMutex > Map;
+   typedef RawMap < std::map< KeyType,ValueType >,KeyType,ValueType,Raw_RWMutex >
+   Map;
 };
 
 
@@ -152,23 +154,24 @@ class MapSmartManager
 {
 public:
 
-    MapSmartManager()
-    {
-    }
-    ~MapSmartManager()
-    {
-        for (IteratorType it=_socketConnectionMap.begin(); it!=_socketConnectionMap.end(); ++it)
-        {
-            delete it->second;
-            it->second = NULL;
-        }
-    }
-    MapType *operator-> ()
-    {
-        return & _socketConnectionMap;
-    }
+   MapSmartManager()
+   {
+   }
+   ~MapSmartManager()
+   {
+      for (IteratorType it=_socketConnectionMap.begin();
+           it!=_socketConnectionMap.end(); ++it)
+      {
+         delete it->second;
+         it->second = NULL;
+      }
+   }
+   MapType * operator-> ()
+   {
+      return & _socketConnectionMap;
+   }
 private:
-    MapType _socketConnectionMap;
+   MapType _socketConnectionMap;
 };
 
 

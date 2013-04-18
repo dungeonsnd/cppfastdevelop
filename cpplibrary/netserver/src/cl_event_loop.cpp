@@ -15,7 +15,7 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #include "netserver/cl_event_loop.hpp"
 

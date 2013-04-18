@@ -15,7 +15,7 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #ifndef _HEADER_FILE_CFD_CF_APPLICATION_HPP_
 #define _HEADER_FILE_CFD_CF_APPLICATION_HPP_
@@ -26,18 +26,18 @@
 
 namespace cf
 {
-    
+
 class Application : public NonCopyable
 {
 public:
-    Application(){};
-    virtual ~Application(){};
+   Application() {};
+   virtual ~Application() {};
 
-    virtual cf_int Run();
-    virtual bool Initialize(Process *p);
-    virtual bool Finalize();
+   virtual cf_int Run();
+   virtual bool Initialize(Process * p);
+   virtual bool Finalize();
 private:
-    Process  * _process;
+   Process  * _process;
 };
 
 } // namespace cf

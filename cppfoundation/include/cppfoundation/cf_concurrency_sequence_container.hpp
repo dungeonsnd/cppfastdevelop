@@ -15,7 +15,7 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #ifndef _HEADER_FILE_CFD_CF_CONCURRENCY_SEQUENCE_CONTAINER_H_
 #define _HEADER_FILE_CFD_CF_CONCURRENCY_SEQUENCE_CONTAINER_H_
@@ -34,91 +34,94 @@ template <typename SequenceContainerType,typename ElementType, typename Raw_RWMu
 class CRawSequenceContainer: public NonCopyable
 {
 public:
-    typedef typename SequenceContainerType::iterator IteratorType;
-    
-    typedef RWMutex < Raw_RWMutex > RWMutexType;
-    
-    CRawSequenceContainer() :
-             _readLock(_rawRWLock, lockdefs::READ),
-             _writeLock(_rawRWLock, lockdefs::WRITE)
-    {      
-    }
-    ~CRawSequenceContainer()
-    {
-    }
-    
-    size_t Size() cf_const
-    {
-        LockGuard<Raw_RWMutex> lock(_readLock);
-        return _container.size();
-    }
-    bool IsEmpty () cf_const
-    {
-        LockGuard<Raw_RWMutex> lock(_readLock);
-        return _container.empty();
-    }
-    
-    cf_void PushBack ( cf_const ElementType & x )
-    {
-        LockGuard<Raw_RWMutex> lock(_writeLock);
-        _container.push_back(x);
-    }
-    cf_void PopBack()
-    {
-        LockGuard<Raw_RWMutex> lock(_writeLock);
-        _container.pop_back();
-    }
-    IteratorType Insert ( IteratorType position, cf_const ElementType & x )
-    {
-        LockGuard<Raw_RWMutex> lock(_writeLock);
-        return _container.insert(x);
-    }
-    IteratorType Erase ( IteratorType position )
-    {
-        LockGuard<Raw_RWMutex> lock(_writeLock);
-        return _container.erase(position);
-    }
-    IteratorType FindAndErase ( cf_const ElementType & x,bool & found )
-    {
-        LockGuard<Raw_RWMutex> lock(_writeLock);
-        IteratorType position =LoopFind (x);
-        if(position!=_container.end())
-        {
-            found =true;
-            return _container.erase(position);
-        }
-        else
-        {
-            found =false;
-            return _container.end();
-        }
-    }
-    cf_void Clear ()
-    {
-        LockGuard<Raw_RWMutex> lock(_writeLock);
-        _container.clear();
-    }
-    
+   typedef typename SequenceContainerType::iterator IteratorType;
+
+   typedef RWMutex < Raw_RWMutex > RWMutexType;
+
+   CRawSequenceContainer() :
+      _readLock(_rawRWLock, lockdefs::READ),
+      _writeLock(_rawRWLock, lockdefs::WRITE)
+   {
+   }
+   ~CRawSequenceContainer()
+   {
+   }
+
+   size_t Size() cf_const
+   {
+      LockGuard<Raw_RWMutex> lock(_readLock);
+      return _container.size();
+   }
+   bool IsEmpty () cf_const
+   {
+      LockGuard<Raw_RWMutex> lock(_readLock);
+      return _container.empty();
+   }
+
+   cf_void PushBack ( cf_const ElementType & x )
+   {
+      LockGuard<Raw_RWMutex> lock(_writeLock);
+      _container.push_back(x);
+   }
+   cf_void PopBack()
+   {
+      LockGuard<Raw_RWMutex> lock(_writeLock);
+      _container.pop_back();
+   }
+   IteratorType Insert ( IteratorType position, cf_const ElementType & x )
+   {
+      LockGuard<Raw_RWMutex> lock(_writeLock);
+      return _container.insert(x);
+   }
+   IteratorType Erase ( IteratorType position )
+   {
+      LockGuard<Raw_RWMutex> lock(_writeLock);
+      return _container.erase(position);
+   }
+   IteratorType FindAndErase ( cf_const ElementType & x,bool & found )
+   {
+      LockGuard<Raw_RWMutex> lock(_writeLock);
+      IteratorType position =LoopFind (x);
+      if(position!=_container.end())
+      {
+         found =true;
+         return _container.erase(position);
+      }
+      else
+      {
+         found =false;
+         return _container.end();
+      }
+   }
+   cf_void Clear ()
+   {
+      LockGuard<Raw_RWMutex> lock(_writeLock);
+      _container.clear();
+   }
+
 private:
-    IteratorType LoopFind ( cf_const ElementType & x )
-    {
-        for(IteratorType it=_container.begin();it!=_container.end();it++)
-            if(*it==x)
-                return it;
-        return _container.end();
-    }
-    
-    Raw_RWMutex _rawRWLock;
-    RWMutexType _readLock;
-    RWMutexType _writeLock;
-    SequenceContainerType _container;
+   IteratorType LoopFind ( cf_const ElementType & x )
+   {
+      for(IteratorType it=_container.begin(); it!=_container.end(); it++)
+         if(*it==x)
+            return it;
+      return _container.end();
+   }
+
+   Raw_RWMutex _rawRWLock;
+   RWMutexType _readLock;
+   RWMutexType _writeLock;
+   SequenceContainerType _container;
 };
 
-template <typename ElementType, typename Raw_RWMutex=RawPthreadRWMutex /* or FakeRWMutex/RawFileRWMutex */>
+template <typename ElementType,
+         typename Raw_RWMutex=RawPthreadRWMutex /* or FakeRWMutex/RawFileRWMutex */>
 struct TYPESequenceContainer
 {
-    typedef CRawSequenceContainer < std::vector<ElementType> , ElementType, Raw_RWMutex > Vector;
-    typedef CRawSequenceContainer < std::list<ElementType> , ElementType, Raw_RWMutex > List;
+   typedef CRawSequenceContainer
+   < std::vector<ElementType> , ElementType, Raw_RWMutex > Vector;
+   typedef CRawSequenceContainer
+   < std::list<ElementType> , ElementType, Raw_RWMutex > List;
 };
 
 

@@ -15,12 +15,12 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #include "log/cl_log.hpp"
 
 namespace cl
 {
 
-    
+
 } // namespace cl

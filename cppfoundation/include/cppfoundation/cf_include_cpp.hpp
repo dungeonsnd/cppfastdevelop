@@ -15,7 +15,7 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #ifndef _HEADER_FILE_CFD_CF_INCLUDE_CPP_HPP_
 #define _HEADER_FILE_CFD_CF_INCLUDE_CPP_HPP_
@@ -46,40 +46,40 @@
 
 // shared_ptr support.
 #if defined(__GNUC__) && __GNUC__ >= 4
-    #ifndef __GXX_EXPERIMENTAL_CXX0X__ // std::tr1
+#ifndef __GXX_EXPERIMENTAL_CXX0X__ // std::tr1
 //        #pragma message("$$$$ Using shared_ptr from <tr1/memory> !")
-        #include <tr1/memory>
-        namespace std 
-        {
-            using tr1::bad_weak_ptr;
-            using tr1::const_pointer_cast;
-            using tr1::dynamic_pointer_cast;
-            using tr1::enable_shared_from_this;
-            using tr1::get_deleter;
-            using tr1::shared_ptr;
-            using tr1::static_pointer_cast;
-            using tr1::swap;
-            using tr1::weak_ptr;
-        }
-    #else
+#include <tr1/memory>
+namespace std
+{
+using tr1::bad_weak_ptr;
+using tr1::const_pointer_cast;
+using tr1::dynamic_pointer_cast;
+using tr1::enable_shared_from_this;
+using tr1::get_deleter;
+using tr1::shared_ptr;
+using tr1::static_pointer_cast;
+using tr1::swap;
+using tr1::weak_ptr;
+}
+#else
 //        #pragma message("$$$$ Using shared_ptr from <memory> !")
-        #include <memory>
-    #endif // __GXX_EXPERIMENTAL_CXX0X__
+#include <memory>
+#endif // __GXX_EXPERIMENTAL_CXX0X__
 #else
 //    #pragma message("$$$$ Using shared_ptr from <boost/tr1/memory.hpp> !")
-    #include <boost/tr1/memory.hpp> // boost tr1
-    namespace std 
-    {
-        using tr1::bad_weak_ptr;
-        using tr1::const_pointer_cast;
-        using tr1::dynamic_pointer_cast;
-        using tr1::enable_shared_from_this;
-        using tr1::get_deleter;
-        using tr1::shared_ptr;
-        using tr1::static_pointer_cast;
-        using tr1::swap;
-        using tr1::weak_ptr;
-    }
+#include <boost/tr1/memory.hpp> // boost tr1
+namespace std
+{
+using tr1::bad_weak_ptr;
+using tr1::const_pointer_cast;
+using tr1::dynamic_pointer_cast;
+using tr1::enable_shared_from_this;
+using tr1::get_deleter;
+using tr1::shared_ptr;
+using tr1::static_pointer_cast;
+using tr1::swap;
+using tr1::weak_ptr;
+}
 #endif
 
 

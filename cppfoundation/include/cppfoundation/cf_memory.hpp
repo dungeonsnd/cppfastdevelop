@@ -15,7 +15,7 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #ifndef _HEADER_FILE_CFD_CF_MEMORY_HPP_
 #define _HEADER_FILE_CFD_CF_MEMORY_HPP_
@@ -29,110 +29,114 @@ namespace cf
 /// alloc momery.
 
 template <typename Type>
-inline Type *cf_New()
+inline Type * cf_New()
 {
-    Type * p = NULL;
-    try
-    {
-        p = new Type;
-    }catch (std::bad_alloc& ba)
-    {
-        p = NULL;
-    }
-    return p;
+   Type * p = NULL;
+   try
+   {
+      p = new Type;
+   }
+   catch (std::bad_alloc & ba)
+   {
+      p = NULL;
+   }
+   return p;
 }
 
 template <typename Type>
-inline Type *cf_PlacementNew(void *p)
+inline Type * cf_PlacementNew(void * p)
 {
-    Type * pt = NULL;
-    try
-    {
-        pt = new (p) Type;
-    }catch (std::bad_alloc& ba)
-    {
-        pt = NULL;
-    }
-    return pt;
+   Type * pt = NULL;
+   try
+   {
+      pt = new (p) Type;
+   }
+   catch (std::bad_alloc & ba)
+   {
+      pt = NULL;
+   }
+   return pt;
 }
 
 template <typename Type>
-inline Type *cf_NewA(cf_uint arraySize)
+inline Type * cf_NewA(cf_uint arraySize)
 {
-    Type * p = NULL;
-    try
-    {
-        p = new Type[arraySize];
-    }catch (std::bad_alloc& ba)
-    {
-        p = NULL;
-    }
-    return p;
+   Type * p = NULL;
+   try
+   {
+      p = new Type[arraySize];
+   }
+   catch (std::bad_alloc & ba)
+   {
+      p = NULL;
+   }
+   return p;
 }
 
 #define CF_NEWOBJ(Pointer, Class, ...) \
-        Class * Pointer=NULL; \
-        try \
-        { \
-            Pointer = new Class(__VA_ARGS__); \
-        } \
-        catch (std::bad_alloc& ba) \
-        { \
-            Pointer = NULL; \
-        } \
+   Class * Pointer=NULL; \
+   try \
+   { \
+      Pointer = new Class(__VA_ARGS__); \
+   } \
+   catch (std::bad_alloc& ba) \
+   { \
+      Pointer = NULL; \
+   } \
     
 #define CF_NEWOBJ_A(Pointer, Class, arraySize) \
-        Class * Pointer=NULL; \
-        try \
-        { \
-            Pointer = new Class [arraySize]; \
-        } \
-        catch (std::bad_alloc& ba) \
-        { \
-            Pointer = NULL; \
-        } \
+   Class * Pointer=NULL; \
+   try \
+   { \
+      Pointer = new Class [arraySize]; \
+   } \
+   catch (std::bad_alloc& ba) \
+   { \
+      Pointer = NULL; \
+   } \
     
 /// free momery.
 
 template <typename Type>
-inline cf_int cf_Delete(Type * & rp)
+inline cf_int cf_Delete(Type *& rp)
 {
-    cf_int rt =0;
-    if (rp != NULL)
-    {
-        try
-        {
-            delete rp;
-            rp = NULL;
-        }catch (std::bad_alloc& ba)
-        {
-            rt =-1;
-        }
-        rp = NULL;
-    }
-    return rt;
+   cf_int rt =0;
+   if (rp != NULL)
+   {
+      try
+      {
+         delete rp;
+         rp = NULL;
+      }
+      catch (std::bad_alloc & ba)
+      {
+         rt =-1;
+      }
+      rp = NULL;
+   }
+   return rt;
 }
-    
+
 template <typename Type>
-inline cf_int cf_DeleteA(Type * & rp)
+inline cf_int cf_DeleteA(Type *& rp)
 {
-    cf_int rt =0;
-    if (rp != NULL)
-    {
-        delete [] rp;
-        rp = NULL;
-    }
-    return rt;
+   cf_int rt =0;
+   if (rp != NULL)
+   {
+      delete [] rp;
+      rp = NULL;
+   }
+   return rt;
 }
 
 
-template <typename Type> inline void cf_Free(Type *&rp)
+template <typename Type> inline void cf_Free(Type *& rp)
 {
-    if (rp != NULL)
-    {
-        free(rp);
-        rp = NULL;
-    }
+   if (rp != NULL)
+   {
+      free(rp);
+      rp = NULL;
+   }
 }
 
 } // namespace cf

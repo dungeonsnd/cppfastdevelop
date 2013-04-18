@@ -15,7 +15,7 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 #include "cppfoundation/cf_binary_search.hpp"
 
 namespace cf

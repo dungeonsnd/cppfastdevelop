@@ -15,7 +15,7 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #ifndef _HEADER_FILE_CFD_CF_EXCEPTION_HPP_
 #define _HEADER_FILE_CFD_CF_EXCEPTION_HPP_
@@ -27,9 +27,9 @@ namespace cf
 
 /**
  *  ExceptClass is derived from cf::BaseException exception-class.
- * 
+ *
  *  Using e.g. :
- * 
+ *
     DEFINECLASS_CHILD_EXCEPTION(CTestExcept, cf::BaseException);
 
     try{
@@ -37,81 +37,81 @@ namespace cf
     }catch(cf_const CTestExcept & e){
         printf("%s\n",e.what());
     }
- * 
+ *
  */
 #define DEFINECLASS_CHILD_EXCEPTION(ExceptClass, Base)             \
-                                                          \
-class ExceptClass : public Base                           \
-{                                                         \
-public:                                                   \
-   ExceptClass(cf_cpstr file,                                \
-               cf_int line,                                  \
-               cf_cpstr func,                                \
-               cf_int errnumber,                             \
-               cf_const std::string & msg                    \
-               ) throw()                                  \
-       : Base(file, line, func, errnumber, msg)           \
-    {}                                                    \
-                                                          \
-    std::string GetClassName() cf_const                      \
-    {                                                     \
-       return #ExceptClass;                               \
-    }                                                     \
-};
+   \
+   class ExceptClass : public Base                           \
+   {                                                         \
+   public:                                                   \
+      ExceptClass(cf_cpstr file,                                \
+                  cf_int line,                                  \
+                  cf_cpstr func,                                \
+                  cf_int errnumber,                             \
+                  cf_const std::string & msg                    \
+                 ) throw()                                  \
+         : Base(file, line, func, errnumber, msg)           \
+      {}                                                    \
+      \
+      std::string GetClassName() cf_const                      \
+      {                                                     \
+         return #ExceptClass;                               \
+      }                                                     \
+   };
 
 #define _THROW(ExceptionClass, msg)                           \
-    {   \
-        throw ExceptionClass(__FILE__, __LINE__, __PRETTY_FUNCTION__, errno, msg); \
-    }
-    
+   {   \
+      throw ExceptionClass(__FILE__, __LINE__, __PRETTY_FUNCTION__, errno, msg); \
+   }
+
 #define _THROW_FMT(ExceptionClass, format, ...)                           \
-    { \
-        char errstr[4096] ={0}; \
-        cf_snprintf(errstr,sizeof(errstr),format,##__VA_ARGS__ ); \
-        throw ExceptionClass(__FILE__, __LINE__, __PRETTY_FUNCTION__, errno, errstr); \
-    }
+   { \
+      char errstr[4096] ={0}; \
+      cf_snprintf(errstr,sizeof(errstr),format,##__VA_ARGS__ ); \
+      throw ExceptionClass(__FILE__, __LINE__, __PRETTY_FUNCTION__, errno, errstr); \
+   }
 
 
 /**
  * The root exception-class.
- * 
+ *
  */
 class BaseException : public std::exception , public Object
 {
 public:
-    BaseException(  cf_cpstr file,
-                    cf_int line,  
-                    cf_cpstr func, 
-                    cf_int errnum,
-                    cf_const std::string & msg ) throw();
-            
-    virtual ~BaseException() throw();
-    cf_cpstr what() cf_const throw();
+   BaseException(  cf_cpstr file,
+                   cf_int line,
+                   cf_cpstr func,
+                   cf_int errnum,
+                   cf_const std::string & msg ) throw();
+
+   virtual ~BaseException() throw();
+   cf_cpstr what() cf_const throw();
 
 protected:
-    virtual std::string GetClassName() cf_const { return "BaseException"; }
-    std::string GetStackTrace() cf_const;
-    
-    cf_cpstr _file;
-    cf_int _line;
-    cf_cpstr _func;
-    cf_int _errnum;
-    std::string _errStr;
-    std::string _msg;
-    std::string _time;
-    
+   virtual std::string GetClassName() cf_const { return "BaseException"; }
+   std::string GetStackTrace() cf_const;
+
+   cf_cpstr _file;
+   cf_int _line;
+   cf_cpstr _func;
+   cf_int _errnum;
+   std::string _errStr;
+   std::string _msg;
+   std::string _time;
+
 private:
-    enum { MAX_STACKTRACESIZE = 64 };
-    cf_void * _stackTrace[MAX_STACKTRACESIZE];
-    size_t _stackTraceSize;
-    mutable std::string _what;
+   enum { MAX_STACKTRACESIZE = 64 };
+   cf_void * _stackTrace[MAX_STACKTRACESIZE];
+   size_t _stackTraceSize;
+   mutable std::string _what;
 };
 
 // Don't use this way of thowing !
 #define _THROW_EXCEPTION(msg) \
-    ( throw cf::BaseException(__FILE__, __LINE__, __PRETTY_FUNCTION__, errno, msg) )
+   ( throw cf::BaseException(__FILE__, __LINE__, __PRETTY_FUNCTION__, errno, msg) )
 
-    
+
 // 1. cf::BaseException
 // 1.1 cf::Fatal
 DEFINECLASS_CHILD_EXCEPTION(Fatal, BaseException);
@@ -147,12 +147,12 @@ e.g.
     _THROW(SyscallExecuteError, "Failed to execute cf_mmap !")
     _THROW(AllocateMemoryError, "Allocate memory failed !")
     _THROW(UnimplementedError, "Unsupported temporarily !")
-    
+
     _THROW(RuntimeWarning, "_type{%d} unexpected !",_type)
 
     _THROW(ElementNotFoundInfo, "Element not found!")
-          
-          
+
+
     cf_int rt =pthread_mutex_trylock(&_mutex);
     if (0!=rt)
     {

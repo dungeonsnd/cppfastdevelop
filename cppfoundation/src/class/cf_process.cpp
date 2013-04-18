@@ -15,30 +15,30 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #include "cppfoundation/cf_process.hpp"
 
 namespace cf
 {
-    
+
 cf_void Process::SetUmask(mode_t mask)
 {
-    cf_umask(mask);
+   cf_umask(mask);
 }
-cf_void Process::SetRLimit(cf_int res, cf_const struct rlimit *rlimit)
+cf_void Process::SetRLimit(cf_int res, cf_const struct rlimit * rlimit)
 {
-    if (0!=cf_setrlimit(res, rlimit))
-        _THROW(SyscallExecuteError, "Failed to execute cf_setrlimit !");
+   if (0!=cf_setrlimit(res, rlimit))
+      _THROW(SyscallExecuteError, "Failed to execute cf_setrlimit !");
 }
 struct rlimit Process::GetRLimit(cf_int res)
 {
-    struct rlimit rl;
-    rl.rlim_cur =0;
-    rl.rlim_max =0;
-    if (0!=cf_getrlimit(res, &rl) )
-        _THROW(SyscallExecuteError, "Failed to execute cf_getrlimit !");
-    return rl;
+   struct rlimit rl;
+   rl.rlim_cur =0;
+   rl.rlim_max =0;
+   if (0!=cf_getrlimit(res, &rl) )
+      _THROW(SyscallExecuteError, "Failed to execute cf_getrlimit !");
+   return rl;
 }
 cf_void Process::ParseOptions()
 {

@@ -15,7 +15,7 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #ifndef _HEADER_FILE_CFD_CF_CONDITION_HPP_
 #define _HEADER_FILE_CFD_CF_CONDITION_HPP_
@@ -30,33 +30,33 @@ namespace cf
 class PthreadCond : public NonCopyable
 {
 public:
-    PthreadCond();
-    virtual ~PthreadCond();
-    cf_void Wait() cf_const;
-    bool Wait(cf_uint32 timeoutMilliseconds);
-    cf_void Signal() cf_const;
-    cf_void Broadcast() cf_const;
-    PthreadMutex &GetLock();
+   PthreadCond();
+   virtual ~PthreadCond();
+   cf_void Wait() cf_const;
+   bool Wait(cf_uint32 timeoutMilliseconds);
+   cf_void Signal() cf_const;
+   cf_void Broadcast() cf_const;
+   PthreadMutex & GetLock();
 private:
-    mutable pthread_cond_t _cond;
-    mutable PthreadMutex _pthreadMutex;
+   mutable pthread_cond_t _cond;
+   mutable PthreadMutex _pthreadMutex;
 };
 
 
 class RawPthreadCondition:public NonCopyable
 {
 public:
-    RawPthreadCondition(pthread_cond_t*, pthread_mutex_t*);
-    cf_void Wait();
-    bool Wait(cf_uint32 timeoutMilliseconds);
-    cf_void Signal();
-    cf_void Broadcast();
-    RawPthreadMutex &GetLock();
-    ~RawPthreadCondition();
+   RawPthreadCondition(pthread_cond_t *, pthread_mutex_t *);
+   cf_void Wait();
+   bool Wait(cf_uint32 timeoutMilliseconds);
+   cf_void Signal();
+   cf_void Broadcast();
+   RawPthreadMutex & GetLock();
+   ~RawPthreadCondition();
 
 private:
-    pthread_cond_t * _cond;
-    RawPthreadMutex _rawPthreadMutex;
+   pthread_cond_t * _cond;
+   RawPthreadMutex _rawPthreadMutex;
 };
 
 

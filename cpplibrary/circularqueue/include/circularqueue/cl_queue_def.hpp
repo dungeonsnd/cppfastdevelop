@@ -15,7 +15,7 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #ifndef _HEADER_FILE_CFD_CL_QUEUE_DEF_HPP_
 #define _HEADER_FILE_CFD_CL_QUEUE_DEF_HPP_
@@ -44,7 +44,7 @@ enum eWriteCase{
 
 Scene 1:
     _pQueue    tail                    head   over
-    |(unused)   |         (used)         | (unus|ed) 
+    |(unused)   |         (used)         | (unus|ed)
     +++++++++++++------------------------+++++++
 
 Scene 2:
@@ -55,45 +55,45 @@ Scene 2:
 
 typedef enum _tagQStatus
 {
-    Q_NOMAL =0,
-    Q_STOP2PUT,
-    Q_STOP2PUTANDGET
-}QStatus;
+   Q_NOMAL =0,
+   Q_STOP2PUT,
+   Q_STOP2PUTANDGET
+} QStatus;
 
 typedef struct _tagQMeta
 {
-    cf_byte magic[4];
-    cf_byte version[4];
+   cf_byte magic[4];
+   cf_byte version[4];
 
-    cf_uint64 qTotalSize; // alse named "over". Not including Meta.
-    cf_uint64 qLeftSize;
-    cf_uint64 elementCount;
-    
-    cf_uint64 headIndex;
-    cf_uint64 tailIndex;
+   cf_uint64 qTotalSize; // alse named "over". Not including Meta.
+   cf_uint64 qLeftSize;
+   cf_uint64 elementCount;
 
-    cf_uint64 serialNO;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    
-    time_t operationTime;
-    pid_t operationPid;
-    cf_byte extention[4];
+   cf_uint64 headIndex;
+   cf_uint64 tailIndex;
 
-    QStatus status;
-    
-    cf_byte elementBegin[0];
-}QMeta,*PQMeta;
+   cf_uint64 serialNO;
+   pthread_mutex_t mutex;
+   pthread_cond_t cond;
+
+   time_t operationTime;
+   pid_t operationPid;
+   cf_byte extention[4];
+
+   QStatus status;
+
+   cf_byte elementBegin[0];
+} QMeta,*PQMeta;
 
 typedef struct _tagElementHeader
 {
-    cf_byte writeCase;
-    cf_byte extention[3];
-    cf_uint64 bodyLen;
-    time_t operationTime;
-    
-    cf_byte bodyBegin[0];
-}ElementHeader,*PElementHeader;
+   cf_byte writeCase;
+   cf_byte extention[3];
+   cf_uint64 bodyLen;
+   time_t operationTime;
+
+   cf_byte bodyBegin[0];
+} ElementHeader,*PElementHeader;
 
 
 DEFINECLASS_CHILD_EXCEPTION(QueueFullException, cf::Info);

@@ -15,7 +15,7 @@
  */
 
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
-//// 
+////
 
 #ifndef _HEADER_FILE_CFD_CL_DEFAULT_PROTOCOL_HPP_
 #define _HEADER_FILE_CFD_CL_DEFAULT_PROTOCOL_HPP_
@@ -29,62 +29,63 @@ namespace ns
 
 namespace protocoldefs
 {
-    enum {
-        DEFAULT_HEADLEN = 4
-    };
+enum
+{
+   DEFAULT_HEADLEN = 4
+};
 } // namespace protocoldefs
 
 class DefaultProtocol : public cf::NonCopyable
 {
 public:
-    DefaultProtocol():
-        _headlen(protocoldefs::DEFAULT_HEADLEN),
-        _bodylen(0)
-    {
-    }
-    virtual ~DefaultProtocol()
-    {
-    }
-    cf_uint32 HeadLen() const
-    {
-        return _headlen;
-    }
-    cf_void SetBodyLen(cf_uint32 bodylen)
-    {
-        _bodylen =bodylen;
-    }
-    cf_uint32 BodyLen() const
-    {
-        return _bodylen;
-    }
-    
-    virtual cf_void OnAcceptProcess(cf_int fd)
-    {
-        printf("OnAcceptProcess \n");
-    }
-    virtual cf_void OnReadProcess(cf_int fd, cf_void * buff, cf_uint32 bytes)
-    {
-        printf("OnReadProcess \n");
-    }
-    virtual cf_void OnWriteProcess(cf_int fd, cf_uint32 bytes)
-    {
-        printf("OnWriteProcess \n");
-    }
-    virtual cf_void OnCloseProcess(cf_int fd)
-    {
-        printf("OnCloseProcess \n");
-    }
-    virtual cf_void OnTimeoutProcess(cf_int fd)
-    {
-        printf("OnTimeoutProcess \n");
-    }
-    virtual cf_void OnErrorProcess(cf_int fd)
-    {
-        printf("OnErrorProcess \n");
-    }
+   DefaultProtocol():
+      _headlen(protocoldefs::DEFAULT_HEADLEN),
+      _bodylen(0)
+   {
+   }
+   virtual ~DefaultProtocol()
+   {
+   }
+   cf_uint32 HeadLen() const
+   {
+      return _headlen;
+   }
+   cf_void SetBodyLen(cf_uint32 bodylen)
+   {
+      _bodylen =bodylen;
+   }
+   cf_uint32 BodyLen() const
+   {
+      return _bodylen;
+   }
+
+   virtual cf_void OnAcceptProcess(cf_int fd)
+   {
+      printf("OnAcceptProcess \n");
+   }
+   virtual cf_void OnReadProcess(cf_int fd, cf_void * buff, cf_uint32 bytes)
+   {
+      printf("OnReadProcess \n");
+   }
+   virtual cf_void OnWriteProcess(cf_int fd, cf_uint32 bytes)
+   {
+      printf("OnWriteProcess \n");
+   }
+   virtual cf_void OnCloseProcess(cf_int fd)
+   {
+      printf("OnCloseProcess \n");
+   }
+   virtual cf_void OnTimeoutProcess(cf_int fd)
+   {
+      printf("OnTimeoutProcess \n");
+   }
+   virtual cf_void OnErrorProcess(cf_int fd)
+   {
+      printf("OnErrorProcess \n");
+   }
 private:
-    cf_uint32 _headlen;
-    cf_uint32 _bodylen;
+   cf_uint32 _headlen;
+   cf_uint32 _bodylen;
 };
 
 
