@@ -10,7 +10,7 @@ fi
 
 echo "+++ push to bitbucket +++"
 git push bitbucket master
-echo "+++ push to bitbucket +++"
+echo "+++ push to github +++"
 git push github master
 
 if [ $PUSH_TO_ALL -eq 1 ] ; then

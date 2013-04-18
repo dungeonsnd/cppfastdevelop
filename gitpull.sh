@@ -1,4 +1,4 @@
 #!/bin/sh
 
-echo "pull from github +++"
+echo "pull from bitbucket +++"
 git pull bitbucket master
