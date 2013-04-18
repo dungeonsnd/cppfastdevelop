@@ -23,9 +23,14 @@ ATTENTION:
 
 
 cfd project website(up-to-date):
+
+https://bitbucket.org/dungeonsnd/cppfastdevelop
+
 https://github.com/dungeonsnd/cppfastdevelop
 
-other website(maybe not up-to-date)
+other website(maybe not up-to-date):
+
 https://code.google.com/p/cppfastdevelop/
+
 https://sourceforge.net/projects/cppfastdevelop/
 
