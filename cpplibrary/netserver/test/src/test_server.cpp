@@ -29,12 +29,12 @@ public:
 
 cf_void Run()
 {
-   cl::ns::NetServer < cl::ns::DefaultComplete < MyProtocol > > server(8601);
-   server.Start();
+    cl::ns::NetServer < cl::ns::DefaultComplete < MyProtocol > > server(8601);
+    server.Start();
 }
 
 cf_int main(cf_int argc,cf_char * argv[])
 {
-   Run();
-   return 0;
+    Run();
+    return 0;
 }

@@ -24,19 +24,19 @@ namespace cf
 
 cf_int Application::Run()
 {
-   _process->Run();
-   return true;
+    _process->Run();
+    return true;
 }
 bool Application::Initialize(Process * p)
 {
-   if(NULL==_process)
-      return false;
-   _process =p;
-   return true;
+    if(NULL==_process)
+        return false;
+    _process =p;
+    return true;
 }
 bool Application::Finalize()
 {
-   return true;
+    return true;
 }
 
 

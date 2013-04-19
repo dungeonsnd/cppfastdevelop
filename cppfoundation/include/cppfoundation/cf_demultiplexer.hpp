@@ -27,6 +27,24 @@
 namespace cf
 {
 
+class Event : public cf::NonCopyable
+{
+public:
+    Event()
+    {
+    }
+    ~Event()
+    {
+    }
+    cf_void AddEvent(cf_int fd, cf_uint32 ev)
+    {
+    }
+    cf_void DelEvent(cf_int fd, cf_uint32 ev)
+    {
+    }
+private:
+
+}
 
 }
 

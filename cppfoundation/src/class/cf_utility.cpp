@@ -26,94 +26,94 @@ namespace cf
 
 cf_int GetHostByName(cf_const std::string & name, struct hostent * phe)
 {
-   static PthreadMutex mutex;
-   LockGuard<PthreadMutex> lock(mutex);
-   struct hostent * _phe = cf_gethostbyname(name.c_str());
-   if (_phe == NULL)
-      return -1;
-   *phe = *_phe;
-   return 0;
+    static PthreadMutex mutex;
+    LockGuard<PthreadMutex> lock(mutex);
+    struct hostent * _phe = cf_gethostbyname(name.c_str());
+    if (_phe == NULL)
+        return -1;
+    *phe = *_phe;
+    return 0;
 }
 
 
 cf_void SetProcessDaemon()
 {
-   cf_int i,fd0,fd1,fd2;
-   pid_t pid;
-   struct rlimit rl;
+    cf_int i,fd0,fd1,fd2;
+    pid_t pid;
+    struct rlimit rl;
 
-   cf_umask(0);
-   if(cf_getrlimit(RLIMIT_NOFILE,&rl)<0)
-   {
-      printf("Can't get file limit! errno=%d.file:%s,function:%s,line:%d.\n",
-             cf_int(errno),__FILE__,__PRETTY_FUNCTION__,__LINE__);
-      cf_exit(1);
-   }
-   if ((pid=cf_fork())<0)
-   {
-      printf("Can't fork! errno=%d.file:%s,function:%s,line:%d.\n",cf_int(errno),
-             __FILE__,__PRETTY_FUNCTION__,__LINE__);
-      cf_exit(1);
-   }
-   else if(pid != 0) // parent will exit normally.
-   {
-      cf_exit(0);
-   }
+    cf_umask(0);
+    if(cf_getrlimit(RLIMIT_NOFILE,&rl)<0)
+    {
+        printf("Can't get file limit! errno=%d.file:%s,function:%s,line:%d.\n",
+               cf_int(errno),__FILE__,__PRETTY_FUNCTION__,__LINE__);
+        cf_exit(1);
+    }
+    if ((pid=cf_fork())<0)
+    {
+        printf("Can't fork! errno=%d.file:%s,function:%s,line:%d.\n",cf_int(errno),
+               __FILE__,__PRETTY_FUNCTION__,__LINE__);
+        cf_exit(1);
+    }
+    else if(pid != 0) // parent will exit normally.
+    {
+        cf_exit(0);
+    }
 
-   cf_setsid();
+    cf_setsid();
 
-   if ((pid=cf_fork())<0)
-   {
-      printf("Can't fork!! errno=%d.file:%s,function:%s,line:%d.\n",cf_int(errno),
-             __FILE__,__PRETTY_FUNCTION__,__LINE__);
-      exit(1);
-   }
-   else if (pid!=0)
-   {
-      cf_exit(0);
-   }
+    if ((pid=cf_fork())<0)
+    {
+        printf("Can't fork!! errno=%d.file:%s,function:%s,line:%d.\n",cf_int(errno),
+               __FILE__,__PRETTY_FUNCTION__,__LINE__);
+        exit(1);
+    }
+    else if (pid!=0)
+    {
+        cf_exit(0);
+    }
 
-   if (cf_chdir("/tmp")<0)
-   {
-      printf("Can't change directory to /tmp! errno=%d.file:%s,function:%s,line:%d.\n",
-             cf_int(errno),__FILE__,__PRETTY_FUNCTION__,__LINE__);
-      cf_exit(1);
-   }
+    if (cf_chdir("/tmp")<0)
+    {
+        printf("Can't change directory to /tmp! errno=%d.file:%s,function:%s,line:%d.\n",
+               cf_int(errno),__FILE__,__PRETTY_FUNCTION__,__LINE__);
+        cf_exit(1);
+    }
 
-   if (rl.rlim_max == RLIM_INFINITY)
-      rl.rlim_max =1024;
-   for (i=0; i < cf_int(rl.rlim_max); i++)
-      cf_close(i);
+    if (rl.rlim_max == RLIM_INFINITY)
+        rl.rlim_max =1024;
+    for (i=0; i < cf_int(rl.rlim_max); i++)
+        cf_close(i);
 
-   fd0 =cf_open("/dev/null",O_RDWR,0);
-   fd1 =cf_dup(0);
-   fd2 =cf_dup(0);
+    fd0 =cf_open("/dev/null",O_RDWR,0);
+    fd1 =cf_dup(0);
+    fd2 =cf_dup(0);
 }
 
 cf_void IgnoreSignals()
 {
-   for(cf_int i = 1; i < 64; i++ )
-   {
-      switch(i)
-      {
-      case(SIGBUS):
-      case(SIGINT):
-      case(SIGHUP):
-      case(SIGSEGV):
-      case(SIGABRT):
-      case(SIGFPE):
-      case(SIGUSR1):
-      case(SIGUSR2):
-      case(SIGKILL):
-      case(SIGCHLD):
-         break;
-      default:
-         {
-            cf_signal(i,SIG_IGN);
+    for(cf_int i = 1; i < 64; i++ )
+    {
+        switch(i)
+        {
+        case(SIGBUS):
+        case(SIGINT):
+        case(SIGHUP):
+        case(SIGSEGV):
+        case(SIGABRT):
+        case(SIGFPE):
+        case(SIGUSR1):
+        case(SIGUSR2):
+        case(SIGKILL):
+        case(SIGCHLD):
             break;
-         }
-      }
-   }
+        default:
+            {
+                cf_signal(i,SIG_IGN);
+                break;
+            }
+        }
+    }
 }
 
 

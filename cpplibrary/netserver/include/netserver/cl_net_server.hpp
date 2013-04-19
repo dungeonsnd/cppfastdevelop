@@ -34,27 +34,27 @@ template < typename CompleteType >
 class NetServer : public cf::NonCopyable
 {
 public:
-   NetServer(const int port,const int backlog =32):
-      _epoll(NULL),
-      _complete()
-   {
-      int listenfd =cf::CreateServerSocket(port,SOCK_STREAM,backlog);
-      if(listenfd<0)
-         _THROW(cf::SyscallExecuteError, "CreateServerSocket failed !")
+    NetServer(const int port,const int backlog =32):
+        _epoll(NULL),
+        _complete()
+    {
+        int listenfd =cf::CreateServerSocket(port,SOCK_STREAM,backlog);
+        if(listenfd<0)
+            _THROW(cf::SyscallExecuteError, "CreateServerSocket failed !")
 
-         _epoll =new Epoll(listenfd,_complete);
-      _complete.Initial(_epoll);
-   }
-   ~NetServer()
-   {
-   }
-   cf_void Start()
-   {
-      _epoll->Wait(-1);
-   }
+            _epoll =new Epoll(listenfd,_complete);
+        _complete.Initial(_epoll);
+    }
+    ~NetServer()
+    {
+    }
+    cf_void Start()
+    {
+        _epoll->Wait(-1);
+    }
 private:
-   Epoll * _epoll;
-   CompleteType _complete;
+    Epoll * _epoll;
+    CompleteType _complete;
 };
 
 

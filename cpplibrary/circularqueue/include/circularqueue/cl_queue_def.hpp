@@ -55,44 +55,44 @@ Scene 2:
 
 typedef enum _tagQStatus
 {
-   Q_NOMAL =0,
-   Q_STOP2PUT,
-   Q_STOP2PUTANDGET
+    Q_NOMAL =0,
+    Q_STOP2PUT,
+    Q_STOP2PUTANDGET
 } QStatus;
 
 typedef struct _tagQMeta
 {
-   cf_byte magic[4];
-   cf_byte version[4];
+    cf_byte magic[4];
+    cf_byte version[4];
 
-   cf_uint64 qTotalSize; // alse named "over". Not including Meta.
-   cf_uint64 qLeftSize;
-   cf_uint64 elementCount;
+    cf_uint64 qTotalSize; // alse named "over". Not including Meta.
+    cf_uint64 qLeftSize;
+    cf_uint64 elementCount;
 
-   cf_uint64 headIndex;
-   cf_uint64 tailIndex;
+    cf_uint64 headIndex;
+    cf_uint64 tailIndex;
 
-   cf_uint64 serialNO;
-   pthread_mutex_t mutex;
-   pthread_cond_t cond;
+    cf_uint64 serialNO;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
 
-   time_t operationTime;
-   pid_t operationPid;
-   cf_byte extention[4];
+    time_t operationTime;
+    pid_t operationPid;
+    cf_byte extention[4];
 
-   QStatus status;
+    QStatus status;
 
-   cf_byte elementBegin[0];
+    cf_byte elementBegin[0];
 } QMeta,*PQMeta;
 
 typedef struct _tagElementHeader
 {
-   cf_byte writeCase;
-   cf_byte extention[3];
-   cf_uint64 bodyLen;
-   time_t operationTime;
+    cf_byte writeCase;
+    cf_byte extention[3];
+    cf_uint64 bodyLen;
+    time_t operationTime;
 
-   cf_byte bodyBegin[0];
+    cf_byte bodyBegin[0];
 } ElementHeader,*PElementHeader;
 
 

@@ -31,61 +31,61 @@ namespace cq
 class PosixShmCircularQueue : public cf::NonCopyable
 {
 public:
-   PosixShmCircularQueue(cf_const std::string & name,bool creator,
-                         cf_uint64 memSize,cf_int oflag = cf::ipcdefs::FLAG_RDWR,
-                         mode_t mode =cf::ipcdefs::MODE_DEFAULT)
-   {
-      cf_int prot =cf::ipcdefs::PROT_DEFAULT;
+    PosixShmCircularQueue(cf_const std::string & name,bool creator,
+                          cf_uint64 memSize,cf_int oflag = cf::ipcdefs::FLAG_RDWR,
+                          mode_t mode =cf::ipcdefs::MODE_DEFAULT)
+    {
+        cf_int prot =cf::ipcdefs::PROT_DEFAULT;
 
-      CF_NEWOBJ(pshm,cf::PosixShM,name.c_str(),memSize,oflag,prot,mode,creator);
-      if(NULL==pshm)
-         _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
-      _shm.reset( pshm );
+        CF_NEWOBJ(pshm,cf::PosixShM,name.c_str(),memSize,oflag,prot,mode,creator);
+        if(NULL==pshm)
+            _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
+        _shm.reset( pshm );
 
-      CF_NEWOBJ(pqueue,CircularQueue,_shm->Get(),creator,memSize);
-      if(NULL==pqueue)
-         _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
-      _queue.reset( pqueue );
-   }
-   ~PosixShmCircularQueue() {}
+        CF_NEWOBJ(pqueue,CircularQueue,_shm->Get(),creator,memSize);
+        if(NULL==pqueue)
+            _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
+        _queue.reset( pqueue );
+    }
+    ~PosixShmCircularQueue() {}
 
-   cf_void StopPut()
-   {
-      _queue->StopPut();
-   }
-   cf_void StopPutAndGet()
-   {
-      _queue->StopPutAndGet();
-   }
+    cf_void StopPut()
+    {
+        _queue->StopPut();
+    }
+    cf_void StopPutAndGet()
+    {
+        _queue->StopPutAndGet();
+    }
 
-   cf_void Put(cf_cpvoid pData,cf_uint64 size)
-   {
-      _queue->Put(pData,size);
-   }
-   cf_void TryPut(cf_cpvoid pData,cf_uint64 size)
-   {
-      _queue->TryPut(pData,size);
-   }
-   cf_void TimedPut(cf_cpvoid pData,cf_uint64 size,cf_int32 timeoutMilliseconds)
-   {
-      _queue->TimedPut(pData,size,timeoutMilliseconds);
-   }
+    cf_void Put(cf_cpvoid pData,cf_uint64 size)
+    {
+        _queue->Put(pData,size);
+    }
+    cf_void TryPut(cf_cpvoid pData,cf_uint64 size)
+    {
+        _queue->TryPut(pData,size);
+    }
+    cf_void TimedPut(cf_cpvoid pData,cf_uint64 size,cf_int32 timeoutMilliseconds)
+    {
+        _queue->TimedPut(pData,size,timeoutMilliseconds);
+    }
 
-   cf_void Get(std::string & data)
-   {
-      _queue->Get(data);
-   }
-   cf_void TryGet(std::string & data)
-   {
-      _queue->TryGet(data);
-   }
-   cf_void TimedGet(std::string & data,cf_int32 timeoutMilliseconds)
-   {
-      _queue->TimedGet(data,timeoutMilliseconds);
-   }
+    cf_void Get(std::string & data)
+    {
+        _queue->Get(data);
+    }
+    cf_void TryGet(std::string & data)
+    {
+        _queue->TryGet(data);
+    }
+    cf_void TimedGet(std::string & data,cf_int32 timeoutMilliseconds)
+    {
+        _queue->TimedGet(data,timeoutMilliseconds);
+    }
 protected:
-   std::shared_ptr < cf::PosixShM > _shm;
-   std::shared_ptr < CircularQueue > _queue;
+    std::shared_ptr < cf::PosixShM > _shm;
+    std::shared_ptr < CircularQueue > _queue;
 };
 
 } // namespace cq

@@ -35,11 +35,11 @@ namespace cf
 template < typename T >
 struct BinarySearchCompare
 {
-   cf_int64 operator()(cf_const T & x, cf_const T & y) cf_const
-   {
-      if(x >= y) return 0;
-      else return 1;
-   }
+    cf_int64 operator()(cf_const T & x, cf_const T & y) cf_const
+    {
+        if(x >= y) return 0;
+        else return 1;
+    }
 };
 
 // Use compare class to compare the elements.
@@ -48,29 +48,29 @@ cf_int BinarySearchAscending(T * a, cf_int64 low, cf_int64 high,
                              cf_const T & target, cf_int64 & insertIndex)
 {
 #ifdef _ADDCHECK_
-   if(low<0)
-      return -1;
-   if(low>high)
-      return -2;
+    if(low<0)
+        return -1;
+    if(low>high)
+        return -2;
 #endif
-   compare_less comp;
-   while (low <= high)
-   {
-      cf_int64 middle = low + (high - low)/2;
-      if (comp(target, a[middle]))
-         high = middle - 1;
-      else if (comp(a[middle], target))
-         low = middle + 1;
-      else
-      {
-         insertIndex =middle;
-         return 1;
-      }
-   }
+    compare_less comp;
+    while (low <= high)
+    {
+        cf_int64 middle = low + (high - low)/2;
+        if (comp(target, a[middle]))
+            high = middle - 1;
+        else if (comp(a[middle], target))
+            low = middle + 1;
+        else
+        {
+            insertIndex =middle;
+            return 1;
+        }
+    }
 
-   insertIndex =low;
+    insertIndex =low;
 
-   return 0;
+    return 0;
 }
 
 // Use '<' to compare the elements.
@@ -79,27 +79,27 @@ cf_int BinarySearchAscending(T * a, cf_int64 low, cf_int64 high,
                              cf_const T & target, cf_int64 & insertIndex)
 {
 #ifdef _ADDCHECK_
-   if(low<0)
-      return -1;
-   if(low>high)
-      return -2;
+    if(low<0)
+        return -1;
+    if(low>high)
+        return -2;
 #endif
-   while (low <= high)
-   {
-      cf_int64 middle = low + (high - low)/2;
-      if ( target < a[middle] )
-         high = middle - 1;
-      else if ( a[middle] < target )
-         low = middle + 1;
-      else
-      {
-         insertIndex =middle;
-         return 1;
-      }
-   }
+    while (low <= high)
+    {
+        cf_int64 middle = low + (high - low)/2;
+        if ( target < a[middle] )
+            high = middle - 1;
+        else if ( a[middle] < target )
+            low = middle + 1;
+        else
+        {
+            insertIndex =middle;
+            return 1;
+        }
+    }
 
-   insertIndex =low;
-   return 0;
+    insertIndex =low;
+    return 0;
 }
 
 // Use compare class to compare the elements.
@@ -108,29 +108,29 @@ cf_int BinarySearchDescending(T * a, cf_int64 low, cf_int64 high,
                               cf_const T & target, cf_int64 & insertIndex)
 {
 #ifdef _ADDCHECK_
-   if(low<0)
-      return -1;
-   if(low>high)
-      return -2;
+    if(low<0)
+        return -1;
+    if(low>high)
+        return -2;
 #endif
-   compare_less comp;
-   while (low <= high)
-   {
-      cf_int64 middle = low + (high - low)/2;
-      if (comp(target, a[middle]))
-         low = middle + 1;
-      else if (comp(a[middle], target))
-         high = middle - 1;
-      else
-      {
-         insertIndex =middle;
-         return 1;
-      }
-   }
+    compare_less comp;
+    while (low <= high)
+    {
+        cf_int64 middle = low + (high - low)/2;
+        if (comp(target, a[middle]))
+            low = middle + 1;
+        else if (comp(a[middle], target))
+            high = middle - 1;
+        else
+        {
+            insertIndex =middle;
+            return 1;
+        }
+    }
 
-   insertIndex =low;
+    insertIndex =low;
 
-   return 0;
+    return 0;
 }
 
 // Use '<' to compare the elements.
@@ -139,27 +139,27 @@ cf_int BinarySearchDescending(T * a, cf_int64 low, cf_int64 high,
                               cf_const T & target, cf_int64 & insertIndex)
 {
 #ifdef _ADDCHECK_
-   if(low<0)
-      return -1;
-   if(low>high)
-      return -2;
+    if(low<0)
+        return -1;
+    if(low>high)
+        return -2;
 #endif
-   while (low <= high)
-   {
-      cf_int64 middle = low + (high - low)/2;
-      if ( target < a[middle] )
-         low = middle + 1;
-      else if ( a[middle] < target )
-         high = middle - 1;
-      else
-      {
-         insertIndex =middle;
-         return 1;
-      }
-   }
+    while (low <= high)
+    {
+        cf_int64 middle = low + (high - low)/2;
+        if ( target < a[middle] )
+            low = middle + 1;
+        else if ( a[middle] < target )
+            high = middle - 1;
+        else
+        {
+            insertIndex =middle;
+            return 1;
+        }
+    }
 
-   insertIndex =low;
-   return 0;
+    insertIndex =low;
+    return 0;
 }
 
 

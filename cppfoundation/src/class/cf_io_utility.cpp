@@ -24,123 +24,123 @@ namespace cf
 
 int CreateServerSocket (const int port,const int socktype,const int backlog)
 {
-   struct addrinfo hints;
-   struct addrinfo * result, *rp;
-   memset (&hints, 0, sizeof(struct addrinfo));
-   hints.ai_family = AF_UNSPEC;/* Return IPv4 and IPv6 choices */
-   hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
-   hints.ai_flags = AI_PASSIVE;/* All interfaces */
+    struct addrinfo hints;
+    struct addrinfo * result, *rp;
+    memset (&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;/* Return IPv4 and IPv6 choices */
+    hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
+    hints.ai_flags = AI_PASSIVE;/* All interfaces */
 
-   std::string portstr(8,'\0');
-   snprintf(&portstr[0],portstr.size(),"%d",port);
-   int rt = cf_getaddrinfo (NULL, portstr.c_str(), &hints, &result);
-   if (rt != 0)
-   {
-      _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_getaddrinfo ! %s.",
-                 gai_strerror (rt))
-   }
+    std::string portstr(8,'\0');
+    snprintf(&portstr[0],portstr.size(),"%d",port);
+    int rt = cf_getaddrinfo (NULL, portstr.c_str(), &hints, &result);
+    if (rt != 0)
+    {
+        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_getaddrinfo ! %s.",
+                   gai_strerror (rt))
+    }
 
-   int listenfd;
-   for (rp = result; rp != NULL; rp = rp->ai_next)
-   {
-      listenfd = cf_socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-      if (listenfd == -1)
-         continue;
+    int listenfd;
+    for (rp = result; rp != NULL; rp = rp->ai_next)
+    {
+        listenfd = cf_socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (listenfd == -1)
+            continue;
 
-      rt = cf_bind (listenfd, rp->ai_addr, rp->ai_addrlen);
-      if (rt == 0)
-         break;/* We managed to bind successfully! */
-      cf_close (listenfd);
-   }
+        rt = cf_bind (listenfd, rp->ai_addr, rp->ai_addrlen);
+        if (rt == 0)
+            break;/* We managed to bind successfully! */
+        cf_close (listenfd);
+    }
 
-   if (rp == NULL)
-   {
-      //fprintf (stderr, "Could not bind\n");
-      cf_freeaddrinfo (result);
-      return -1;
-   }
-   cf_freeaddrinfo (result);
-   if ( 0!=cf_listen(listenfd, backlog) )
-      _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !")
-      return listenfd;
+    if (rp == NULL)
+    {
+        //fprintf (stderr, "Could not bind\n");
+        cf_freeaddrinfo (result);
+        return -1;
+    }
+    cf_freeaddrinfo (result);
+    if ( 0!=cf_listen(listenfd, backlog) )
+        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !")
+        return listenfd;
 }
 
 int CreateLocalServerSocket(const std::string & path,const int socktype,
                             const int backlog)
 {
-   int listenfd = cf_socket(AF_LOCAL, SOCK_STREAM, 0);
-   if (listenfd != 0)
-      _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_socket !")
-      if ( 0!=cf_unlink(path.c_str()) )
-         _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_unlink !")
-         struct sockaddr_un servaddr;
-   cf_memset(&servaddr,0,sizeof(servaddr));
-   servaddr.sun_family = AF_LOCAL;
-   cf_strcpy(servaddr.sun_path, path.c_str());
-   if ( 0!=cf_bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) )
-      _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_unlink !")
-      if ( 0!=cf_listen(listenfd, backlog) )
-         _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !")
-         return listenfd;
+    int listenfd = cf_socket(AF_LOCAL, SOCK_STREAM, 0);
+    if (listenfd != 0)
+        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_socket !")
+        if ( 0!=cf_unlink(path.c_str()) )
+            _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_unlink !")
+            struct sockaddr_un servaddr;
+    cf_memset(&servaddr,0,sizeof(servaddr));
+    servaddr.sun_family = AF_LOCAL;
+    cf_strcpy(servaddr.sun_path, path.c_str());
+    if ( 0!=cf_bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) )
+        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_unlink !")
+        if ( 0!=cf_listen(listenfd, backlog) )
+            _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !")
+            return listenfd;
 }
 
 cf_void SetBlocking(cf_int sockfd,bool blocking)
 {
-   cf_int flags = cf_fcntl(sockfd, F_GETFL, 0);
-   if (-1==flags)
-      _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !")
-      cf_int rt =0;
-   if ( (flags&O_NONBLOCK) && blocking )
-      rt = ::fcntl(sockfd, F_SETFL, flags & ~O_NONBLOCK);
-   else if ( !(flags&O_NONBLOCK) && false==blocking )
-      rt = ::fcntl(sockfd, F_SETFL, flags|O_NONBLOCK);
-   else
-      ; // Already set.
-   if (-1==rt)
-      _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !")
-   }
+    cf_int flags = cf_fcntl(sockfd, F_GETFL, 0);
+    if (-1==flags)
+        _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !")
+        cf_int rt =0;
+    if ( (flags&O_NONBLOCK) && blocking )
+        rt = ::fcntl(sockfd, F_SETFL, flags & ~O_NONBLOCK);
+    else if ( !(flags&O_NONBLOCK) && false==blocking )
+        rt = ::fcntl(sockfd, F_SETFL, flags|O_NONBLOCK);
+    else
+        ; // Already set.
+    if (-1==rt)
+        _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !")
+    }
 
 bool IsSocketBroken(cf_int fd)
 {
-   std::string buf(8, 0);
-   cf_int flags = cf_fcntl(fd, F_GETFL, 0);
-   cf_int rt = cf_fcntl(fd, F_SETFL, flags|O_NONBLOCK);
-   cf_int rc = ::recv(fd, &buf[0], buf.size(), MSG_PEEK);
-   rt = cf_fcntl(fd, F_SETFL, flags);
-   bool broken =false;
-   if (rc == 0)
-      broken =true;
-   else if (rc == -1 && (errno == EINTR || errno == EWOULDBLOCK
-                         || errno == EAGAIN))
-      broken =false;
-   else if (rc == -1)
-      broken =true;
-   else
-      broken =false;
-   return broken;
+    std::string buf(8, 0);
+    cf_int flags = cf_fcntl(fd, F_GETFL, 0);
+    cf_int rt = cf_fcntl(fd, F_SETFL, flags|O_NONBLOCK);
+    cf_int rc = ::recv(fd, &buf[0], buf.size(), MSG_PEEK);
+    rt = cf_fcntl(fd, F_SETFL, flags);
+    bool broken =false;
+    if (rc == 0)
+        broken =true;
+    else if (rc == -1 && (errno == EINTR || errno == EWOULDBLOCK
+                          || errno == EAGAIN))
+        broken =false;
+    else if (rc == -1)
+        broken =true;
+    else
+        broken =false;
+    return broken;
 }
 
 
 cf_int IOWaitting(struct pollfd & pfd,cf_int32 timeoutMilliSeconds)
 {
-   cf_int rt =0;
-   if(timeoutMilliSeconds < 0)
-      timeoutMilliSeconds =-1;
-   rt=cf_poll(&pfd, 1, timeoutMilliSeconds);
-   if (-1==rt)
-      _THROW(SyscallExecuteError, "Failed to execute cf_poll !")
-      return rt;
+    cf_int rt =0;
+    if(timeoutMilliSeconds < 0)
+        timeoutMilliSeconds =-1;
+    rt=cf_poll(&pfd, 1, timeoutMilliSeconds);
+    if (-1==rt)
+        _THROW(SyscallExecuteError, "Failed to execute cf_poll !")
+        return rt;
 }
 
 cf_int OutputWait(cf_int sockfd,cf_int32 timeoutMilliSeconds)
 {
-   struct pollfd pfd = {sockfd,POLLOUT,0};
-   return IOWaitting(pfd,timeoutMilliSeconds);
+    struct pollfd pfd = {sockfd,POLLOUT,0};
+    return IOWaitting(pfd,timeoutMilliSeconds);
 }
 cf_int InputWait(cf_int sockfd,cf_int32 timeoutMilliSeconds)
 {
-   struct pollfd pfd = {sockfd,POLLIN,0};
-   return IOWaitting(pfd,timeoutMilliSeconds);
+    struct pollfd pfd = {sockfd,POLLIN,0};
+    return IOWaitting(pfd,timeoutMilliSeconds);
 }
 
 /**
@@ -150,72 +150,72 @@ return false,timeout,hasDone bytes have sent.
 bool SendSegmentSync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
                      ssize_t & hasDone,cf_int32 timeoutMilliSeconds,ssize_t segsize)
 {
-   if(totalLen == 0)
-      return true;
-   ssize_t len=0;
-   ssize_t lenLeft =0;
-   time_t end,begin;
-   for(ssize_t alreadyDone=0; alreadyDone < totalLen;)
-   {
-      if ( (time_t)(-1)==(begin=cf_time(NULL)) )
-         _THROW(SyscallExecuteError, "Failed to execute cf_time !")
+    if(totalLen == 0)
+        return true;
+    ssize_t len=0;
+    ssize_t lenLeft =0;
+    time_t end,begin;
+    for(ssize_t alreadyDone=0; alreadyDone < totalLen;)
+    {
+        if ( (time_t)(-1)==(begin=cf_time(NULL)) )
+            _THROW(SyscallExecuteError, "Failed to execute cf_time !")
 
-         if(0==OutputWait(sockfd,timeoutMilliSeconds)) // timeout!
+            if(0==OutputWait(sockfd,timeoutMilliSeconds)) // timeout!
+                return false;
+        lenLeft = totalLen-alreadyDone;
+        if (segsize>0 && lenLeft > segsize)
+            lenLeft = segsize;
+        len =cf_write(sockfd,&buf[alreadyDone],lenLeft);
+        if(-1==len)
+            _THROW(SyscallExecuteError, "Failed to execute cf_write !")
+
+            alreadyDone +=len;
+        hasDone =alreadyDone;
+
+        if ( (time_t)(-1)==(end=cf_time(NULL)) )
+            _THROW(SyscallExecuteError, "Failed to execute cf_time !")
+            timeoutMilliSeconds -=(end-begin);
+        if (timeoutMilliSeconds <= 0)
             return false;
-      lenLeft = totalLen-alreadyDone;
-      if (segsize>0 && lenLeft > segsize)
-         lenLeft = segsize;
-      len =cf_write(sockfd,&buf[alreadyDone],lenLeft);
-      if(-1==len)
-         _THROW(SyscallExecuteError, "Failed to execute cf_write !")
-
-         alreadyDone +=len;
-      hasDone =alreadyDone;
-
-      if ( (time_t)(-1)==(end=cf_time(NULL)) )
-         _THROW(SyscallExecuteError, "Failed to execute cf_time !")
-         timeoutMilliSeconds -=(end-begin);
-      if (timeoutMilliSeconds <= 0)
-         return false;
-   }
-   return true;
+    }
+    return true;
 }
 
 bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
                      ssize_t & hasDone,cf_int32 timeoutMilliSeconds,ssize_t segsize)
 {
-   if(totalLen == 0)
-      return true;
-   ssize_t len=0;
-   ssize_t lenLeft =0;
-   time_t end,begin;
-   for(ssize_t alreadyDone=0; alreadyDone < totalLen;)
-   {
-      if ( (time_t)(-1)==(begin=cf_time(NULL)) )
-         _THROW(SyscallExecuteError, "Failed to execute cf_time !")
+    if(totalLen == 0)
+        return true;
+    ssize_t len=0;
+    ssize_t lenLeft =0;
+    time_t end,begin;
+    for(ssize_t alreadyDone=0; alreadyDone < totalLen;)
+    {
+        if ( (time_t)(-1)==(begin=cf_time(NULL)) )
+            _THROW(SyscallExecuteError, "Failed to execute cf_time !")
 
-         if(0==InputWait(sockfd,timeoutMilliSeconds)) // timeout!
+            if(0==InputWait(sockfd,timeoutMilliSeconds)) // timeout!
+                return false;
+        lenLeft = totalLen-alreadyDone;
+        if (segsize>0 && lenLeft > segsize)
+            lenLeft = segsize;
+        len =cf_read(sockfd,&buf[alreadyDone],lenLeft);
+        if(-1==len)
+            _THROW(SyscallExecuteError, "Failed to execute cf_write !")
+
+            alreadyDone +=len;
+        hasDone =alreadyDone;
+
+        if ( 0==len ) // len==0 means reaching end.
+            return true;
+
+        if ( (time_t)(-1)==(end=cf_time(NULL)) )
+            _THROW(SyscallExecuteError, "Failed to execute cf_time !")
+            timeoutMilliSeconds -=(end-begin);
+        if (timeoutMilliSeconds <= 0)
             return false;
-      lenLeft = totalLen-alreadyDone;
-      if (segsize>0 && lenLeft > segsize)
-         lenLeft = segsize;
-      len =cf_read(sockfd,&buf[alreadyDone],lenLeft);
-      if(-1==len)
-         _THROW(SyscallExecuteError, "Failed to execute cf_write !")
-
-         alreadyDone +=len;
-      hasDone =alreadyDone;
-
-      if ( 0==len ) // len==0 means reaching end.
-         return true;
-
-      if ( (time_t)(-1)==(end=cf_time(NULL)) )
-         _THROW(SyscallExecuteError, "Failed to execute cf_time !")
-         timeoutMilliSeconds -=(end-begin);
-      if (timeoutMilliSeconds <= 0)
-         return false;
-   }
-   return true;
+    }
+    return true;
 }
 
 
@@ -224,43 +224,43 @@ namespace ioutilitydefs
 {
 union control_un_single
 {
-   struct cmsghdr cm;
-   char control[ CMSG_SPACE(sizeof(int)*1) ];
+    struct cmsghdr cm;
+    char control[ CMSG_SPACE(sizeof(int)*1) ];
 } ;
 const size_t sizeof_control_un_single =sizeof(control_un_single);
 
 union control_un_tiny
 {
-   struct cmsghdr cm;
-   char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_TINY) ];
+    struct cmsghdr cm;
+    char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_TINY) ];
 } ;
 const size_t sizeof_control_un_tiny =sizeof(control_un_single);
 
 union control_un_small
 {
-   struct cmsghdr cm;
-   char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_SMALL) ];
+    struct cmsghdr cm;
+    char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_SMALL) ];
 } ;
 const size_t sizeof_control_un_small =sizeof(control_un_single);
 
 union control_un_medium
 {
-   struct cmsghdr cm;
-   char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_MEDIUM) ];
+    struct cmsghdr cm;
+    char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_MEDIUM) ];
 } ;
 const size_t sizeof_control_un_medium =sizeof(control_un_single);
 
 union control_un_large
 {
-   struct cmsghdr cm;
-   char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_LARGE) ];
+    struct cmsghdr cm;
+    char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_LARGE) ];
 } ;
 const size_t sizeof_control_un_large =sizeof(control_un_single);
 
 union control_un_verylarge
 {
-   struct cmsghdr cm;
-   char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_VERYLARGE) ];
+    struct cmsghdr cm;
+    char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_VERYLARGE) ];
 } ;
 const size_t sizeof_control_un_verylarge =sizeof(control_un_single);
 
@@ -269,138 +269,141 @@ const size_t sizeof_control_un_verylarge =sizeof(control_un_single);
 ssize_t SendFds(const int fd, const int * sendfdarray,const size_t fdarraylen,
                 void * dataExtra, const size_t dataExtraBytes)
 {
-   std::string control_un(0,'\0');
-   if(fdarraylen==1)
-      control_un.resize(ioutilitydefs::sizeof_control_un_single);
-   else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_TINY)
-      control_un.resize(ioutilitydefs::sizeof_control_un_tiny);
-   else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_SMALL)
-      control_un.resize(ioutilitydefs::sizeof_control_un_small);
-   else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_MEDIUM)
-      control_un.resize(ioutilitydefs::sizeof_control_un_medium);
-   else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_LARGE)
-      control_un.resize(ioutilitydefs::sizeof_control_un_large);
-   else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_VERYLARGE)
-      control_un.resize(ioutilitydefs::sizeof_control_un_verylarge);
-   else
-      _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen)
+    std::string control_un(0,'\0');
+    if(fdarraylen==1)
+        control_un.resize(ioutilitydefs::sizeof_control_un_single);
+    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_TINY)
+        control_un.resize(ioutilitydefs::sizeof_control_un_tiny);
+    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_SMALL)
+        control_un.resize(ioutilitydefs::sizeof_control_un_small);
+    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_MEDIUM)
+        control_un.resize(ioutilitydefs::sizeof_control_un_medium);
+    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_LARGE)
+        control_un.resize(ioutilitydefs::sizeof_control_un_large);
+    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_VERYLARGE)
+        control_un.resize(ioutilitydefs::sizeof_control_un_verylarge);
+    else
+        _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen)
 
-      struct msghdr   msg;
-   msg.msg_control = (void *)(control_un[0]);
-   msg.msg_controllen = control_un.size();
+        struct msghdr   msg;
+    msg.msg_control = (void *)(control_un[0]);
+    msg.msg_controllen = control_un.size();
 
-   struct cmsghdr * cmptr;
-   cmptr = CMSG_FIRSTHDR(&msg);
-   cmptr->cmsg_len  =CMSG_LEN( sizeof(int)*fdarraylen );
-   cmptr->cmsg_level = SOL_SOCKET;
-   cmptr->cmsg_type = SCM_RIGHTS;
-   for(size_t i=0; i<fdarraylen; i++)
-      *( (int *) (CMSG_DATA(cmptr)+sizeof(int)*i) ) = sendfdarray[i];
+    struct cmsghdr * cmptr;
+    cmptr = CMSG_FIRSTHDR(&msg);
+    cmptr->cmsg_len  =CMSG_LEN( sizeof(int)*fdarraylen );
+    cmptr->cmsg_level = SOL_SOCKET;
+    cmptr->cmsg_type = SCM_RIGHTS;
+    for(size_t i=0; i<fdarraylen; i++)
+        *( (int *) (CMSG_DATA(cmptr)+sizeof(int)*i) ) = sendfdarray[i];
 
-   msg.msg_name = NULL;
-   msg.msg_namelen = 0;
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
 
-   struct iovec    iov[1];
-   iov[0].iov_base = dataExtra;
-   iov[0].iov_len = dataExtraBytes;
-   msg.msg_iov = iov;
-   msg.msg_iovlen = 1;
+    struct iovec    iov[1];
+    iov[0].iov_base = dataExtra;
+    iov[0].iov_len = dataExtraBytes;
+    msg.msg_iov = iov;
+    msg.msg_iovlen = 1;
 
-   return (sendmsg(fd, &msg, 0));
+    return (sendmsg(fd, &msg, 0));
 }
 
 ssize_t RecvFds(const int fd, int * recvfdarray, const size_t fdarraylen,
                 void * dataExtra, size_t dataExtraBytes)
 {
-   std::string control_un(0,'\0');
-   if(fdarraylen==1)
-      control_un.resize(ioutilitydefs::sizeof_control_un_single);
-   else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_TINY)
-      control_un.resize(ioutilitydefs::sizeof_control_un_tiny);
-   else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_SMALL)
-      control_un.resize(ioutilitydefs::sizeof_control_un_small);
-   else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_MEDIUM)
-      control_un.resize(ioutilitydefs::sizeof_control_un_medium);
-   else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_LARGE)
-      control_un.resize(ioutilitydefs::sizeof_control_un_large);
-   else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_VERYLARGE)
-      control_un.resize(ioutilitydefs::sizeof_control_un_verylarge);
-   else
-      _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen)
-      struct msghdr   msg;
-   msg.msg_control = (void *)(control_un[0]);
-   msg.msg_controllen = control_un.size();
+    std::string control_un(0,'\0');
+    if(fdarraylen==1)
+        control_un.resize(ioutilitydefs::sizeof_control_un_single);
+    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_TINY)
+        control_un.resize(ioutilitydefs::sizeof_control_un_tiny);
+    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_SMALL)
+        control_un.resize(ioutilitydefs::sizeof_control_un_small);
+    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_MEDIUM)
+        control_un.resize(ioutilitydefs::sizeof_control_un_medium);
+    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_LARGE)
+        control_un.resize(ioutilitydefs::sizeof_control_un_large);
+    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_VERYLARGE)
+        control_un.resize(ioutilitydefs::sizeof_control_un_verylarge);
+    else
+        _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen)
+        struct msghdr   msg;
+    msg.msg_control = (void *)(control_un[0]);
+    msg.msg_controllen = control_un.size();
 
-   struct cmsghdr * cmptr;
-   msg.msg_name = NULL;
-   msg.msg_namelen = 0;
+    struct cmsghdr * cmptr;
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
 
-   struct iovec    iov[1];
-   iov[0].iov_base = dataExtra;
-   iov[0].iov_len = dataExtraBytes;
-   msg.msg_iov = iov;
-   msg.msg_iovlen = 1;
+    struct iovec    iov[1];
+    iov[0].iov_base = dataExtra;
+    iov[0].iov_len = dataExtraBytes;
+    msg.msg_iov = iov;
+    msg.msg_iovlen = 1;
 
-   ssize_t n =recvmsg(fd, &msg, 0);
-   if (n<=0)
-      return(n);
+    ssize_t n =recvmsg(fd, &msg, 0);
+    if (n<=0)
+        return(n);
 
-   if ( (cmptr = CMSG_FIRSTHDR(&msg)) != NULL
-        &&  cmptr->cmsg_len == CMSG_LEN(sizeof(int)*fdarraylen)
-      )
-   {
-      if (cmptr->cmsg_level != SOL_SOCKET)
-      {
-         //printf("control level != SOL_SOCKET");
-         return -1;
-      }
-      if (cmptr->cmsg_type != SCM_RIGHTS)
-      {
-         //err_quit("control type != SCM_RIGHTS");
-         return -2;
-      }
-      for(size_t i=0; i<fdarraylen; i++)
-         recvfdarray[i] =*( (int *) (CMSG_DATA(cmptr)+sizeof(int)*i) );
+    if ( (cmptr = CMSG_FIRSTHDR(&msg)) != NULL
+         &&  cmptr->cmsg_len == CMSG_LEN(sizeof(int)*fdarraylen)
+       )
+    {
+        if (cmptr->cmsg_level != SOL_SOCKET)
+        {
+            //printf("control level != SOL_SOCKET");
+            return -1;
+        }
+        if (cmptr->cmsg_type != SCM_RIGHTS)
+        {
+            //err_quit("control type != SCM_RIGHTS");
+            return -2;
+        }
+        for(size_t i=0; i<fdarraylen; i++)
+            recvfdarray[i] =*( (int *) (CMSG_DATA(cmptr)+sizeof(int)*i) );
 
-   }
-   else
-      recvfdarray[0] = -1;        // descriptor was not passed
+    }
+    else
+        recvfdarray[0] = -1;        // descriptor was not passed
 
-   return n;
+    return n;
 }
 
 #ifdef __linux__
 void AddEventEpoll(cf_int epfd, cf_int fd,struct epoll_event & event,
                    cf_uint32 ev)
 {
-   event.data.fd = fd;
-   event.events = ev;
-   int rt =cf_epoll_ctl (epfd, EPOLL_CTL_ADD, fd, &event);
-   if (-1==rt && EEXIST==errno)
-   {
-      rt =cf_epoll_ctl (epfd, EPOLL_CTL_MOD, fd, &event);
-      if (-1==rt)
-         _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
-      }
-   else if (-1==rt)
-      _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
-   }
+    event.data.fd = fd;
+    event.events = ev;
+    int rt =cf_epoll_ctl (epfd, EPOLL_CTL_ADD, fd, &event);
+    if (-1==rt && EEXIST==errno)
+    {
+        rt =cf_epoll_ctl (epfd, EPOLL_CTL_MOD, fd, &event);
+        if (-1==rt)
+            _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
+        }
+    else if (-1==rt)
+        _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
+    }
 void AddEventEpoll(cf_int epfd, cf_int fd, cf_uint32 ev)
 {
-   struct epoll_event event;
-   AddEventEpoll(epfd,fd,event,ev);
+    struct epoll_event event;
+    AddEventEpoll(epfd,fd,event,ev);
 }
+
 void DelEventEpoll(cf_int epfd, cf_int fd,struct epoll_event & event)
 {
-   event.data.fd = fd;
-   if (-1==cf_epoll_ctl (epfd, EPOLL_CTL_DEL, fd, &event))
-      _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
-   }
+    event.data.fd = fd;
+    if (-1==cf_epoll_ctl (epfd, EPOLL_CTL_DEL, fd, &event))
+        _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
+    }
 void DelEventEpoll(cf_int epfd, cf_int fd)
 {
-   struct epoll_event event;
-   DelEventEpoll(epfd,fd,event);
+    struct epoll_event event;
+    DelEventEpoll(epfd,fd,event);
 }
+
+
 #endif // __linux__
 
 } // namespace cf

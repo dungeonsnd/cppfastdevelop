@@ -41,87 +41,87 @@ template <typename QueueType, typename ElementType, typename MutexType>
 class RawQueue: public NonCopyable
 {
 public :
-   RawQueue():
-      _stopToPut(false),
-      _stopToGet(false),
-      _waitCount(0)
-   {
-   }
-   ~RawQueue()
-   {
-   }
+    RawQueue():
+        _stopToPut(false),
+        _stopToGet(false),
+        _waitCount(0)
+    {
+    }
+    ~RawQueue()
+    {
+    }
 
-   ElementType Get()
-   {
-      LockGuard<MutexType> lock(_cond.GetLock());
-      while (_queue.empty() && false==_stopToPut)
-      {
-         ++_waitCount;
-         _cond.Wait();
-      }
-      if (_stopToGet)
-         _THROW(QueueStopToGetException, "This queue has been stopped to get from it!");
-      if (_queue.empty() && _stopToPut)
-         _THROW(QueueEmptyAndStopToPutException,
-                "This queue is empty and stopped to put!");
+    ElementType Get()
+    {
+        LockGuard<MutexType> lock(_cond.GetLock());
+        while (_queue.empty() && false==_stopToPut)
+        {
+            ++_waitCount;
+            _cond.Wait();
+        }
+        if (_stopToGet)
+            _THROW(QueueStopToGetException, "This queue has been stopped to get from it!");
+        if (_queue.empty() && _stopToPut)
+            _THROW(QueueEmptyAndStopToPutException,
+                   "This queue is empty and stopped to put!");
 
-      ElementType temp = _queue.front();
-      _queue.pop();
-      return temp;
-   }
-   ElementType TryGet()
-   {
-      LockGuard<MutexType> lock(_cond.GetLock());
-      if (_stopToGet)
-         _THROW(QueueStopToGetException, "This queue has been stopped to get!");
-      if ( _queue.empty())
-         _THROW(CQueueEmptyException, "This queue is empty!");
+        ElementType temp = _queue.front();
+        _queue.pop();
+        return temp;
+    }
+    ElementType TryGet()
+    {
+        LockGuard<MutexType> lock(_cond.GetLock());
+        if (_stopToGet)
+            _THROW(QueueStopToGetException, "This queue has been stopped to get!");
+        if ( _queue.empty())
+            _THROW(CQueueEmptyException, "This queue is empty!");
 
-      ElementType temp(_queue.front());
-      _queue.pop();
-      return temp;
-   }
-   cf_void Put(cf_const ElementType & el)
-   {
-      LockGuard<MutexType> lock(_cond.GetLock());
-      if (_stopToPut)
-         _THROW(QueueStopToPutException, "This queue has been stopped to put!");
+        ElementType temp(_queue.front());
+        _queue.pop();
+        return temp;
+    }
+    cf_void Put(cf_const ElementType & el)
+    {
+        LockGuard<MutexType> lock(_cond.GetLock());
+        if (_stopToPut)
+            _THROW(QueueStopToPutException, "This queue has been stopped to put!");
 
-      _queue.push(el);
-      if (_waitCount != 0)
-      {
-         --_waitCount;
-         _cond.Signal();
-      }
-   }
-   cf_void StopPutAndGet()
-   {
-      _stopToGet = true;
-      _stopToPut = true;
-      _cond.Broadcast();
-   }
-   cf_void StopPut()
-   {
-      _stopToPut = true;
-      _cond.Broadcast();
-   }
-   bool IsEmpty()
-   {
-      LockGuard<MutexType> lock(_cond.GetLock());
-      return _queue.empty();
-   }
-   size_t Size()
-   {
-      LockGuard<MutexType> lock(_cond.GetLock());
-      return _queue.size();
-   }
+        _queue.push(el);
+        if (_waitCount != 0)
+        {
+            --_waitCount;
+            _cond.Signal();
+        }
+    }
+    cf_void StopPutAndGet()
+    {
+        _stopToGet = true;
+        _stopToPut = true;
+        _cond.Broadcast();
+    }
+    cf_void StopPut()
+    {
+        _stopToPut = true;
+        _cond.Broadcast();
+    }
+    bool IsEmpty()
+    {
+        LockGuard<MutexType> lock(_cond.GetLock());
+        return _queue.empty();
+    }
+    size_t Size()
+    {
+        LockGuard<MutexType> lock(_cond.GetLock());
+        return _queue.size();
+    }
 
 private :
-   volatile bool _stopToPut;
-   volatile bool _stopToGet;
-   cf_int _waitCount;
-   PthreadCond _cond;
-   QueueType _queue;
+    volatile bool _stopToPut;
+    volatile bool _stopToGet;
+    cf_int _waitCount;
+    PthreadCond _cond;
+    QueueType _queue;
 };
 
 //RawFastFindQueue
@@ -129,123 +129,123 @@ template <typename QueueType, typename ElementType, typename SetType, typename M
 class RawFastFindQueue: public NonCopyable
 {
 public :
-   typedef typename SetType::iterator IteratorType;
+    typedef typename SetType::iterator IteratorType;
 
-   RawFastFindQueue():
-      _stopToPut(false),
-      _stopToGet(false),
-      _waitCount(0)
-   {
-   }
-   ~RawFastFindQueue()
-   {
-   }
+    RawFastFindQueue():
+        _stopToPut(false),
+        _stopToGet(false),
+        _waitCount(0)
+    {
+    }
+    ~RawFastFindQueue()
+    {
+    }
 
-   ElementType Get()
-   {
-      LockGuard<MutexType> lock(_cond.GetLock());
-      while (_queue.empty() && false==_stopToPut)
-      {
-         ++_waitCount;
-         _cond.Wait();
-      }
-      if (_stopToGet)
-         _THROW(QueueStopToGetException, "This queue has been stopped to get from it!");
-      if (_queue.empty() && _stopToPut)
-         _THROW(QueueEmptyAndStopToPutException,
-                "This queue is empty and stopped to put!");
+    ElementType Get()
+    {
+        LockGuard<MutexType> lock(_cond.GetLock());
+        while (_queue.empty() && false==_stopToPut)
+        {
+            ++_waitCount;
+            _cond.Wait();
+        }
+        if (_stopToGet)
+            _THROW(QueueStopToGetException, "This queue has been stopped to get from it!");
+        if (_queue.empty() && _stopToPut)
+            _THROW(QueueEmptyAndStopToPutException,
+                   "This queue is empty and stopped to put!");
 
-      ElementType temp = _queue.front();
-      _queue.pop();
-      SetErase(temp);
-      return temp;
-   }
-   ElementType TryGet()
-   {
-      LockGuard<MutexType> lock(_cond.GetLock());
-      if (_stopToGet)
-         _THROW(QueueStopToGetException, "This queue has been stopped to get!");
-      if ( _queue.empty())
-         _THROW(CQueueEmptyException, "This queue is empty!");
+        ElementType temp = _queue.front();
+        _queue.pop();
+        SetErase(temp);
+        return temp;
+    }
+    ElementType TryGet()
+    {
+        LockGuard<MutexType> lock(_cond.GetLock());
+        if (_stopToGet)
+            _THROW(QueueStopToGetException, "This queue has been stopped to get!");
+        if ( _queue.empty())
+            _THROW(CQueueEmptyException, "This queue is empty!");
 
-      ElementType temp(_queue.front());
-      _queue.pop();
-      SetErase(temp);
-      return temp;
-   }
-   cf_void Put(cf_const ElementType & el)
-   {
-      LockGuard<MutexType> lock(_cond.GetLock());
-      if (_stopToPut)
-         _THROW(QueueStopToPutException, "This queue has been stopped to put!");
+        ElementType temp(_queue.front());
+        _queue.pop();
+        SetErase(temp);
+        return temp;
+    }
+    cf_void Put(cf_const ElementType & el)
+    {
+        LockGuard<MutexType> lock(_cond.GetLock());
+        if (_stopToPut)
+            _THROW(QueueStopToPutException, "This queue has been stopped to put!");
 
-      _queue.push(el);
-      SetInsert(el);
+        _queue.push(el);
+        SetInsert(el);
 
-      if (_waitCount != 0)
-      {
-         --_waitCount;
-         _cond.Signal();
-      }
-   }
+        if (_waitCount != 0)
+        {
+            --_waitCount;
+            _cond.Signal();
+        }
+    }
 
-   size_t Find(cf_const ElementType & temp)
-   {
-      LockGuard<MutexType> lock(_cond.GetLock());
-      return _set.count(temp);
-   }
+    size_t Find(cf_const ElementType & temp)
+    {
+        LockGuard<MutexType> lock(_cond.GetLock());
+        return _set.count(temp);
+    }
 
-   cf_void StopPutAndGet()
-   {
-      _stopToGet = true;
-      _stopToPut = true;
-      _cond.Broadcast();
-   }
-   cf_void StopPut()
-   {
-      _stopToPut = true;
-      _cond.Broadcast();
-   }
-   bool IsEmpty()
-   {
-      LockGuard<MutexType> lock(_cond.GetLock());
-      return _queue.empty();
-   }
-   size_t Size()
-   {
-      LockGuard<MutexType> lock(_cond.GetLock());
-      return _queue.size();
-   }
+    cf_void StopPutAndGet()
+    {
+        _stopToGet = true;
+        _stopToPut = true;
+        _cond.Broadcast();
+    }
+    cf_void StopPut()
+    {
+        _stopToPut = true;
+        _cond.Broadcast();
+    }
+    bool IsEmpty()
+    {
+        LockGuard<MutexType> lock(_cond.GetLock());
+        return _queue.empty();
+    }
+    size_t Size()
+    {
+        LockGuard<MutexType> lock(_cond.GetLock());
+        return _queue.size();
+    }
 
 private :
-   cf_void SetErase(cf_const ElementType & temp)
-   {
-      IteratorType itFind =_set.find(temp);
-      if(itFind!=_set.end())
-         _set.erase(itFind);
-      else
-         _THROW(ElementNotFoundInfo, "itFind==__set.end() !");
-   }
-   cf_void SetInsert(cf_const ElementType & temp)
-   {
-      _set.insert(temp);
-   }
+    cf_void SetErase(cf_const ElementType & temp)
+    {
+        IteratorType itFind =_set.find(temp);
+        if(itFind!=_set.end())
+            _set.erase(itFind);
+        else
+            _THROW(ElementNotFoundInfo, "itFind==__set.end() !");
+    }
+    cf_void SetInsert(cf_const ElementType & temp)
+    {
+        _set.insert(temp);
+    }
 
-   volatile bool _stopToPut;
-   volatile bool _stopToGet;
-   cf_int _waitCount;
-   PthreadCond _cond;
-   QueueType _queue;
-   SetType _set;
+    volatile bool _stopToPut;
+    volatile bool _stopToGet;
+    cf_int _waitCount;
+    PthreadCond _cond;
+    QueueType _queue;
+    SetType _set;
 };
 
 template <typename ElementType,
          typename MutexType =PthreadMutex /* or =FakeMutex */>
 struct TYPEQueue
 {
-   typedef RawQueue<std::queue<ElementType>, ElementType, MutexType > Queue;
-   typedef RawFastFindQueue<std::queue<ElementType>, ElementType, std::set<ElementType>, MutexType >
-   FastFindQueue;
+    typedef RawQueue<std::queue<ElementType>, ElementType, MutexType > Queue;
+    typedef RawFastFindQueue<std::queue<ElementType>, ElementType, std::set<ElementType>, MutexType >
+    FastFindQueue;
 };
 
 

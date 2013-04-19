@@ -35,27 +35,27 @@ namespace cq
 class CircularQueue : public cf::NonCopyable
 {
 public:
-   CircularQueue(cf_pvoid pMem,bool creator =false,cf_uint64 memSize =0);
-   ~CircularQueue();
+    CircularQueue(cf_pvoid pMem,bool creator =false,cf_uint64 memSize =0);
+    ~CircularQueue();
 
-   cf_void StopPut();
-   cf_void StopPutAndGet();
+    cf_void StopPut();
+    cf_void StopPutAndGet();
 
-   cf_void Put(cf_cpvoid pData,cf_uint64 size);
-   cf_void TryPut(cf_cpvoid pData,cf_uint64 size);
-   cf_void TimedPut(cf_cpvoid pData,cf_uint64 size,cf_int32 timeoutMilliseconds);
+    cf_void Put(cf_cpvoid pData,cf_uint64 size);
+    cf_void TryPut(cf_cpvoid pData,cf_uint64 size);
+    cf_void TimedPut(cf_cpvoid pData,cf_uint64 size,cf_int32 timeoutMilliseconds);
 
-   cf_void Get(std::string & data);
-   cf_void TryGet(std::string & data);
-   cf_void TimedGet(std::string & data,cf_int32 timeoutMilliseconds);
+    cf_void Get(std::string & data);
+    cf_void TryGet(std::string & data);
+    cf_void TimedGet(std::string & data,cf_int32 timeoutMilliseconds);
 
 protected:
-   cf_void CheckProcessAndRestoreLock();
-   cf_void CheckPointer() cf_const;
+    cf_void CheckProcessAndRestoreLock();
+    cf_void CheckPointer() cf_const;
 
-   std::shared_ptr<QMetaOp> _qMetaOp;
-   std::shared_ptr<ElementOp> _elementOp;
-   std::shared_ptr<cf::RawPthreadCondition> _cond;
+    std::shared_ptr<QMetaOp> _qMetaOp;
+    std::shared_ptr<ElementOp> _elementOp;
+    std::shared_ptr<cf::RawPthreadCondition> _cond;
 };
 
 } // namespace cq

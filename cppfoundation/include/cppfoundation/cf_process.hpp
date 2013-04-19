@@ -29,27 +29,27 @@ namespace cf
 class Process : public NonCopyable
 {
 public:
-   Process() {};
-   virtual ~Process() {};
+    Process() {};
+    virtual ~Process() {};
 
-   virtual cf_int Run()
-   {
-      return 0;
-   }
+    virtual cf_int Run()
+    {
+        return 0;
+    }
 
-   pid_t Getpid()
-   {
-      return getpid();
-   }
-   pid_t Getppid()
-   {
-      return getppid();
-   }
-   cf_void SetUmask(mode_t mask = 0);
-   cf_void SetRLimit(cf_int res, cf_const struct rlimit * rlimit);
-   struct rlimit GetRLimit(cf_int res);
+    pid_t Getpid()
+    {
+        return getpid();
+    }
+    pid_t Getppid()
+    {
+        return getppid();
+    }
+    cf_void SetUmask(mode_t mask = 0);
+    cf_void SetRLimit(cf_int res, cf_const struct rlimit * rlimit);
+    struct rlimit GetRLimit(cf_int res);
 private:
-   cf_void ParseOptions();
+    cf_void ParseOptions();
 };
 
 } // namespace cf

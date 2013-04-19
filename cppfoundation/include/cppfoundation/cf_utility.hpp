@@ -28,10 +28,10 @@ namespace cf
 
 #ifndef ERR
 #define ERR(msg) \
-   { \
-      fprintf(stderr,"Error! %s,file=%s,line=%d,errno=%d\n",msg,__FILE__,__LINE__,errno); \
-      exit(1); \
-   }
+    { \
+        fprintf(stderr,"Error! %s,file=%s,line=%d,errno=%d\n",msg,__FILE__,__LINE__,errno); \
+        exit(1); \
+    }
 #endif // ERR
 
 cf_int GetHostByName(cf_const std::string &, struct hostent * phe);
@@ -59,14 +59,14 @@ func(x);
 template <typename D>
 struct PointerTraits
 {
-   typedef D TraitsValueType;
-   typedef D * TraitsPointerType;
+    typedef D TraitsValueType;
+    typedef D * TraitsPointerType;
 };
 template <typename D>
 struct PointerTraits<D *>
 {
-   typedef D  TraitsValueType;
-   typedef D * TraitsPointerType;
+    typedef D  TraitsValueType;
+    typedef D * TraitsPointerType;
 };
 
 

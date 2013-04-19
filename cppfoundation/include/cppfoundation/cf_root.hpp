@@ -29,23 +29,23 @@ namespace cf
 class Object
 {
 public:
-   Object() {}
-   virtual ~Object() {}
+    Object() {}
+    virtual ~Object() {}
 
-   std::string GetClassName()
-   {
-      return typeid(this).name();
-   }
+    std::string GetClassName()
+    {
+        return typeid(this).name();
+    }
 };
 
 class NonCopyable : public Object
 {
 protected:
-   NonCopyable() {}
-   virtual ~NonCopyable() {}
+    NonCopyable() {}
+    virtual ~NonCopyable() {}
 private:
-   NonCopyable( const NonCopyable & );
-   const NonCopyable & operator=( const NonCopyable & );
+    NonCopyable( const NonCopyable & );
+    const NonCopyable & operator=( const NonCopyable & );
 };
 
 } // namespace cf

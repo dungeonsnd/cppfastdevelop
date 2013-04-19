@@ -32,69 +32,77 @@ template < typename ProtocolType >
 class DefaultComplete : public IOComplete
 {
 public:
-   DefaultComplete():
-      _proto()
-   {
-   }
-   ~DefaultComplete()
-   {
-   }
-   void Initial(cl::ns::Epoll * epoll)
-   {
-      _epoll =epoll;
-   }
-   cf_void OnAcceptComplete(cf_int fd)
-   {
-      printf("OnAcceptComplete \n");
-      if(NULL==_epoll)
-         _THROW(cf::NullPointerError, "NULL==_epoll !")
-         _epoll->AsyncRead(fd, _proto.HeadLen());
-      _proto.OnAcceptProcess(fd);
-   }
-   cf_void OnReadComplete(cf_int fd, cf_void * buff, cf_uint32 bytes)
-   {
-      printf("OnReadComplete \n");
-      if(NULL==_epoll)
-         _THROW(cf::NullPointerError, "NULL==_epoll !")
-         if(_proto.HeadLen()==bytes)
-         {
+    DefaultComplete():
+        _proto()
+    {
+    }
+    ~DefaultComplete()
+    {
+    }
+    void Initial(cl::ns::Epoll * epoll)
+    {
+        _epoll =epoll;
+        if(NULL==_epoll)
+            _THROW(cf::NullPointerError, "NULL==_epoll !")
+        }
+    cf_void OnAcceptComplete(cf_int fd)
+    {
+        printf("OnAcceptComplete \n");
+        _epoll->AsyncRead(fd, _proto.HeadLen());
+        _proto.OnAcceptProcess(*_epoll, fd);
+    }
+    cf_void OnReadComplete(cf_int fd, cf_void * buff, cf_uint32 bytes)
+    {
+        printf("OnReadComplete \n");
+        if(_proto.HeadLen()==bytes)
+        {
             cf_uint t =*((cf_uint *)buff);
             cf_uint bodylen =ntohl(t);
             printf("Read head finished , bodylen=%u \n",bodylen);
             _proto.SetBodyLen(bodylen);
-            _proto.OnReadProcess(fd, buff, bytes);
-            _epoll->AsyncRead(fd,bodylen);
-         }
-         else
-         {
-            printf("Read body finished . bytes=%u,buff=%s \n",bytes,(cf_char *)buff);
-            _proto.OnReadProcess(fd, buff, bytes);
+            if(bodylen>10240)
+            {
+                _epoll->AsyncClose(fd);
+            }
+            else if (bodylen > 0)
+            {
+                _epoll->AsyncRead(fd,bodylen);
+            }
+            else
+            {
+                _epoll->AsyncRead(fd,_proto.HeadLen());
+            }
+        }
+        else
+        {
+            printf("Read body finished .bytes=%u,buff=%s \n",bytes,(cf_char *)buff);
+            _proto.OnReadProcess(*_epoll, fd, buff, bytes);
             _epoll->AsyncRead(fd,_proto.HeadLen());
-         }
-   }
-   cf_void OnWriteComplete(cf_int fd, cf_uint32 bytes)
-   {
-      printf("OnWriteComplete \n");
-      _proto.OnWriteProcess(fd, bytes);
-   }
-   cf_void OnCloseComplete(cf_int fd)
-   {
-      printf("OnCloseComplete \n");
-      _proto.OnCloseProcess(fd);
-   }
-   cf_void OnTimeoutComplete(cf_int fd)
-   {
-      printf("OnTimeoutComplete \n");
-      _proto.OnTimeoutProcess(fd);
-   }
-   cf_void OnErrorComplete(cf_int fd)
-   {
-      printf("OnErrorComplete \n");
-      _proto.OnErrorProcess(fd);
-   }
+        }
+    }
+    cf_void OnWriteComplete(cf_int fd, cf_uint32 bytes)
+    {
+        printf("OnWriteComplete \n");
+        _proto.OnWriteProcess(*_epoll, fd, bytes);
+    }
+    cf_void OnCloseComplete(cf_int fd)
+    {
+        printf("OnCloseComplete \n");
+        _proto.OnCloseProcess(fd);
+    }
+    cf_void OnTimeoutComplete(cf_int fd)
+    {
+        printf("OnTimeoutComplete \n");
+        _proto.OnTimeoutProcess(*_epoll, fd);
+    }
+    cf_void OnErrorComplete(cf_int fd)
+    {
+        printf("OnErrorComplete \n");
+        _proto.OnErrorProcess(fd);
+    }
 private:
-   Epoll * _epoll;
-   ProtocolType _proto;
+    Epoll * _epoll;
+    ProtocolType _proto;
 };
 
 
