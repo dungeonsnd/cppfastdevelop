@@ -35,3 +35,6 @@ https://code.google.com/p/cppfastdevelop/
 
 https://sourceforge.net/projects/cppfastdevelop/
 
+project sponsor: Jeffery
+email: dungeonsnd@gmail.com
+
