@@ -1,6 +1,5 @@
 #!/bin/sh
 
-cd ../
 PUSH_TO_ALL=0
 if [[ $# -eq 1 ]]; then
     if [ $1 = "all" ]; then

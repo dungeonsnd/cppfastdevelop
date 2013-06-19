@@ -1,6 +1,5 @@
 #!/bin/sh
 
-cd ../
 
 echo "pull from github +++"
 git pull github master

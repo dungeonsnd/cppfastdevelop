@@ -5,7 +5,6 @@ if [[ $# -lt 1 ]] ; then
     exit
 fi
 
-cd ../
 git add -A .
 git commit -m"$1" .
 
