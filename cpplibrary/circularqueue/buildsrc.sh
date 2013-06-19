@@ -4,6 +4,8 @@
 CLEAN_TMP=0
 # 编译前是否清空.o文件?
 REBUILD_ALL=0
+# 编译过程线程数
+MAKE_J=8
 
 if [[ $# -eq 1 ]]; then
     
@@ -22,7 +24,7 @@ cd src
 if [ $REBUILD_ALL -eq 1 ] ; then
     make cleanall
 fi
-make
+make -j$MAKE_J
 cd ..
 
 if [ $CLEAN_TMP -eq 1 ] ; then
@@ -31,3 +33,5 @@ if [ $CLEAN_TMP -eq 1 ] ; then
 fi
 
 echo "---- End to build src , see bin ----"
+
+

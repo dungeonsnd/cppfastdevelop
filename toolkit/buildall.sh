@@ -1,5 +1,10 @@
 #!/bin/sh
 
+cd tools/codeformat/
+./format_cpp.sh
+cd ../../../
+
+
 cd cppfoundation/
 ./buildsrc.sh rc
 
@@ -23,4 +28,5 @@ cd netserver/
 cd test
 ./buildsrc.sh rc
 cd ../../
+
 

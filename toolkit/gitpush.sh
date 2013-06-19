@@ -1,6 +1,6 @@
 #!/bin/sh
 
-
+cd ../
 PUSH_TO_ALL=0
 if [[ $# -eq 1 ]]; then
     if [ $1 = "all" ]; then
@@ -8,10 +8,11 @@ if [[ $# -eq 1 ]]; then
     fi
 fi
 
-echo "+++ push to bitbucket +++"
-git push bitbucket master
 echo "+++ push to github +++"
 git push github master
+
+echo "+++ push to bitbucket +++"
+git push bitbucket master
 
 if [ $PUSH_TO_ALL -eq 1 ] ; then
     echo "+++ push to googlecode +++"
@@ -19,4 +20,5 @@ if [ $PUSH_TO_ALL -eq 1 ] ; then
     echo "+++ push to sourceforge +++"
     git push sourceforge master
 fi
+
 

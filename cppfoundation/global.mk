@@ -6,3 +6,5 @@ G_CMPFLAG		= -g -O0 -Wall
 
 G_STUBNAME		= cfstub_d
 G_CLASSNAME		= cfclass_d
+	
+
