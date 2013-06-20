@@ -1,9 +1,9 @@
 #!/bin/sh
 
-cd tools/codeformat/
+cd toolkit/tools/codeformat/
 ./format_cpp.sh
 cd ../../../
-
+pwd
 
 cd cppfoundation/
 ./buildsrc.sh rc
