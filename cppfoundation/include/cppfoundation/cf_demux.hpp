@@ -17,10 +17,36 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#include "cppfoundation/cf_condition.hpp"
+#ifndef _HEADER_FILE_CFD_CF_DEMUX_HPP_
+#define _HEADER_FILE_CFD_CF_DEMUX_HPP_
+
+#include "cppfoundation/cf_root.hpp"
+#include "cppfoundation/cf_exception.hpp"
+
 
 namespace cf
 {
 
+class Event : public cf::NonCopyable
+{
+public:
+    Event()
+    {
+    }
+    ~Event()
+    {
+    }
+    cf_void AddEvent(cf_int fd, cf_uint32 ev)
+    {
+    }
+    cf_void DelEvent(cf_int fd, cf_uint32 ev)
+    {
+    }
+private:
 
-} // namespace cf
+};
+
+}
+
+#endif // _HEADER_FILE_CFD_CF_DEMUX_HPP_
+

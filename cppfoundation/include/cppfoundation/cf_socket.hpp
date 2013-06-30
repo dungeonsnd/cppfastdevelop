@@ -39,6 +39,8 @@ class Socket:NonCopyable
 public:
     Socket() {}
     virtual ~Socket() {}
+};
+
 } // namespace cf
 
 #endif // _HEADER_FILE_CFD_CF_SOCKET_HPP_

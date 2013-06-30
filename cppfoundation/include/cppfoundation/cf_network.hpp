@@ -17,8 +17,8 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#ifndef _HEADER_FILE_CFD_CF_IO_UTILITY_HPP_
-#define _HEADER_FILE_CFD_CF_IO_UTILITY_HPP_
+#ifndef _HEADER_FILE_CFD_CF_NETWORK_HPP_
+#define _HEADER_FILE_CFD_CF_NETWORK_HPP_
 
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
@@ -103,5 +103,5 @@ void DelEventEpoll(cf_int epfd, cf_int fd);
 
 } // namespace cf
 
-#endif // _HEADER_FILE_CFD_CF_IO_UTILITY_HPP_
+#endif // _HEADER_FILE_CFD_CF_NETWORK_HPP_
 
