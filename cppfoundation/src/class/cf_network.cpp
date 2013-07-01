@@ -18,9 +18,22 @@
 ////
 
 #include "cppfoundation/cf_network.hpp"
+#include "cppfoundation/cf_lock.hpp"
+#include "cppfoundation/cf_lock_guard.hpp"
 
 namespace cf
 {
+
+cf_int GetHostByName(cf_const std::string & name, struct hostent * phe)
+{
+    static PthreadMutex mutex;
+    LockGuard<PthreadMutex> lock(mutex);
+    struct hostent * _phe = cf_gethostbyname(name.c_str());
+    if (_phe == NULL)
+        return -1;
+    *phe = *_phe;
+    return 0;
+}
 
 int CreateServerSocket (const int port,const int socktype,const int backlog)
 {
@@ -35,10 +48,8 @@ int CreateServerSocket (const int port,const int socktype,const int backlog)
     snprintf(&portstr[0],portstr.size(),"%d",port);
     int rt = cf_getaddrinfo (NULL, portstr.c_str(), &hints, &result);
     if (rt != 0)
-    {
         _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_getaddrinfo ! %s.",
-                   gai_strerror (rt))
-    }
+                   gai_strerror (rt));
 
     int listenfd;
     for (rp = result; rp != NULL; rp = rp->ai_next)
@@ -61,8 +72,8 @@ int CreateServerSocket (const int port,const int socktype,const int backlog)
     }
     cf_freeaddrinfo (result);
     if ( 0!=cf_listen(listenfd, backlog) )
-        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !")
-        return listenfd;
+        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !");
+    return listenfd;
 }
 
 int CreateLocalServerSocket(const std::string & path,const int socktype,
@@ -70,18 +81,18 @@ int CreateLocalServerSocket(const std::string & path,const int socktype,
 {
     int listenfd = cf_socket(AF_LOCAL, SOCK_STREAM, 0);
     if (listenfd != 0)
-        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_socket !")
-        if ( 0!=cf_unlink(path.c_str()) )
-            _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_unlink !")
-            struct sockaddr_un servaddr;
+        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_socket !");
+    if ( 0!=cf_unlink(path.c_str()) )
+        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_unlink !");
+    struct sockaddr_un servaddr;
     cf_memset(&servaddr,0,sizeof(servaddr));
     servaddr.sun_family = AF_LOCAL;
     cf_strcpy(servaddr.sun_path, path.c_str());
     if ( 0!=cf_bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) )
-        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_unlink !")
-        if ( 0!=cf_listen(listenfd, backlog) )
-            _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !")
-            return listenfd;
+        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_unlink !");
+    if ( 0!=cf_listen(listenfd, backlog) )
+        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !");
+    return listenfd;
 }
 
 cf_void SetBlocking(cf_int sockfd,bool blocking)
@@ -97,8 +108,8 @@ cf_void SetBlocking(cf_int sockfd,bool blocking)
     else
         ; // Already set.
     if (-1==rt)
-        _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !")
-    }
+        _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !");
+}
 
 bool IsSocketBroken(cf_int fd)
 {
@@ -128,8 +139,8 @@ cf_int IOWaitting(struct pollfd & pfd,cf_int32 timeoutMilliSeconds)
         timeoutMilliSeconds =-1;
     rt=cf_poll(&pfd, 1, timeoutMilliSeconds);
     if (-1==rt)
-        _THROW(SyscallExecuteError, "Failed to execute cf_poll !")
-        return rt;
+        _THROW(SyscallExecuteError, "Failed to execute cf_poll !");
+    return rt;
 }
 
 cf_int OutputWait(cf_int sockfd,cf_int32 timeoutMilliSeconds)
@@ -158,23 +169,23 @@ bool SendSegmentSync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
     for(ssize_t alreadyDone=0; alreadyDone < totalLen;)
     {
         if ( (time_t)(-1)==(begin=cf_time(NULL)) )
-            _THROW(SyscallExecuteError, "Failed to execute cf_time !")
+            _THROW(SyscallExecuteError, "Failed to execute cf_time !");
 
-            if(0==OutputWait(sockfd,timeoutMilliSeconds)) // timeout!
-                return false;
+        if(0==OutputWait(sockfd,timeoutMilliSeconds)) // timeout!
+            return false;
         lenLeft = totalLen-alreadyDone;
         if (segsize>0 && lenLeft > segsize)
             lenLeft = segsize;
         len =cf_write(sockfd,&buf[alreadyDone],lenLeft);
         if(-1==len)
-            _THROW(SyscallExecuteError, "Failed to execute cf_write !")
+            _THROW(SyscallExecuteError, "Failed to execute cf_write !");
 
-            alreadyDone +=len;
+        alreadyDone +=len;
         hasDone =alreadyDone;
 
         if ( (time_t)(-1)==(end=cf_time(NULL)) )
-            _THROW(SyscallExecuteError, "Failed to execute cf_time !")
-            timeoutMilliSeconds -=(end-begin);
+            _THROW(SyscallExecuteError, "Failed to execute cf_time !");
+        timeoutMilliSeconds -=(end-begin);
         if (timeoutMilliSeconds <= 0)
             return false;
     }
@@ -192,26 +203,26 @@ bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
     for(ssize_t alreadyDone=0; alreadyDone < totalLen;)
     {
         if ( (time_t)(-1)==(begin=cf_time(NULL)) )
-            _THROW(SyscallExecuteError, "Failed to execute cf_time !")
+            _THROW(SyscallExecuteError, "Failed to execute cf_time !");
 
-            if(0==InputWait(sockfd,timeoutMilliSeconds)) // timeout!
-                return false;
+        if(0==InputWait(sockfd,timeoutMilliSeconds)) // timeout!
+            return false;
         lenLeft = totalLen-alreadyDone;
         if (segsize>0 && lenLeft > segsize)
             lenLeft = segsize;
         len =cf_read(sockfd,&buf[alreadyDone],lenLeft);
         if(-1==len)
-            _THROW(SyscallExecuteError, "Failed to execute cf_write !")
+            _THROW(SyscallExecuteError, "Failed to execute cf_write !");
 
-            alreadyDone +=len;
+        alreadyDone +=len;
         hasDone =alreadyDone;
 
         if ( 0==len ) // len==0 means reaching end.
             return true;
 
         if ( (time_t)(-1)==(end=cf_time(NULL)) )
-            _THROW(SyscallExecuteError, "Failed to execute cf_time !")
-            timeoutMilliSeconds -=(end-begin);
+            _THROW(SyscallExecuteError, "Failed to execute cf_time !");
+        timeoutMilliSeconds -=(end-begin);
         if (timeoutMilliSeconds <= 0)
             return false;
     }
@@ -283,9 +294,9 @@ ssize_t SendFds(const int fd, const int * sendfdarray,const size_t fdarraylen,
     else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_VERYLARGE)
         control_un.resize(ioutilitydefs::sizeof_control_un_verylarge);
     else
-        _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen)
+        _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen);
 
-        struct msghdr   msg;
+    struct msghdr   msg;
     msg.msg_control = (void *)(control_un[0]);
     msg.msg_controllen = control_un.size();
 
@@ -326,8 +337,8 @@ ssize_t RecvFds(const int fd, int * recvfdarray, const size_t fdarraylen,
     else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_VERYLARGE)
         control_un.resize(ioutilitydefs::sizeof_control_un_verylarge);
     else
-        _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen)
-        struct msghdr   msg;
+        _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen);
+    struct msghdr   msg;
     msg.msg_control = (void *)(control_un[0]);
     msg.msg_controllen = control_un.size();
 
@@ -369,41 +380,5 @@ ssize_t RecvFds(const int fd, int * recvfdarray, const size_t fdarraylen,
     return n;
 }
 
-#ifdef __linux__
-void AddEventEpoll(cf_int epfd, cf_int fd,struct epoll_event & event,
-                   cf_uint32 ev)
-{
-    event.data.fd = fd;
-    event.events = ev;
-    int rt =cf_epoll_ctl (epfd, EPOLL_CTL_ADD, fd, &event);
-    if (-1==rt && EEXIST==errno)
-    {
-        rt =cf_epoll_ctl (epfd, EPOLL_CTL_MOD, fd, &event);
-        if (-1==rt)
-            _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
-        }
-    else if (-1==rt)
-        _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
-    }
-void AddEventEpoll(cf_int epfd, cf_int fd, cf_uint32 ev)
-{
-    struct epoll_event event;
-    AddEventEpoll(epfd,fd,event,ev);
-}
-
-void DelEventEpoll(cf_int epfd, cf_int fd,struct epoll_event & event)
-{
-    event.data.fd = fd;
-    if (-1==cf_epoll_ctl (epfd, EPOLL_CTL_DEL, fd, &event))
-        _THROW(cf::SyscallExecuteError, "Failed to execute cf_epoll_ctl !")
-    }
-void DelEventEpoll(cf_int epfd, cf_int fd)
-{
-    struct epoll_event event;
-    DelEventEpoll(epfd,fd,event);
-}
-
-
-#endif // __linux__
 
 } // namespace cf

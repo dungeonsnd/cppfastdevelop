@@ -29,7 +29,8 @@ cf_concurrency_sequence_container.o  \
 cf_concurrency_set.o \
 cf_process.o \
 cf_application.o \
-cf_demux.o
+cf_demux.o \
+cf_epoll.o
 
 BINDIR =../../bin
 

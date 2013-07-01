@@ -49,8 +49,8 @@ public:
     PtrLockGuard(cf_const T * lock):_lock(lock)
     {
         if(NULL == _lock)
-            _THROW(NullPointerError, "NULL == _lock !")
-            _lock->Lock();
+            _THROW(NullPointerError, "NULL == _lock !");
+        _lock->Lock();
     }
     ~PtrLockGuard()
     {

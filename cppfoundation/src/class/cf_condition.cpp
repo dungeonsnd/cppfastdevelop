@@ -30,8 +30,8 @@ public:
         cf_int rt =pthread_condattr_init(&_Attr);
         if (0!=rt)
             _THROW_FMT(SyscallExecuteError,
-                       "Failed to execute pthread_condattr_init , rt=%d !",rt)
-        }
+                       "Failed to execute pthread_condattr_init , rt=%d !",rt);
+    }
     ~PthreadCondAttrGuard()
     {
         if(0!=pthread_condattr_destroy(&_Attr))
@@ -46,8 +46,8 @@ PthreadCond::PthreadCond()
     cf_int rt =pthread_cond_init(&_cond, NULL);
     if (0!=rt)
         _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_cond_init , rt=%d !",
-                   rt)
-    }
+                   rt);
+}
 PthreadCond::~PthreadCond()
 {
     cf_int rt =pthread_cond_destroy(&_cond);
@@ -60,8 +60,8 @@ cf_void PthreadCond::Wait() cf_const
 {
     cf_int rt =pthread_cond_wait(&_cond, &_pthreadMutex.GetMutex());
     if (0!=rt)
-        _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_cond_wait , rt=%d !",rt)
-    }
+        _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_cond_wait , rt=%d !",rt);
+}
 bool PthreadCond::Wait(cf_uint32 timeoutMilliseconds)
 {
     struct timespec ts;
@@ -74,20 +74,20 @@ bool PthreadCond::Wait(cf_uint32 timeoutMilliseconds)
         return false;
     else
         _THROW_FMT(SyscallExecuteError,
-                   "Failed to execute pthread_cond_timedwait , rt=%d !",rt)
-    }
+                   "Failed to execute pthread_cond_timedwait , rt=%d !",rt);
+}
 cf_void PthreadCond::Signal() cf_const
 {
     cf_int rt =pthread_cond_signal(&_cond);
     if (0!=rt)
-        _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_cond_signal , rt=%d !",rt)
-    }
+        _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_cond_signal , rt=%d !",rt);
+}
 cf_void PthreadCond::Broadcast() cf_const
 {
     cf_int rt =pthread_cond_broadcast(&_cond);
     if (0!=rt)
-        _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_cond_broadcast , rt=%d !",rt)
-    }
+        _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_cond_broadcast , rt=%d !",rt);
+}
 PthreadMutex & PthreadCond::GetLock()
 {
     return _pthreadMutex;
@@ -108,8 +108,8 @@ cf_void RawPthreadCondition::Wait()
     cf_int rt =pthread_cond_wait(_cond, &_rawPthreadMutex.GetMutex());
     if (0!=rt)
         _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_cond_wait , rt=%d !",
-                   rt)
-    }
+                   rt);
+}
 bool RawPthreadCondition::Wait(cf_uint32 timeoutMilliseconds)
 {
     struct timespec ts;
@@ -122,22 +122,22 @@ bool RawPthreadCondition::Wait(cf_uint32 timeoutMilliseconds)
         return false;
     else
         _THROW_FMT(SyscallExecuteError,
-                   "Failed to execute pthread_cond_timedwait , rt=%d !",rt)
-    }
+                   "Failed to execute pthread_cond_timedwait , rt=%d !",rt);
+}
 cf_void RawPthreadCondition::Signal()
 {
     cf_int rt =pthread_cond_signal(_cond);
     if (0!=rt)
         _THROW_FMT(SyscallExecuteError,
-                   "Failed to execute pthread_cond_signal , rt=%d !",rt)
-    }
+                   "Failed to execute pthread_cond_signal , rt=%d !",rt);
+}
 cf_void RawPthreadCondition::Broadcast()
 {
     cf_int rt =pthread_cond_broadcast(_cond);
     if (0!=rt)
         _THROW_FMT(SyscallExecuteError,
-                   "Failed to execute pthread_cond_broadcast , rt=%d !",rt)
-    }
+                   "Failed to execute pthread_cond_broadcast , rt=%d !",rt);
+}
 RawPthreadMutex & RawPthreadCondition::GetLock()
 {
     return _rawPthreadMutex;

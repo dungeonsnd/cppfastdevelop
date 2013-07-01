@@ -10,10 +10,10 @@
 5.Finish binary compatibity.
 
 1.2 code
-1.Add cppfoundation/cf_network.
+1.Finish cppfoundation/cf_network.
 2.Finish cppfoundation/cf_socket , wrapper of socket fd operation.
-3.Finish cppfoundation/cf_demux.
-4.Finish cpplibrary/netserver, epoll/kqueue/poll.
+3.Finish cppfoundation/cf_demux, epoll/kqueue/poll.
+4.Finish cpplibrary/netserver.
 5.Finish cpplibrary/logserver.
 6.Finish cpplibrary/servicewatch, two watchdogs watch the specified processes.
 7.Finish cpplibrary/dbaccess, using prepare statement,mysql.

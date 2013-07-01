@@ -180,7 +180,7 @@ public:
         }
         else
         {
-            _THROW_FMT(RuntimeWarning, "_type{%d} unexpected !",_type)
+            _THROW_FMT(RuntimeWarning, "_type{%d} unexpected !",_type);
         }
     }
     cf_void UnLock() cf_const
@@ -199,7 +199,7 @@ public:
         }
         else
         {
-            _THROW_FMT(RuntimeWarning, "_type{%d} unexpected !",_type)
+            _THROW_FMT(RuntimeWarning, "_type{%d} unexpected !",_type);
         }
     }
 protected:

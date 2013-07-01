@@ -37,8 +37,44 @@ enum
 class Socket:NonCopyable
 {
 public:
-    Socket() {}
-    virtual ~Socket() {}
+    Socket(cf_sockethandle sock):
+        _sock(sock)
+    {}
+    ~Socket()
+    {
+        if (_sock > 0)
+            cf_close(_sock);
+    }
+    cf_void Close()
+    {
+        if (_sock > 0)
+            cf_close(_sock);
+        else
+            _THROW_FMT(ValueError, "_sock{%d}<=0 !", cf_int(_sock));
+    }
+    cf_void Shutdown()
+    {
+        if (_sock > 0)
+            cf_shutdown(_sock, SHUT_WR);
+        else
+            _THROW_FMT(ValueError, "_sock{%d}<=0 !", cf_int(_sock));
+    }
+
+    cf_int WriteNowait(cf_cpvoid data, cf_uint32 len);
+    cf_int ReadNowait(cf_pvoid data, cf_uint32 len);
+
+    std::string getAddr();
+    cf_uint32 getIp();
+    cf_uint16 getPort();
+
+    bool setKeepAlive(bool on);
+    bool setReuseAddress(bool on);
+    bool setSoLinger (bool doLinger, int seconds);
+    bool setIntOption(int option, int value);
+    bool setTimeOption(int option, int milliseconds);
+    bool setSoBlocking(bool on);
+private:
+    cf_sockethandle _sock;
 };
 
 } // namespace cf

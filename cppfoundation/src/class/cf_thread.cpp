@@ -30,9 +30,9 @@ Thread::Thread(Runnable * run,cf_int id):
     _pRun(run)
 {
     if (NULL == _pRun)
-        _THROW(NullPointerError, "NULL == _pRun !")
-        if (0!=cf_pthread_attr_init(&_attr))
-            _THROW(SyscallExecuteError, "Failed to execute cf_pthread_attr_init !");
+        _THROW(NullPointerError, "NULL == _pRun !");
+    if (0!=cf_pthread_attr_init(&_attr))
+        _THROW(SyscallExecuteError, "Failed to execute cf_pthread_attr_init !");
 }
 cf_void Thread::SetStackSize(size_t size) cf_const
 {

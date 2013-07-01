@@ -143,7 +143,7 @@ class TaskPool: public NonCopyable
 public:
     TaskPool(size_t num, size_t stack_size =threaddefs::DEFAULT_STACKSIZE)
     {
-        _THROW(UnimplementedError, "Unsupported temporarily !")
+        _THROW(UnimplementedError, "Unsupported temporarily !");
     }
     ~TaskPool();
     cf_void AddTask(Runnable * task);

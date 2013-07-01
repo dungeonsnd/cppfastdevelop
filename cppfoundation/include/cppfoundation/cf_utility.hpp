@@ -34,7 +34,6 @@ namespace cf
     }
 #endif // ERR
 
-cf_int GetHostByName(cf_const std::string &, struct hostent * phe);
 
 cf_void SetProcessDaemon();
 

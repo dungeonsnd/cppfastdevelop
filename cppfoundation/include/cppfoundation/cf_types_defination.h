@@ -26,7 +26,6 @@
 #endif // cf_const
 
 
-#ifndef cf_void
 typedef void cf_void;
 
 typedef cf_void * cf_pvoid;
@@ -34,10 +33,8 @@ typedef cf_void ** cf_ppvoid;
 typedef cf_const cf_void * cf_cpvoid;
 typedef cf_void * cf_const cf_pcvoid;
 typedef cf_void * cf_const * cf_pcpvoid;
-#endif // cf_void
 
 
-#ifndef cf_char
 typedef char cf_char;
 typedef unsigned char cf_byte;
 typedef unsigned char cf_ubyte;
@@ -47,18 +44,14 @@ typedef unsigned char cf_uint8;
 
 typedef cf_const cf_char * cf_cpstr;
 typedef cf_char * cf_const cf_pcstr;
-#endif // cf_char
 
 
-#ifndef cf_short
 typedef short int cf_short;
 typedef unsigned short int cf_ushort;
 typedef short int cf_int16;
 typedef unsigned short int cf_uint16;
-#endif // cf_short
 
 
-#ifndef cf_int
 typedef int cf_int;
 typedef unsigned int cf_uint;
 typedef int cf_int32;
@@ -82,7 +75,6 @@ typedef cf_uint32 cf_uintptr;
 typedef cf_int16 cf_intptr;
 typedef cf_uint16 cf_uintptr;
 #endif
-#endif // cf_int
 
 #ifndef NULL
 #ifdef __cplusplus
@@ -120,5 +112,8 @@ typedef cf_uint16 cf_uintptr;
 #define HIBYTE(w)           ((cf_byte)(((WORD)(w) >> 8) & 0xFF))
 #endif // LOBYTE
 
+
+
+typedef cf_int cf_sockethandle;
 
 #endif // _HEADER_FILE_CFD_CF_TYPES_DEFINATION_H_

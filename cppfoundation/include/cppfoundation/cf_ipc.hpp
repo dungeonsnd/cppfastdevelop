@@ -92,8 +92,8 @@ public:
         _autoClose(autoClose)
     {
         if(0!=cf_socketpair(AF_LOCAL, type, SOCKETPROTOCOL_DEFAULT, _fds) )
-            _THROW(SyscallExecuteError, "Failed to execute cf_socketpair !")
-        }
+            _THROW(SyscallExecuteError, "Failed to execute cf_socketpair !");
+    }
     ~SocketpairPipe()
     {
         if(_autoClose)
@@ -123,7 +123,7 @@ public:
             return Get1();
         else
         {
-            _THROW(ValueError, "Index error !")
+            _THROW(ValueError, "Index error !");
             return NULL;
         }
     }
@@ -138,7 +138,7 @@ class MsgQ : public NonCopyable
 public:
     MsgQ()
     {
-        _THROW(UnimplementedError, "Unsupported temporarily !")
+        _THROW(UnimplementedError, "Unsupported temporarily !");
     }
     ~MsgQ()
     {

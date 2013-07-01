@@ -18,22 +18,9 @@
 ////
 
 #include "cppfoundation/cf_utility.hpp"
-#include "cppfoundation/cf_lock.hpp"
-#include "cppfoundation/cf_lock_guard.hpp"
 
 namespace cf
 {
-
-cf_int GetHostByName(cf_const std::string & name, struct hostent * phe)
-{
-    static PthreadMutex mutex;
-    LockGuard<PthreadMutex> lock(mutex);
-    struct hostent * _phe = cf_gethostbyname(name.c_str());
-    if (_phe == NULL)
-        return -1;
-    *phe = *_phe;
-    return 0;
-}
 
 
 cf_void SetProcessDaemon()

@@ -22,29 +22,48 @@
 
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
-
+#include "cppfoundation/cf_memory.hpp"
+#ifdef __linux
+#include "cppfoundation/cf_epoll.hpp"
+#else
+#ifdef __bsd
+#include "cppfoundation/cf_kqueue.hpp"
+#endif
+#endif // __linux
 
 namespace cf
 {
 
-class Event : public cf::NonCopyable
+template <typename DemuxType>
+class Demux : public cf::NonCopyable
 {
 public:
-    Event()
+    Demux()
     {
+        CF_NEWOBJ(p, DemuxType);
+        if(NULL==p)
+            _THROW(AllocateMemoryError, "Allocate memory failed !");
+        _demux.reset(p);
     }
-    ~Event()
+    ~Demux()
     {
     }
     cf_void AddEvent(cf_int fd, cf_uint32 ev)
     {
+        _demux->AddEvent(fd, ev);
     }
     cf_void DelEvent(cf_int fd, cf_uint32 ev)
     {
+        _demux->DelEvent(fd, ev);
+    }
+    cf_void UnregisterConn(cf_int fd)
+    {
+        _demux->UnregisterConn(fd);
     }
 private:
-
+    std::shared_ptr < DemuxType > _demux;
 };
+
 
 }
 
