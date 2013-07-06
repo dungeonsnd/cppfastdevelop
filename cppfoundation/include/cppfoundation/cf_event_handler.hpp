@@ -17,55 +17,51 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#ifndef _HEADER_FILE_CFD_CF_DEMUX_HPP_
-#define _HEADER_FILE_CFD_CF_DEMUX_HPP_
+#ifndef _HEADER_FILE_CFD_CF_EVENT_LOOP_HPP_
+#define _HEADER_FILE_CFD_CF_EVENT_LOOP_HPP_
 
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
-#include "cppfoundation/cf_memory.hpp"
-#ifdef __linux
-#include "cppfoundation/cf_epoll.hpp"
-#else
-#ifdef __bsd
-#include "cppfoundation/cf_kqueue.hpp"
-#endif
-#endif // __linux
 
 namespace cf
 {
 
 template <typename DemuxType>
-class Demux : public cf::NonCopyable
+class EventLoop : public cf::NonCopyable
 {
 public:
-    Demux()
+    EventLoop()
     {
         CF_NEWOBJ(p, DemuxType);
         if(NULL==p)
             _THROW(AllocateMemoryError, "Allocate memory failed !");
         _demux.reset(p);
     }
-    ~Demux()
+    ~EventLoop()
     {
     }
-    cf_void AddEvent(cf_int fd, cf_uint32 ev)
+    
+    cf_void AsyncRead(cf_uint32 sizeToRead)
     {
-        _demux->AddEvent(fd, ev);
     }
-    cf_void DelEvent(cf_int fd, cf_uint32 ev)
+    cf_void AsyncWrite(cf_cpvoid buf,cf_uint32 bufSize)
     {
-        _demux->DelEvent(fd, ev);
     }
-    cf_void UnregisterConn(cf_int fd)
+
+    cf_void WaitEvent(cf_int timeoutMilliseconds)
     {
-        _demux->UnregisterConn(fd);
+        _demux->WaitEvent(_vecEvent,timeoutMilliseconds);
+        for(DemuxType::TYPE_VECEVENT_ITER it =_vecEvent.begin();it!=_vecEvent.end();it++)
+        {
+        }
     }
 private:
     std::shared_ptr < DemuxType > _demux;
+    DemuxType::TYPE_VECEVENT _vecEvent;
 };
 
 
 }
 
-#endif // _HEADER_FILE_CFD_CF_DEMUX_HPP_
+#endif // _HEADER_FILE_CFD_CF_EVENT_LOOP_HPP_
 

@@ -37,7 +37,7 @@ enum
 class Socket:NonCopyable
 {
 public:
-    Socket(cf_sockethandle sock):
+    Socket(cf_fd sock):
         _sock(sock)
     {}
     ~Socket()
@@ -74,7 +74,7 @@ public:
     bool setTimeOption(int option, int milliseconds);
     bool setSoBlocking(bool on);
 private:
-    cf_sockethandle _sock;
+    cf_fd _sock;
 };
 
 } // namespace cf

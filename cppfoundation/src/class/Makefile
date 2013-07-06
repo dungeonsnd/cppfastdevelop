@@ -21,16 +21,18 @@ cf_thread.o \
 cf_binary_search.o \
 cf_utility.o \
 cf_memory.o \
-cf_network.o \
-cf_socket.o \
 cf_concurrency_queue.o \
 cf_concurrency_map.o \
 cf_concurrency_sequence_container.o  \
 cf_concurrency_set.o \
 cf_process.o \
 cf_application.o \
+cf_network.o \
+cf_socket.o \
 cf_demux.o \
-cf_epoll.o
+cf_epoll.o\
+cf_kqueue.o\
+cf_poll.o
 
 BINDIR =../../bin
 

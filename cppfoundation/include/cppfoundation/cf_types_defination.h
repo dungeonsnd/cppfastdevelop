@@ -113,7 +113,7 @@ typedef cf_uint16 cf_uintptr;
 #endif // LOBYTE
 
 
-
-typedef cf_int cf_sockethandle;
+typedef cf_int cf_fd;
+typedef cf_uint32 cf_ev;
 
 #endif // _HEADER_FILE_CFD_CF_TYPES_DEFINATION_H_

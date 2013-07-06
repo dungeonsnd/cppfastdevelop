@@ -17,11 +17,29 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#include "cppfoundation/cf_demux.hpp"
+#ifndef _HEADER_FILE_CFD_CF_Kqueue_HPP_
+#define _HEADER_FILE_CFD_CF_Kqueue_HPP_
+
+#include "cppfoundation/cf_root.hpp"
+#include "cppfoundation/cf_exception.hpp"
 
 namespace cf
 {
 
+class Kqueue : public cf::NonCopyable
+{
+public:
+    Kqueue()
+    {
+    }
+    ~Kqueue()
+    {
+    }
+private:
+};
 
-} // namespace cf
+
+}
+
+#endif // _HEADER_FILE_CFD_CF_Kqueue_HPP_
 
