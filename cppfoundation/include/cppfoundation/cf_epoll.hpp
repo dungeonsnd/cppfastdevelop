@@ -27,6 +27,9 @@
 namespace cf
 {
 
+using namespace eventloopdefs;
+enum EVENT_TYPE;
+
 namespace epolldefs
 {
 enum
@@ -107,9 +110,18 @@ public:
     {
         epoll_event * events =_retEvents.get();
         cf_int n =epoll_wait(_epfd, events,_maxEvents, timeoutMilliseconds);
-        for(cf_int i=0;i<n;i++)
+        if(-1==n)
         {
-            vecEvent.push_back();
+        }
+        else if(0==n)
+        {
+            for(cf_int i=0;i<n;i++)
+            {
+                vecEvent.push_back();
+            }
+        }
+        else
+        {
         }
     }
 private:

@@ -17,14 +17,11 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#include "netserver/cl_default_complete.hpp"
+#include "cppfoundation/cf_packet.hpp"
 
-namespace cl
-{
-namespace ns
+namespace cf
 {
 
 
-} // namespace ns
-} // namespace cl
+} // namespace cf
 

@@ -17,14 +17,11 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#include "netserver/cl_event_loop.hpp"
+#include "cppfoundation/cf_event_handler.hpp"
 
-namespace cl
-{
-namespace ns
+namespace cf
 {
 
 
-} // namespace cs
-} // namespace cl
+} // namespace cf
 

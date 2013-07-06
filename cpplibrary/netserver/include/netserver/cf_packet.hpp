@@ -17,11 +17,60 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#include "cppfoundation/cf_epoll.hpp"
+#ifndef _HEADER_FILE_CFD_CF_PACKET_HPP_
+#define _HEADER_FILE_CFD_CF_PACKET_HPP_
+
+#include "cppfoundation/cf_root.hpp"
+#include "cppfoundation/cf_exception.hpp"
 
 namespace cf
 {
 
+class PacketRead : public cf::NonCopyable
+{
+public:
+    PacketRead()
+    {
+    }
+    ~PacketRead()
+    {
+    }
+    cf_void BeginRead()
+    {
+    }
+private:
+};
+class PacketWrite : public cf::NonCopyable
+{
+public:
+    PacketWrite()
+    {
+    }
+    ~PacketWrite()
+    {
+    }
+    cf_void BeginWrite()
+    {
+    }
+private:
+};
+class PacketReceived : public cf::NonCopyable
+{
+public:
+    PacketRead()
+    {
+    }
+    ~PacketRead()
+    {
+    }
+    cf_void GetData()
+    {
+    }
+private:
+};
 
-} // namespace cf
+
+}
+
+#endif // _HEADER_FILE_CFD_CF_PACKET_HPP_
 

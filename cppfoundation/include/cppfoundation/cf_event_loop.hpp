@@ -23,8 +23,24 @@
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
 
+
 namespace cf
 {
+
+namespace eventloopdefs
+{
+enum EVENT_TYPE
+{
+    EV_ACCEPT = 01,
+    EV_READ = 02,
+    EV_WRITE = 04,
+    EV_TIMEOUT = 010,
+    EV_CLOSE = 020,
+    EV_ERROR = 040
+};
+} // namespace eventloopdefs
+
+class EventHandler;
 
 template <typename DemuxType>
 class EventLoop : public cf::NonCopyable
@@ -36,15 +52,12 @@ public:
         if(NULL==p)
             _THROW(AllocateMemoryError, "Allocate memory failed !");
         _demux.reset(p);
+        CF_NEWOBJ(p1, EventHandler);
+        if(NULL==p1)
+            _THROW(AllocateMemoryError, "Allocate memory failed !");
+        _handler.reset(p1);
     }
     ~EventLoop()
-    {
-    }
-    
-    cf_void AsyncRead(cf_uint32 sizeToRead)
-    {
-    }
-    cf_void AsyncWrite(cf_cpvoid buf,cf_uint32 bufSize)
     {
     }
 
@@ -53,11 +66,13 @@ public:
         _demux->WaitEvent(_vecEvent,timeoutMilliseconds);
         for(DemuxType::TYPE_VECEVENT_ITER it =_vecEvent.begin();it!=_vecEvent.end();it++)
         {
+            _handler;
         }
     }
 private:
     std::shared_ptr < DemuxType > _demux;
     DemuxType::TYPE_VECEVENT _vecEvent;
+    std::shared_ptr < EventHandler > _handler;
 };
 
 

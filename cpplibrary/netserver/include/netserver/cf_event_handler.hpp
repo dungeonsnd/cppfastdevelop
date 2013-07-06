@@ -17,31 +17,54 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#ifndef _HEADER_FILE_CFD_CL_IO_COMPLETE_HPP_
-#define _HEADER_FILE_CFD_CL_IO_COMPLETE_HPP_
+#ifndef _HEADER_FILE_CFD_CF_EVENT_HANDLER_HPP_
+#define _HEADER_FILE_CFD_CF_EVENT_HANDLER_HPP_
 
 #include "cppfoundation/cf_root.hpp"
+#include "cppfoundation/cf_exception.hpp"
 
-namespace cl
-{
-namespace ns
+namespace cf
 {
 
-class IOComplete : public cf::NonCopyable
+class EventHandler : public cf::NonCopyable
 {
 public:
-    virtual ~IOComplete()
+    EventHandler()
     {
     }
-    virtual cf_void OnAcceptComplete(cf_int fd) =0;
-    virtual cf_void OnReadComplete(cf_int fd, cf_void * buff, cf_uint32 bytes) =0;
-    virtual cf_void OnWriteComplete(cf_int fd, cf_uint32 bytes) =0;
-    virtual cf_void OnCloseComplete(cf_int fd) =0;
-    virtual cf_void OnTimeoutComplete(cf_int fd) =0;
-    virtual cf_void OnErrorComplete(cf_int fd) =0;
+    ~EventHandler()
+    {
+    }
+    
+    cf_void AsyncRead(cf_uint32 sizeToRead)
+    {
+    }
+    cf_void AsyncWrite(cf_cpvoid buf,cf_uint32 bufSize)
+    {
+    }
+
+    cf_void OnConnect()
+    {
+    }
+    cf_void OnRead()
+    {
+    }
+    cf_void OnWrite()
+    {
+    }
+    cf_void OnTimeout()
+    {
+    }
+    cf_void OnClose()
+    {
+    }
+    cf_void OnError()
+    }
+private:
 };
 
-} // namespace ns
-} // namespace cl
 
-#endif // _HEADER_FILE_CFD_CL_IO_COMPLETE_HPP_
+}
+
+#endif // _HEADER_FILE_CFD_CF_EVENT_HANDLER_HPP_
+
