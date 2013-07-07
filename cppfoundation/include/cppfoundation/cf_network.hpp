@@ -26,7 +26,7 @@
 namespace cf
 {
 
-namespace ioutilitydefs
+namespace networkdefs
 {
 enum
 {
@@ -36,7 +36,16 @@ enum
     SEND_FDS_SUMMAX_LARGE = 64,
     SEND_FDS_SUMMAX_VERYLARGE = 128
 };
-} // namespace ioutilitydefs
+
+enum EV_TYPE
+{
+    EV_ACCEPT = 01,
+    EV_READ = 02,
+    EV_WRITE = 04,
+    EV_CLOSE = 010,
+    EV_ERROR = 020
+};
+} // namespace networkdefs
 
 
 cf_int GetHostByName(cf_const std::string &, struct hostent * phe);

@@ -20,6 +20,7 @@
 #ifndef _HEADER_FILE_CFD_CF_TYPES_DEFINATION_H_
 #define _HEADER_FILE_CFD_CF_TYPES_DEFINATION_H_
 
+#define CFD_SWITCH_PRINT 1
 
 #ifndef cf_const
 #define cf_const const

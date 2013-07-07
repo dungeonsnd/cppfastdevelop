@@ -19,7 +19,7 @@
 
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_utility.hpp"
-#include "netserver/cl_event_loop.hpp"
+#include "cppfoundation/cf_network.hpp"
 
 
 cf_void Run()
@@ -28,16 +28,16 @@ cf_void Run()
     struct sockaddr_in servaddr;
     sockfd=cf_socket(AF_INET, SOCK_STREAM, 0);
     if(-1==sockfd)
-        ERR("cf_socket")
-        bzero(&servaddr, sizeof(servaddr));
+        ERR("cf_socket");
+    bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family=AF_INET;
     servaddr.sin_port=htons(8601);
-    inet_pton(AF_INET, "192.168.1.8", &servaddr.sin_addr);
+    inet_pton(AF_INET, "192.168.1.70", &servaddr.sin_addr);
     cf_int rt =cf_connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
     if(-1==rt)
-        ERR("cf_connect")
+        ERR("cf_connect");
 
-        std::string body("cppfastdevelop");
+    std::string body("cppfastdevelop");
     cf_uint32 bodylen =htonl(body.size());
     std::string buf(4+body.size(),'\0');
     memcpy(&buf[0],&bodylen,4);

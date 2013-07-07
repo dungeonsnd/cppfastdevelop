@@ -17,25 +17,26 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#ifndef _HEADER_FILE_CFD_CF_EVENT_HANDLER_HPP_
-#define _HEADER_FILE_CFD_CF_EVENT_HANDLER_HPP_
+#ifndef _HEADER_FILE_CFD_CL_EVENT_HANDLER_HPP_
+#define _HEADER_FILE_CFD_CL_EVENT_HANDLER_HPP_
 
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
 
-namespace cf
+namespace cl
 {
 
 class EventHandler : public cf::NonCopyable
 {
 public:
-    EventHandler()
+    EventHandler(std::weak_ptr < cf::Demux > demux)
+        :_demux(demux)
     {
     }
     ~EventHandler()
     {
     }
-    
+
     cf_void AsyncRead(cf_uint32 sizeToRead)
     {
     }
@@ -43,28 +44,48 @@ public:
     {
     }
 
-    cf_void OnConnect()
+    cf_void OnAccept()
     {
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnAccept \n");
+#endif
     }
     cf_void OnRead()
     {
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnAccept \n");
+#endif
     }
     cf_void OnWrite()
     {
-    }
-    cf_void OnTimeout()
-    {
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnAccept \n");
+#endif
     }
     cf_void OnClose()
     {
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnAccept \n");
+#endif
+    }
+    cf_void OnTimeout()
+    {
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnAccept \n");
+#endif
     }
     cf_void OnError()
+    {
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnAccept \n");
+#endif
     }
 private:
+    std::weak_ptr < cf::Demux > _demux;
 };
 
 
-}
+} // namespace cl
 
-#endif // _HEADER_FILE_CFD_CF_EVENT_HANDLER_HPP_
+#endif // _HEADER_FILE_CFD_CL_EVENT_HANDLER_HPP_
 

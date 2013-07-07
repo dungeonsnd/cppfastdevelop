@@ -23,12 +23,10 @@
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
 #include "cppfoundation/cf_memory.hpp"
+#include "cppfoundation/cf_network.hpp"
 
 namespace cf
 {
-
-using namespace eventloopdefs;
-enum EVENT_TYPE;
 
 namespace epolldefs
 {
@@ -39,15 +37,15 @@ enum
 };
 } // namespace lockdefs
 
-class epoll : public cf::NonCopyable
+class Epoll : public cf::NonCopyable
 {
 public:
     typedef std::map < cf_fd, cf_ev > TYPE_MAPEVENT;
     typedef TYPE_MAPEVENT::iterator TYPE_MAPEVENT_ITER;
-    typedef std::vector < std::pair < cf_fd, cf_ev > > TYPE_VECEVENT;
+    typedef std::vector < std::pair < cf_fd, networkdefs::EV_TYPE > > TYPE_VECEVENT;
     typedef TYPE_VECEVENT::iterator TYPE_VECEVENT_ITER;
-    
-    epoll(cf_int maxEvents =epolldefs::SIZE_MAXEVENTS):_maxEvents(maxEvents)
+
+    Epoll(cf_int maxEvents =epolldefs::SIZE_MAXEVENTS):_maxEvents(maxEvents)
     {
         _epfd =epoll_create(epolldefs::SIZE_CREATE);
         CF_NEWOBJ(p, epoll_event);
@@ -55,7 +53,7 @@ public:
             _THROW(AllocateMemoryError, "Allocate memory failed !");
         _retEvents.reset(p);
     }
-    ~epoll()
+    ~Epoll()
     {
     }
     cf_void AddConn(cf_fd fd,cf_ev event =EPOLLIN | EPOLLRDHUP)
@@ -109,19 +107,55 @@ public:
     cf_void WaitEvent(TYPE_VECEVENT & vecEvent, cf_int timeoutMilliseconds)
     {
         epoll_event * events =_retEvents.get();
-        cf_int n =epoll_wait(_epfd, events,_maxEvents, timeoutMilliseconds);
+        cf_int n =cf_epoll_wait(_epfd, events,_maxEvents, timeoutMilliseconds);
         if(-1==n)
         {
+            _THROW(SyscallExecuteError, "Failed to execute epoll_wait !");
         }
         else if(0==n)
-        {
-            for(cf_int i=0;i<n;i++)
-            {
-                vecEvent.push_back();
-            }
-        }
+            vecEvent.clear();
         else
         {
+            for(cf_int i=0; i<n; i++)
+            {
+                if((events[i].events & EPOLLERR)||(events[i].events & EPOLLHUP))
+                {
+#if CFD_SWITCH_PRINT
+                    fprintf (stderr, "epoll_wait return , EPOLLERR or EPOLLHUP\n");
+#endif
+                    vecEvent.push_back( std::make_pair(events[i].data.fd,networkdefs::EV_ERROR) );
+                    continue;
+                }
+                else if(events[i].data.fd==_epfd)
+                {
+#if CFD_SWITCH_PRINT
+                    fprintf (stderr, "epoll_wait return , EV_ACCEPT\n");
+#endif
+                    vecEvent.push_back( std::make_pair(events[i].data.fd,networkdefs::EV_ACCEPT) );
+                    continue;
+                }
+                if(events[i].events & EPOLLRDHUP)
+                {
+#if CFD_SWITCH_PRINT
+                    fprintf (stderr, "epoll_wait return , EV_READ\n");
+#endif
+                    vecEvent.push_back( std::make_pair(events[i].data.fd,networkdefs::EV_CLOSE) );
+                }
+                if(events[i].events & EPOLLIN)
+                {
+#if CFD_SWITCH_PRINT
+                    fprintf (stderr, "epoll_wait return , EV_READ\n");
+#endif
+                    vecEvent.push_back( std::make_pair(events[i].data.fd,networkdefs::EV_READ) );
+                }
+                if(events[i].events & EPOLLOUT)
+                {
+#if CFD_SWITCH_PRINT
+                    fprintf (stderr, "epoll_wait return , EV_WRITE\n");
+#endif
+                    vecEvent.push_back( std::make_pair(events[i].data.fd,networkdefs::EV_WRITE) );
+                }
+            }
         }
     }
 private:
@@ -129,17 +163,17 @@ private:
     {
         epoll_data_t st_data;
         st_data.fd =fd;
-        
+
         epoll_event st_ev;
         st_ev.events =event;
         st_ev.data =st_data;
-        
-        cf_int rt =epoll_ctl(_epfd, op, fd, &st_ev);
+
+        cf_int rt =cf_epoll_ctl(_epfd, op, fd, &st_ev);
         if(0!=rt)
         {
         }
     }
-    
+
     cf_int _epfd;
     TYPE_MAPEVENT _mapEvent;
     cf_int _maxEvents;
@@ -147,7 +181,7 @@ private:
 };
 
 
-}
+} // namespace cf
 
 #endif // _HEADER_FILE_CFD_CF_EPOLL_HPP_
 

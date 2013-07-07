@@ -17,11 +17,11 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#include "cppfoundation/cf_packet.hpp"
+#include "netserver/cl_event_handler.hpp"
 
-namespace cf
+namespace cl
 {
 
 
-} // namespace cf
+} // namespace cl
 

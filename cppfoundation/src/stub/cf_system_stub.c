@@ -1073,7 +1073,5 @@ cf_int cf_epoll_create1(cf_int flags)
     return epoll_create1(flags);
 }
 
-
-
 #endif
 

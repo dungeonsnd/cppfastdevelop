@@ -1,8 +1,7 @@
 #!/bin/sh
 
-cd ../
 PRJ_PATH=`pwd`
-#echo $PRJ_PATH
+echo $PRJ_PATH
 
 cd /usr/lib64/
 

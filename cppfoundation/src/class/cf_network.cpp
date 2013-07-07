@@ -231,7 +231,7 @@ bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
 
 
 // Send fd over unix domain socket.
-namespace ioutilitydefs
+namespace networkdefs
 {
 union control_un_single
 {
@@ -275,24 +275,24 @@ union control_un_verylarge
 } ;
 const size_t sizeof_control_un_verylarge =sizeof(control_un_single);
 
-} // namespace ioutilitydefs
+} // namespace networkdefs
 
 ssize_t SendFds(const int fd, const int * sendfdarray,const size_t fdarraylen,
                 void * dataExtra, const size_t dataExtraBytes)
 {
     std::string control_un(0,'\0');
     if(fdarraylen==1)
-        control_un.resize(ioutilitydefs::sizeof_control_un_single);
-    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_TINY)
-        control_un.resize(ioutilitydefs::sizeof_control_un_tiny);
-    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_SMALL)
-        control_un.resize(ioutilitydefs::sizeof_control_un_small);
-    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_MEDIUM)
-        control_un.resize(ioutilitydefs::sizeof_control_un_medium);
-    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_LARGE)
-        control_un.resize(ioutilitydefs::sizeof_control_un_large);
-    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_VERYLARGE)
-        control_un.resize(ioutilitydefs::sizeof_control_un_verylarge);
+        control_un.resize(networkdefs::sizeof_control_un_single);
+    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_TINY)
+        control_un.resize(networkdefs::sizeof_control_un_tiny);
+    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_SMALL)
+        control_un.resize(networkdefs::sizeof_control_un_small);
+    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_MEDIUM)
+        control_un.resize(networkdefs::sizeof_control_un_medium);
+    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_LARGE)
+        control_un.resize(networkdefs::sizeof_control_un_large);
+    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_VERYLARGE)
+        control_un.resize(networkdefs::sizeof_control_un_verylarge);
     else
         _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen);
 
@@ -325,17 +325,17 @@ ssize_t RecvFds(const int fd, int * recvfdarray, const size_t fdarraylen,
 {
     std::string control_un(0,'\0');
     if(fdarraylen==1)
-        control_un.resize(ioutilitydefs::sizeof_control_un_single);
-    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_TINY)
-        control_un.resize(ioutilitydefs::sizeof_control_un_tiny);
-    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_SMALL)
-        control_un.resize(ioutilitydefs::sizeof_control_un_small);
-    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_MEDIUM)
-        control_un.resize(ioutilitydefs::sizeof_control_un_medium);
-    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_LARGE)
-        control_un.resize(ioutilitydefs::sizeof_control_un_large);
-    else if(fdarraylen<=ioutilitydefs::SEND_FDS_SUMMAX_VERYLARGE)
-        control_un.resize(ioutilitydefs::sizeof_control_un_verylarge);
+        control_un.resize(networkdefs::sizeof_control_un_single);
+    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_TINY)
+        control_un.resize(networkdefs::sizeof_control_un_tiny);
+    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_SMALL)
+        control_un.resize(networkdefs::sizeof_control_un_small);
+    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_MEDIUM)
+        control_un.resize(networkdefs::sizeof_control_un_medium);
+    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_LARGE)
+        control_un.resize(networkdefs::sizeof_control_un_large);
+    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_VERYLARGE)
+        control_un.resize(networkdefs::sizeof_control_un_verylarge);
     else
         _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen);
     struct msghdr   msg;

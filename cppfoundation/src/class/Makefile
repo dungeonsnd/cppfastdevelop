@@ -29,7 +29,7 @@ cf_process.o \
 cf_application.o \
 cf_network.o \
 cf_socket.o \
-cf_event_loop.o
+cf_event_loop.o \
 cf_epoll.o\
 cf_kqueue.o\
 cf_poll.o

@@ -29,7 +29,7 @@ namespace cf
 #ifndef ERR
 #define ERR(msg) \
     { \
-        fprintf(stderr,"Error! %s,file=%s,line=%d,errno=%d\n",msg,__FILE__,__LINE__,errno); \
+        fprintf(stderr,"Error! %s,file=%s,line=%d,errno=%d,strerror=%s \n",msg,__FILE__,__LINE__,errno,strerror(errno)); \
         exit(1); \
     }
 #endif // ERR

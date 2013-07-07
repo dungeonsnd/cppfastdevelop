@@ -62,7 +62,7 @@ using tr1::swap;
 using tr1::weak_ptr;
 }
 #else
-//        #pragma message("$$$$ Using shared_ptr from <memory> !")
+//        #pragma message("$$$$ Using shared_ptr from <memory> in c++ standard library !")
 #include <memory>
 #endif // __GXX_EXPERIMENTAL_CXX0X__
 #else

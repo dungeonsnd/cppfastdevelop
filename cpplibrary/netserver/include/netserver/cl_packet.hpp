@@ -17,50 +17,22 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#ifndef _HEADER_FILE_CFD_CF_PACKET_HPP_
-#define _HEADER_FILE_CFD_CF_PACKET_HPP_
+#ifndef _HEADER_FILE_CFD_CL_PACKET_HPP_
+#define _HEADER_FILE_CFD_CL_PACKET_HPP_
 
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
 
-namespace cf
+namespace cl
 {
 
-class PacketRead : public cf::NonCopyable
-{
-public:
-    PacketRead()
-    {
-    }
-    ~PacketRead()
-    {
-    }
-    cf_void BeginRead()
-    {
-    }
-private:
-};
-class PacketWrite : public cf::NonCopyable
-{
-public:
-    PacketWrite()
-    {
-    }
-    ~PacketWrite()
-    {
-    }
-    cf_void BeginWrite()
-    {
-    }
-private:
-};
 class PacketReceived : public cf::NonCopyable
 {
 public:
-    PacketRead()
+    PacketReceived()
     {
     }
-    ~PacketRead()
+    ~PacketReceived()
     {
     }
     cf_void GetData()
@@ -69,8 +41,38 @@ public:
 private:
 };
 
+class ReadBuffer : public cf::NonCopyable
+{
+public:
+    ReadBuffer()
+    {
+    }
+    ~ReadBuffer()
+    {
+    }
+    cf_void BeginRead()
+    {
+    }
+private:
+};
 
-}
+class PacketBuffer : public cf::NonCopyable
+{
+public:
+    PacketBuffer()
+    {
+    }
+    ~PacketBuffer()
+    {
+    }
+    cf_void BeginWrite()
+    {
+    }
+private:
+};
 
-#endif // _HEADER_FILE_CFD_CF_PACKET_HPP_
+
+} // namespace cl
+
+#endif // _HEADER_FILE_CFD_CL_PACKET_HPP_
 

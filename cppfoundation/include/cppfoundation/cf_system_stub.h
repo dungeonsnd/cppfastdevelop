@@ -199,7 +199,7 @@ pid_t cf_getppid();
 cf_int cf_select(cf_int nfds, fd_set * readfds, fd_set * writefds,
                  fd_set * exceptfds, struct timeval * timeout);
 cf_int cf_poll(struct pollfd * fds, nfds_t nfds, cf_int timeout);
-#ifdef __linux
+#ifdef __linux__
 cf_int cf_epoll_wait(cf_int epfd, struct epoll_event * events,
                      cf_int maxevents, cf_int timeoutMS);
 cf_int cf_epoll_ctl(cf_int epfd, cf_int op, cf_int fd,
@@ -209,7 +209,7 @@ cf_int cf_epoll_create1(cf_int flags);
 
 cf_int cf_backtrace(cf_ppvoid buffer, cf_int size);
 cf_char  ** cf_backtrace_symbols(cf_pcpvoid buffer, cf_int size);
-#endif // __linux
+#endif // __linux__
 
 //
 

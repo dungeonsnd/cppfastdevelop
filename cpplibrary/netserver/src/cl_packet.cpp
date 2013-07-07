@@ -17,17 +17,11 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#include "netserver/cl_server.hpp"
+#include "netserver/cl_packet.hpp"
 
-
-cf_void Run()
+namespace cl
 {
-    std::shared_ptr < cl::TcpServer > server(new cl::TcpServer(8601));
-    server->Start();
-}
 
-cf_int main(cf_int argc,cf_char * argv[])
-{
-    Run();
-    return 0;
-}
+
+} // namespace cl
+
