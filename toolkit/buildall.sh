@@ -23,10 +23,10 @@ cd test
 ./buildsrc.sh rc
 cd ../../
 
-#cd netserver/
-#./buildsrc.sh rc
-#cd test
-#./buildsrc.sh rc
-#cd ../../
+cd netserver/
+./buildsrc.sh rc
+cd test
+./buildsrc.sh rc
+cd ../../
 
 

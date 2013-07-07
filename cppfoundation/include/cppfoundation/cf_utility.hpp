@@ -26,14 +26,22 @@
 namespace cf
 {
 
-#ifndef ERR
-#define ERR(msg) \
+#ifndef CF_ERR
+#define CF_ERR(msg) \
     { \
         fprintf(stderr,"Error! %s,file=%s,line=%d,errno=%d,strerror=%s \n",msg,__FILE__,__LINE__,errno,strerror(errno)); \
         exit(1); \
     }
 #endif // ERR
 
+#ifndef CF_PRINT_FUNC
+#ifdef CFD_SWITCH_PRINT
+#define CF_PRINT_FUNC \
+    { \
+        fprintf(stdout,"func=%s,file=%s,line=%d \n",__PRETTY_FUNCTION__,__FILE__,__LINE__); \
+    }
+#endif //  CFD_SWITCH_PRINT    
+#endif // ERR
 
 cf_void SetProcessDaemon();
 

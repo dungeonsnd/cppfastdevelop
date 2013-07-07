@@ -35,7 +35,24 @@ cf_int GetHostByName(cf_const std::string & name, struct hostent * phe)
     return 0;
 }
 
-int CreateServerSocket (const int port,const int socktype,const int backlog)
+cf_void SetBlocking(cf_int sockfd,bool blocking)
+{
+    cf_int flags = cf_fcntl(sockfd, F_GETFL, 0);
+    if (-1==flags)
+        _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !")
+        cf_int rt =0;
+    if ( (flags&O_NONBLOCK) && blocking )
+        rt = ::fcntl(sockfd, F_SETFL, flags & ~O_NONBLOCK);
+    else if ( !(flags&O_NONBLOCK) && false==blocking )
+        rt = ::fcntl(sockfd, F_SETFL, flags|O_NONBLOCK);
+    else
+        ; // Already set.
+    if (-1==rt)
+        _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !");
+}
+
+int CreateServerSocket (const int port,const int socktype,bool blocking,
+                        const int backlog)
 {
     struct addrinfo hints;
     struct addrinfo * result, *rp;
@@ -73,6 +90,10 @@ int CreateServerSocket (const int port,const int socktype,const int backlog)
     cf_freeaddrinfo (result);
     if ( 0!=cf_listen(listenfd, backlog) )
         _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !");
+
+    if(listenfd>0&&false==blocking)
+        SetBlocking(listenfd,blocking);
+
     return listenfd;
 }
 
@@ -95,21 +116,6 @@ int CreateLocalServerSocket(const std::string & path,const int socktype,
     return listenfd;
 }
 
-cf_void SetBlocking(cf_int sockfd,bool blocking)
-{
-    cf_int flags = cf_fcntl(sockfd, F_GETFL, 0);
-    if (-1==flags)
-        _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !")
-        cf_int rt =0;
-    if ( (flags&O_NONBLOCK) && blocking )
-        rt = ::fcntl(sockfd, F_SETFL, flags & ~O_NONBLOCK);
-    else if ( !(flags&O_NONBLOCK) && false==blocking )
-        rt = ::fcntl(sockfd, F_SETFL, flags|O_NONBLOCK);
-    else
-        ; // Already set.
-    if (-1==rt)
-        _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !");
-}
 
 bool IsSocketBroken(cf_int fd)
 {

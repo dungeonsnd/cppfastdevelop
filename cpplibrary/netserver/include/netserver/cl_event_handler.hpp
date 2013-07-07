@@ -22,6 +22,8 @@
 
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
+#include "cppfoundation/cf_utility.hpp"
+#include "cppfoundation/cf_event_loop.hpp"
 
 namespace cl
 {
@@ -29,8 +31,8 @@ namespace cl
 class EventHandler : public cf::NonCopyable
 {
 public:
-    EventHandler(std::weak_ptr < cf::Demux > demux)
-        :_demux(demux)
+    EventHandler(cf_fd listenfd, std::shared_ptr < cf::Demux > demux)
+        :_listenfd(listenfd),_demux(demux)
     {
     }
     ~EventHandler()
@@ -46,42 +48,65 @@ public:
 
     cf_void OnAccept()
     {
+        CF_PRINT_FUNC;
+        while (true)
+        {
+            struct sockaddr in_addr;
+            socklen_t in_len;
+            cf_int infd;
+            cf_char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+
+            in_len = sizeof in_addr;
+            infd = cf_accept (_listenfd, &in_addr, &in_len);
+            if (infd == -1)
+            {
+                if ((errno == EAGAIN)||(errno == EWOULDBLOCK))
+                    break;
+                else
+                {
+                    _THROW(cf::SyscallExecuteError, "Failed to execute accept !");
+                    break;
+                }
+            }
+
+            cf_int s = getnameinfo(&in_addr, in_len,hbuf, sizeof hbuf,sbuf, sizeof sbuf,
+                                   NI_NUMERICHOST | NI_NUMERICSERV);
+            if (s == 0)
+            {
 #if CFD_SWITCH_PRINT
-        fprintf (stderr, "OnAccept \n");
+                fprintf(stderr,"Accepted connection on descriptor %d(host=%s, port=%s)\n", infd,
+                        hbuf, sbuf);
 #endif
+            }
+
+            cf::SetBlocking(infd,false);
+            _demux->AddConn(infd, cf::networkdefs::EV_READ);
+        }
     }
+
     cf_void OnRead()
     {
-#if CFD_SWITCH_PRINT
-        fprintf (stderr, "OnAccept \n");
-#endif
+        CF_PRINT_FUNC;
     }
     cf_void OnWrite()
     {
-#if CFD_SWITCH_PRINT
-        fprintf (stderr, "OnAccept \n");
-#endif
+        CF_PRINT_FUNC;
     }
     cf_void OnClose()
     {
-#if CFD_SWITCH_PRINT
-        fprintf (stderr, "OnAccept \n");
-#endif
+        CF_PRINT_FUNC;
     }
     cf_void OnTimeout()
     {
-#if CFD_SWITCH_PRINT
-        fprintf (stderr, "OnAccept \n");
-#endif
+        CF_PRINT_FUNC;
     }
     cf_void OnError()
     {
-#if CFD_SWITCH_PRINT
-        fprintf (stderr, "OnAccept \n");
-#endif
+        CF_PRINT_FUNC;
     }
 private:
-    std::weak_ptr < cf::Demux > _demux;
+    cf_fd _listenfd;
+    std::shared_ptr < cf::Demux > _demux;
 };
 
 

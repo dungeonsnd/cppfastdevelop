@@ -24,6 +24,7 @@
 #include "cppfoundation/cf_exception.hpp"
 #include "cppfoundation/cf_memory.hpp"
 #include "cppfoundation/cf_network.hpp"
+//#include "cppfoundation/cf_ipc.hpp"
 
 namespace cf
 {
@@ -45,19 +46,27 @@ public:
     typedef std::vector < std::pair < cf_fd, networkdefs::EV_TYPE > > TYPE_VECEVENT;
     typedef TYPE_VECEVENT::iterator TYPE_VECEVENT_ITER;
 
-    Epoll(cf_int maxEvents =epolldefs::SIZE_MAXEVENTS):_maxEvents(maxEvents)
+    Epoll(cf_fd listenfd ,cf_int maxEvents =epolldefs::SIZE_MAXEVENTS)
+        :_listenfd(listenfd),_maxEvents(maxEvents)
     {
-        _epfd =epoll_create(epolldefs::SIZE_CREATE);
-        CF_NEWOBJ(p, epoll_event);
-        if(NULL==p)
-            _THROW(AllocateMemoryError, "Allocate memory failed !");
-        _retEvents.reset(p);
+        _epfd =cf_epoll_create(epolldefs::SIZE_CREATE);
+        EpollCtl(_listenfd,EPOLL_CTL_ADD, EPOLLIN);
+        //        EpollCtl(_pipe[0],EPOLL_CTL_ADD, EPOLLIN);
+        if(_maxEvents<1)
+            _THROW_FMT(ValueError, "_maxEvents{%d}<1 !",_maxEvents);
+        _retEvents.resize(_maxEvents);
     }
     ~Epoll()
     {
     }
-    cf_void AddConn(cf_fd fd,cf_ev event =EPOLLIN | EPOLLRDHUP)
+    cf_void AddConn(cf_fd fd,networkdefs::EV_TYPE ev=networkdefs::EV_READ)
     {
+        cf_ev event =EPOLLRDHUP;
+        if(ev&networkdefs::EV_READ)
+            event |= EPOLLIN;
+        if(ev&networkdefs::EV_WRITE)
+            event |= EPOLLOUT;
+
         EpollCtl(fd,EPOLL_CTL_ADD, event);
         _mapEvent.insert(std::make_pair(fd,event));
     }
@@ -66,8 +75,14 @@ public:
         EpollCtl(fd,EPOLL_CTL_DEL, 0);
         _mapEvent.erase(fd);
     }
-    cf_void AddEvent(cf_fd fd,cf_ev event)
+    cf_void AddEvent(cf_fd fd,networkdefs::EV_TYPE ev)
     {
+        cf_ev event =EPOLLRDHUP;
+        if(ev&networkdefs::EV_READ)
+            event |= EPOLLIN;
+        if(ev&networkdefs::EV_WRITE)
+            event |= EPOLLOUT;
+
         TYPE_MAPEVENT_ITER it =_mapEvent.find(fd);
         if(_mapEvent.end()!=it)
         {
@@ -85,8 +100,14 @@ public:
         {
         }
     }
-    cf_void DelEvent(cf_fd fd,cf_ev event)
+    cf_void DelEvent(cf_fd fd,networkdefs::EV_TYPE ev)
     {
+        cf_ev event =EPOLLIN;
+        if(ev&networkdefs::EV_READ)
+            event |= EPOLLIN;
+        if(ev&networkdefs::EV_WRITE)
+            event |= EPOLLOUT;
+
         TYPE_MAPEVENT_ITER it =_mapEvent.find(fd);
         if(_mapEvent.end()!=it)
         {
@@ -106,54 +127,86 @@ public:
     }
     cf_void WaitEvent(TYPE_VECEVENT & vecEvent, cf_int timeoutMilliseconds)
     {
-        epoll_event * events =_retEvents.get();
-        cf_int n =cf_epoll_wait(_epfd, events,_maxEvents, timeoutMilliseconds);
+        _retEvents.clear();
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "before epoll_wait  \n");
+#endif
+        cf_int n =cf_epoll_wait(_epfd, &(_retEvents[0]),_maxEvents,
+                                timeoutMilliseconds);
+#if _DEBUG
+        usleep(1000*1000); // only for testing
+#endif
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "epoll_wait return , n=%d \n",n);
+#endif
+
         if(-1==n)
         {
             _THROW(SyscallExecuteError, "Failed to execute epoll_wait !");
         }
         else if(0==n)
-            vecEvent.clear();
+        {
+#if CFD_SWITCH_PRINT
+            fprintf (stderr, "epoll_wait return , time out \n");
+#endif
+        }
         else
         {
             for(cf_int i=0; i<n; i++)
             {
-                if((events[i].events & EPOLLERR)||(events[i].events & EPOLLHUP))
+                if((_retEvents[i].events & EPOLLERR)||(_retEvents[i].events & EPOLLHUP))
                 {
 #if CFD_SWITCH_PRINT
                     fprintf (stderr, "epoll_wait return , EPOLLERR or EPOLLHUP\n");
 #endif
-                    vecEvent.push_back( std::make_pair(events[i].data.fd,networkdefs::EV_ERROR) );
+                    vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
+                                                       networkdefs::EV_ERROR) );
                     continue;
                 }
-                else if(events[i].data.fd==_epfd)
+                else if(_retEvents[i].data.fd==_listenfd)
                 {
 #if CFD_SWITCH_PRINT
                     fprintf (stderr, "epoll_wait return , EV_ACCEPT\n");
 #endif
-                    vecEvent.push_back( std::make_pair(events[i].data.fd,networkdefs::EV_ACCEPT) );
+                    vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
+                                                       networkdefs::EV_ACCEPT) );
                     continue;
                 }
-                if(events[i].events & EPOLLRDHUP)
+                /*
+                                else if(_retEvents[i].data.fd==_pipe[1])
+                                {
+                #if CFD_SWITCH_PRINT
+                                    fprintf (stderr, "epoll_wait return , rewait after epoll_ctl\n");
+                #endif
+                                    ssize_t rdn =cf::read(_pipe[1],_buf4pipe,sizeof _buf4pipe);
+                                    if(sizeof _buf4pipe!=rdn)
+                                        _THROW_FMT(ValueError, "sizeof _buf4pipe{%lld}!=rdn{%lld} !",(cf_int64)(sizeof _buf4pipe),(cf_int64)rdn);
+                                    continue;
+                                }
+                */
+                if(_retEvents[i].events & EPOLLIN)
                 {
 #if CFD_SWITCH_PRINT
-                    fprintf (stderr, "epoll_wait return , EV_READ\n");
+                    fprintf (stderr, "epoll_wait return , EPOLLIN\n");
 #endif
-                    vecEvent.push_back( std::make_pair(events[i].data.fd,networkdefs::EV_CLOSE) );
+                    vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
+                                                       networkdefs::EV_READ) );
                 }
-                if(events[i].events & EPOLLIN)
-                {
-#if CFD_SWITCH_PRINT
-                    fprintf (stderr, "epoll_wait return , EV_READ\n");
-#endif
-                    vecEvent.push_back( std::make_pair(events[i].data.fd,networkdefs::EV_READ) );
-                }
-                if(events[i].events & EPOLLOUT)
+                if(_retEvents[i].events & EPOLLOUT)
                 {
 #if CFD_SWITCH_PRINT
                     fprintf (stderr, "epoll_wait return , EV_WRITE\n");
 #endif
-                    vecEvent.push_back( std::make_pair(events[i].data.fd,networkdefs::EV_WRITE) );
+                    vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
+                                                       networkdefs::EV_WRITE) );
+                }
+                if(_retEvents[i].events & EPOLLRDHUP)
+                {
+#if CFD_SWITCH_PRINT
+                    fprintf (stderr, "epoll_wait return , EPOLLRDHUP\n");
+#endif
+                    vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
+                                                       networkdefs::EV_CLOSE) );
                 }
             }
         }
@@ -172,12 +225,18 @@ private:
         if(0!=rt)
         {
         }
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "cf_epoll_ctl return %d, _epfd=%d, fd=%d \n" , rt,_epfd,fd);
+#endif
     }
 
+    cf_fd _listenfd;
     cf_int _epfd;
     TYPE_MAPEVENT _mapEvent;
     cf_int _maxEvents;
-    std::shared_ptr < epoll_event > _retEvents;
+    std::vector < epoll_event > _retEvents;
+    //    Pipe < SocketpairPipe > _pipe;
+    //    cf_char _buf4pipe[1];
 };
 
 

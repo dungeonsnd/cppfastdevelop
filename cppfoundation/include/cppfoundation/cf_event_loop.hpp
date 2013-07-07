@@ -52,57 +52,73 @@ template <typename EventHandlerType>
 class EventLoop : public cf::NonCopyable
 {
 public:
-    EventLoop()
+    EventLoop(cf_fd listenfd)
+        :_stop(false)
     {
-        CF_NEWOBJ(p, Demux);
+        CF_NEWOBJ(p, Demux, listenfd);
         if(NULL==p)
             _THROW(AllocateMemoryError, "Allocate memory failed !");
         _demux.reset(p);
 
-        CF_NEWOBJ(p1, EventHandlerType , _demux);
+        CF_NEWOBJ(p1, EventHandlerType , listenfd, _demux);
         if(NULL==p1)
             _THROW(AllocateMemoryError, "Allocate memory failed !");
         _handler.reset(p1);
     }
+    cf_void Stop()
+    {
+        _stop =true;
+    }
     ~EventLoop()
     {
+        _stop =true;
     }
 
     cf_void WaitEvent(cf_int timeoutMilliseconds)
     {
-        _demux->WaitEvent(_vecEvent,timeoutMilliseconds);
-        if(_vecEvent.size())
+        cf_int times
+            =14; // only for valgrind test,to check exit program gracefully other than ctrl+c.
+        while(false==_stop)
         {
-            for(Demux::TYPE_VECEVENT_ITER it =_vecEvent.begin(); it!=_vecEvent.end(); it++)
+            if(0==times--)
+                break;
+
+            _vecEvent.clear();
+            _demux->WaitEvent(_vecEvent,timeoutMilliseconds);
+            if(_vecEvent.size())
             {
-                switch(it->second)
+                for(Demux::TYPE_VECEVENT_ITER it =_vecEvent.begin(); it!=_vecEvent.end(); it++)
                 {
-                case networkdefs::EV_ACCEPT:
-                    _handler->OnAccept();
-                    break;
-                case networkdefs::EV_READ:
-                    _handler->OnRead();
-                    break;
-                case networkdefs::EV_WRITE:
-                    _handler->OnWrite();
-                    break;
-                case networkdefs::EV_CLOSE:
-                    _handler->OnClose();
-                    break;
-                case networkdefs::EV_ERROR:
-                    _handler->OnError();
-                    break;
-                default:
-                    break;
+                    switch(it->second)
+                    {
+                    case networkdefs::EV_ACCEPT:
+                        _handler->OnAccept();
+                        break;
+                    case networkdefs::EV_READ:
+                        _handler->OnRead();
+                        break;
+                    case networkdefs::EV_WRITE:
+                        _handler->OnWrite();
+                        break;
+                    case networkdefs::EV_CLOSE:
+                        _handler->OnClose();
+                        break;
+                    case networkdefs::EV_ERROR:
+                        _handler->OnError();
+                        break;
+                    default:
+                        break;
+                    }
                 }
             }
-        }
-        else
-        {
-            _handler->OnTimeout();
+            else
+            {
+                _handler->OnTimeout();
+            }
         }
     }
 private:
+    bool _stop;
     std::shared_ptr < EventHandlerType > _handler;
     std::shared_ptr < Demux > _demux;
     Demux::TYPE_VECEVENT _vecEvent;

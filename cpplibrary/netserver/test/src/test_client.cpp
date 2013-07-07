@@ -28,14 +28,19 @@ cf_void Run()
     struct sockaddr_in servaddr;
     sockfd=cf_socket(AF_INET, SOCK_STREAM, 0);
     if(-1==sockfd)
-        ERR("cf_socket");
+        CF_ERR("cf_socket");
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family=AF_INET;
     servaddr.sin_port=htons(8601);
     inet_pton(AF_INET, "192.168.1.70", &servaddr.sin_addr);
     cf_int rt =cf_connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
     if(-1==rt)
-        ERR("cf_connect");
+    {
+        CF_ERR("cf_connect")
+    }
+    else
+        printf("connect successfully! \n");
+    usleep(2*1000000);
 
     std::string body("cppfastdevelop");
     cf_uint32 bodylen =htonl(body.size());
@@ -62,7 +67,7 @@ cf_void Run()
     else
         printf("Recv timeout ! \n");
 
-    usleep(4*1000000);
+    usleep(3*1000000);
     cf_close(sockfd);
 }
 
