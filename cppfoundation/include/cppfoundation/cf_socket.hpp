@@ -17,8 +17,8 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#ifndef _HEADER_FILE_CFD_CF_SOCKET_HPP_
-#define _HEADER_FILE_CFD_CF_SOCKET_HPP_
+#ifndef _HEADER_FILE_CFD_CF_fdET_HPP_
+#define _HEADER_FILE_CFD_CF_fdET_HPP_
 
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
@@ -34,49 +34,70 @@ enum
 };
 } // namespace socketdefs
 
-class Socket:NonCopyable
+
+class Socket : public NonCopyable
 {
 public:
-    Socket(cf_fd sock):
-        _sock(sock)
+    Socket(cf_fd fd, in_addr ip ,cf_uint16 port):
+        _fd(fd),_ip(ip),_port(port)
     {}
     ~Socket()
     {
-        if (_sock > 0)
-            cf_close(_sock);
+        if (_fd > 0)
+            cf_shutdown(_fd, SHUT_WR);
     }
     cf_void Close()
     {
-        if (_sock > 0)
-            cf_close(_sock);
+        if (_fd > 0)
+            cf_close(_fd);
         else
-            _THROW_FMT(ValueError, "_sock{%d}<=0 !", cf_int(_sock));
+            _THROW_FMT(ValueError, "_fd{%d}<=0 !", cf_int(_fd));
+        _fd =-1;
     }
     cf_void Shutdown()
     {
-        if (_sock > 0)
-            cf_shutdown(_sock, SHUT_WR);
+        if (_fd > 0)
+            cf_shutdown(_fd, SHUT_WR);
         else
-            _THROW_FMT(ValueError, "_sock{%d}<=0 !", cf_int(_sock));
+            _THROW_FMT(ValueError, "_fd{%d}<=0 !", cf_int(_fd));
     }
 
-    cf_int WriteNowait(cf_cpvoid data, cf_uint32 len);
-    cf_int ReadNowait(cf_pvoid data, cf_uint32 len);
+    cf_int SendAsync(cf_cpvoid data, ssize_t len);
+    cf_int RecvAsync(cf_pvoid data, ssize_t len);
 
-    std::string getAddr();
-    cf_uint32 getIp();
-    cf_uint16 getPort();
+    cf_fd Fd() cf_const
+    {
+        return _fd;
+    }
+    cf_uint32 Ip() cf_const
+    {
+        return (cf_uint32)(_ip.s_addr);
+    }
+    std::string Addr() cf_const
+    {
+        return (inet_ntoa(_ip));
+    }
 
+    cf_uint16 Port() cf_const
+    {
+        return _port;
+    }
+    /*
     bool setKeepAlive(bool on);
     bool setReuseAddress(bool on);
     bool setSoLinger (bool doLinger, int seconds);
     bool setIntOption(int option, int value);
     bool setTimeOption(int option, int milliseconds);
     bool setSoBlocking(bool on);
+    */
 private:
-    cf_fd _sock;
+    cf_fd _fd;
+    in_addr _ip;
+    cf_uint16 _port;
 };
+
+typedef std::shared_ptr < Socket > T_SESSION;
 
 } // namespace cf
 
-#endif // _HEADER_FILE_CFD_CF_SOCKET_HPP_
+#endif // _HEADER_FILE_CFD_CF_fdET_HPP_

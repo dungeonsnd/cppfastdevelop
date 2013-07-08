@@ -40,7 +40,7 @@ cf_void Run()
     }
     else
         printf("connect successfully! \n");
-    usleep(2*1000000);
+    usleep(1*1000000);
 
     std::string body("cppfastdevelop");
     cf_uint32 bodylen =htonl(body.size());
@@ -67,7 +67,7 @@ cf_void Run()
     else
         printf("Recv timeout ! \n");
 
-    usleep(3*1000000);
+    usleep(1*1000000);
     cf_close(sockfd);
 }
 

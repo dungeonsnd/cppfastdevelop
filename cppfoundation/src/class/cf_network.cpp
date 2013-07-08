@@ -235,6 +235,92 @@ bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
     return true;
 }
 
+cf_void AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
+{
+    while (true)
+    {
+        struct sockaddr_in in_addr;
+        socklen_t in_len;
+
+        in_len = sizeof in_addr;
+        cf_int infd = cf_accept (listenfd, (sockaddr *)&in_addr, &in_len);
+        if (infd == -1)
+        {
+            if ((errno == EAGAIN)||(errno == EWOULDBLOCK))
+                break;
+            else
+            {
+                _THROW(cf::SyscallExecuteError, "Failed to execute accept !");
+                break;
+            }
+        }
+        else
+        {
+            T_SESSION ses;
+            CF_NEWOBJ(p, Socket , infd, in_addr.sin_addr, htons(in_addr.sin_port));
+            if(NULL==p)
+                _THROW(AllocateMemoryError, "Allocate memory failed !");
+            ses.reset(p);
+
+            clients.push_back(ses);
+        }
+    }
+}
+
+cf_int SendSegmentAsync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
+                        ssize_t segsize)
+{
+    if(totalLen == 0)
+        return 0;
+    ssize_t len=0;
+    ssize_t lenLeft =0;
+    ssize_t alreadyDone=0;
+    while(alreadyDone < totalLen)
+    {
+        lenLeft = totalLen-alreadyDone;
+        if (segsize>0 && lenLeft > segsize)
+            lenLeft = segsize;
+        len =cf_send(sockfd,&buf[alreadyDone],lenLeft,MSG_DONTWAIT);
+        if(-1==len)
+        {
+            if(EAGAIN==errno||EWOULDBLOCK==errno)
+                break;
+            else
+                _THROW(SyscallExecuteError, "Failed to execute cf_write !");
+
+        }
+        alreadyDone +=len;
+    }
+    return cf_int(alreadyDone);
+}
+
+cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
+                        ssize_t segsize)
+{
+    if(totalLen == 0)
+        return 0;
+    ssize_t len=0;
+    ssize_t lenLeft =0;
+    ssize_t alreadyDone=0;
+    while(alreadyDone < totalLen)
+    {
+        lenLeft = totalLen-alreadyDone;
+        if (segsize>0 && lenLeft > segsize)
+            lenLeft = segsize;
+        len =cf_recv(sockfd,&buf[alreadyDone],lenLeft,MSG_DONTWAIT);
+        if(-1==len)
+        {
+            if(EAGAIN==errno||EWOULDBLOCK==errno)
+                break;
+            else
+                _THROW(SyscallExecuteError, "Failed to execute cf_write !");
+
+        }
+        alreadyDone +=len;
+    }
+    return cf_int(alreadyDone);
+}
+
 
 // Send fd over unix domain socket.
 namespace networkdefs

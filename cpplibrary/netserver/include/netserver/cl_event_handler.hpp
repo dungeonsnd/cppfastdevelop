@@ -23,6 +23,8 @@
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
 #include "cppfoundation/cf_utility.hpp"
+#include "cppfoundation/cf_network.hpp"
+#include "cppfoundation/cf_socket.hpp"
 #include "cppfoundation/cf_event_loop.hpp"
 
 namespace cl
@@ -31,6 +33,10 @@ namespace cl
 class EventHandler : public cf::NonCopyable
 {
 public:
+    
+    typedef std::map < cf_fd, cf::T_SESSION  > T_MAPSESSIONS;    
+    typedef std::vector < cf::T_SESSION > T_VECCLIENTS;
+    
     EventHandler(cf_fd listenfd, std::shared_ptr < cf::Demux > demux)
         :_listenfd(listenfd),_demux(demux)
     {
@@ -48,51 +54,60 @@ public:
 
     cf_void OnAccept()
     {
-        CF_PRINT_FUNC;
-        while (true)
+        CF_PRINT_FUNC;        
+        T_VECCLIENTS clients;
+        cf::AcceptAsync(_listenfd, clients);
+        cf_fd fd;
+        for(T_VECCLIENTS::iterator it=clients.begin();it!=clients.end();it++)
         {
-            struct sockaddr in_addr;
-            socklen_t in_len;
-            cf_int infd;
-            cf_char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-
-            in_len = sizeof in_addr;
-            infd = cf_accept (_listenfd, &in_addr, &in_len);
-            if (infd == -1)
+            fd =(*it)->Fd();
+            if(_mapSession.find(fd)==_mapSession.end())
             {
-                if ((errno == EAGAIN)||(errno == EWOULDBLOCK))
-                    break;
-                else
-                {
-                    _THROW(cf::SyscallExecuteError, "Failed to execute accept !");
-                    break;
-                }
+                _mapSession.insert( std::make_pair(fd,*it) );
+                cf::SetBlocking(fd,false);
+                _demux->AddConn(fd, cf::networkdefs::EV_READ);
+    #if CFD_SWITCH_PRINT
+                cf_uint32 ip;
+                std::string addr;
+                cf_uint16 port;
+                ip =(*it)->Ip();
+                addr =(*it)->Addr();
+                port =(*it)->Port();
+                fprintf (stderr, "clients , fd=%d,ip=%0x,addr=%s,port=%u \n",fd,ip,addr.c_str(),port);
+    #endif
             }
-
-            cf_int s = getnameinfo(&in_addr, in_len,hbuf, sizeof hbuf,sbuf, sizeof sbuf,
-                                   NI_NUMERICHOST | NI_NUMERICSERV);
-            if (s == 0)
+            else
             {
-#if CFD_SWITCH_PRINT
-                fprintf(stderr,"Accepted connection on descriptor %d(host=%s, port=%s)\n", infd,
-                        hbuf, sbuf);
-#endif
             }
-
-            cf::SetBlocking(infd,false);
-            _demux->AddConn(infd, cf::networkdefs::EV_READ);
         }
     }
 
-    cf_void OnRead()
+    cf_void OnRead(cf_fd fd)
+    {
+        CF_PRINT_FUNC;
+        T_MAPSESSIONS::iterator it =_mapSession.find(fd);
+        if(it!=_mapSession.end())
+        {
+            cf::T_SESSION session =it->second;
+            std::string buf(8192,'\0');
+            cf_int rdn =session->RecvAsync(&buf[0], 6);
+            if(rdn==6)
+                _demux->DelEvent(fd, cf::networkdefs::EV_READ);
+            
+#if CFD_SWITCH_PRINT
+            fprintf (stderr, "clients,fd=%d,addr=%s,rdn=%d,buf=%s \n",
+            session->Fd(),session->Addr().c_str(),rdn,buf.c_str());
+#endif
+        }
+        else
+        {
+        }
+    }
+    cf_void OnWrite(cf_fd fd)
     {
         CF_PRINT_FUNC;
     }
-    cf_void OnWrite()
-    {
-        CF_PRINT_FUNC;
-    }
-    cf_void OnClose()
+    cf_void OnClose(cf_fd fd)
     {
         CF_PRINT_FUNC;
     }
@@ -100,13 +115,14 @@ public:
     {
         CF_PRINT_FUNC;
     }
-    cf_void OnError()
+    cf_void OnError(cf_fd fd)
     {
         CF_PRINT_FUNC;
     }
 private:
     cf_fd _listenfd;
     std::shared_ptr < cf::Demux > _demux;
+    T_MAPSESSIONS _mapSession;
 };
 
 

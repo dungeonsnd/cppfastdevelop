@@ -18,10 +18,19 @@
 ////
 
 #include "cppfoundation/cf_socket.hpp"
+#include "cppfoundation/cf_network.hpp"
 
 namespace cf
 {
 
 
+cf_int Socket::SendAsync(cf_cpvoid data, ssize_t len)
+{
+    return SendSegmentAsync(_fd,cf_cpstr(data), len);
+}
+cf_int Socket::RecvAsync(cf_pvoid data, ssize_t len)
+{
+    return RecvSegmentAsync(_fd,(cf_char * )(data), len);
 }
 
+} // namespace cf

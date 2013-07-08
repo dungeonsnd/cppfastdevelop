@@ -95,16 +95,16 @@ public:
                         _handler->OnAccept();
                         break;
                     case networkdefs::EV_READ:
-                        _handler->OnRead();
+                        _handler->OnRead(it->first);
                         break;
                     case networkdefs::EV_WRITE:
-                        _handler->OnWrite();
+                        _handler->OnWrite(it->first);
                         break;
                     case networkdefs::EV_CLOSE:
-                        _handler->OnClose();
+                        _handler->OnClose(it->first);
                         break;
                     case networkdefs::EV_ERROR:
-                        _handler->OnError();
+                        _handler->OnError(it->first);
                         break;
                     default:
                         break;
