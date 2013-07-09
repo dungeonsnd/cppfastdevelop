@@ -45,7 +45,7 @@ public:
         if(NULL==p)
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
         _eventloop.reset(p);
-        _timeoutMilliseconds =12000;
+        _timeoutMilliseconds =8000;
     }
     cf_void Final(cf_fd listenfd)
     {

@@ -17,11 +17,62 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#include "netserver/cl_packet.hpp"
+#ifndef _HEADER_FILE_CFD_CL_BUFFER_HPP_
+#define _HEADER_FILE_CFD_CL_BUFFER_HPP_
+
+#include "cppfoundation/cf_root.hpp"
+#include "cppfoundation/cf_exception.hpp"
 
 namespace cl
 {
 
+class ReadBuffer : public cf::NonCopyable
+{
+public:
+    ReadBuffer()
+    {
+    }
+    ~ReadBuffer()
+    {
+    }
+    cf_void BeginRead()
+    {
+    }
+private:
+};
+
+class WriteBuffer : public cf::NonCopyable
+{
+public:
+    WriteBuffer()
+    {
+    }
+    ~WriteBuffer()
+    {
+    }
+    cf_void BeginWrite()
+    {
+    }
+private:
+};
+
+class Packet : public cf::NonCopyable
+{
+public:
+    Packet()
+    {
+    }
+    ~Packet()
+    {
+    }
+    cf_void GetData()
+    {
+    }
+private:
+};
+
 
 } // namespace cl
+
+#endif // _HEADER_FILE_CFD_CL_BUFFER_HPP_
 

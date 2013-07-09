@@ -114,17 +114,11 @@ public:
             cf_ev oldev =it->second;
             if(oldev&event)
             {
-#if CFD_SWITCH_PRINT
-                fprintf (stderr, "----2  \n");
-#endif
                 EpollCtl(fd,EPOLL_CTL_MOD, oldev&(~event));
                 it->second =oldev&(~event);
             }
             else
             {
-#if CFD_SWITCH_PRINT
-                fprintf (stderr, "----1  \n");
-#endif
             }
         }
         else
@@ -135,12 +129,13 @@ public:
     {
         _retEvents.clear();
 #if CFD_SWITCH_PRINT
-        fprintf (stderr, "before epoll_wait  \n");
+        fprintf (stderr, "before epoll_wait ,timeoutMilliseconds=%d \n",
+                 timeoutMilliseconds);
 #endif
         cf_int n =cf_epoll_wait(_epfd, &(_retEvents[0]),_maxEvents,
                                 timeoutMilliseconds);
 #if _DEBUG
-        //        usleep(1000*1000); // only for testing
+        usleep(500*1000); // only for testing
 #endif
 #if CFD_SWITCH_PRINT
         fprintf (stderr, "epoll_wait return , n=%d \n",n);
@@ -241,6 +236,7 @@ private:
     TYPE_MAPEVENT _mapEvent;
     cf_int _maxEvents;
     std::vector < epoll_event > _retEvents;
+    // It's not needed in single thread.
     //    Pipe < SocketpairPipe > _pipe;
     //    cf_char _buf4pipe[1];
 };

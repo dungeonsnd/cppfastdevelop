@@ -13,7 +13,7 @@ SYTMLIB     =
 
 
 DLL =lib$(G_TARGETNAME).so
-OBJ = cl_event_handler.o cl_packet.o
+OBJ = cl_event_handler.o cl_buffer.o
 BINDIR =../bin
 
 all:$(DLL)

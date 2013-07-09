@@ -76,12 +76,13 @@ public:
 
     cf_void WaitEvent(cf_int timeoutMilliseconds)
     {
-        cf_int times
-            =14; // only for valgrind test,to check exit program gracefully other than ctrl+c.
+        // only for valgrind test,
+        // to check exit program gracefully other than ctrl+c.
+        //        cf_int times =14;
         while(false==_stop)
         {
-            if(0==times--)
-                break;
+            //            if(0==times--)
+            //                break;
 
             _vecEvent.clear();
             _demux->WaitEvent(_vecEvent,timeoutMilliseconds);

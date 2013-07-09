@@ -26,6 +26,7 @@
 #include "cppfoundation/cf_network.hpp"
 #include "cppfoundation/cf_socket.hpp"
 #include "cppfoundation/cf_event_loop.hpp"
+#include "netserver/cl_buffer.hpp"
 
 namespace cl
 {
@@ -33,10 +34,14 @@ namespace cl
 class EventHandler : public cf::NonCopyable
 {
 public:
-    
-    typedef std::map < cf_fd, cf::T_SESSION  > T_MAPSESSIONS;    
+
+    typedef std::map < cf_fd, cf::T_SESSION  > T_MAPSESSIONS;
     typedef std::vector < cf::T_SESSION > T_VECCLIENTS;
-    
+
+    typedef std::map < cf_fd, std::shared_ptr < ReadBuffer >  > T_MAPREADBUFFER;
+    typedef std::map < cf_fd, std::shared_ptr < WriteBuffer >  > T_MAPWRITEBUFFER;
+    typedef std::map < cf_fd, std::shared_ptr < Packet >  > T_MAPPACKET;
+
     EventHandler(cf_fd listenfd, std::shared_ptr < cf::Demux > demux)
         :_listenfd(listenfd),_demux(demux)
     {
@@ -54,11 +59,11 @@ public:
 
     cf_void OnAccept()
     {
-        CF_PRINT_FUNC;        
+        CF_PRINT_FUNC;
         T_VECCLIENTS clients;
         cf::AcceptAsync(_listenfd, clients);
         cf_fd fd;
-        for(T_VECCLIENTS::iterator it=clients.begin();it!=clients.end();it++)
+        for(T_VECCLIENTS::iterator it=clients.begin(); it!=clients.end(); it++)
         {
             fd =(*it)->Fd();
             if(_mapSession.find(fd)==_mapSession.end())
@@ -66,15 +71,16 @@ public:
                 _mapSession.insert( std::make_pair(fd,*it) );
                 cf::SetBlocking(fd,false);
                 _demux->AddConn(fd, cf::networkdefs::EV_READ);
-    #if CFD_SWITCH_PRINT
+#if CFD_SWITCH_PRINT
                 cf_uint32 ip;
                 std::string addr;
                 cf_uint16 port;
                 ip =(*it)->Ip();
                 addr =(*it)->Addr();
                 port =(*it)->Port();
-                fprintf (stderr, "clients , fd=%d,ip=%0x,addr=%s,port=%u \n",fd,ip,addr.c_str(),port);
-    #endif
+                fprintf (stderr, "clients , fd=%d,ip=%0x,addr=%s,port=%u \n",fd,ip,addr.c_str(),
+                         port);
+#endif
             }
             else
             {
@@ -93,10 +99,10 @@ public:
             cf_int rdn =session->RecvAsync(&buf[0], 6);
             if(rdn==6)
                 _demux->DelEvent(fd, cf::networkdefs::EV_READ);
-            
+
 #if CFD_SWITCH_PRINT
             fprintf (stderr, "clients,fd=%d,addr=%s,rdn=%d,buf=%s \n",
-            session->Fd(),session->Addr().c_str(),rdn,buf.c_str());
+                     session->Fd(),session->Addr().c_str(),rdn,buf.c_str());
 #endif
         }
         else
@@ -123,6 +129,10 @@ private:
     cf_fd _listenfd;
     std::shared_ptr < cf::Demux > _demux;
     T_MAPSESSIONS _mapSession;
+
+    T_MAPREADBUFFER _readBuf;
+    T_MAPWRITEBUFFER _writeBuf;
+    T_MAPPACKET _packet;
 };
 
 
