@@ -317,6 +317,8 @@ cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
 
         }
         alreadyDone +=len;
+        if ( 0==len ) // len==0 means reaching end.
+            break;
     }
     return cf_int(alreadyDone);
 }

@@ -77,7 +77,7 @@ public:
     }
     cf_void AddEvent(cf_fd fd,networkdefs::EV_TYPE ev)
     {
-        cf_ev event =EPOLLRDHUP;
+        cf_ev event =0;
         if(ev&networkdefs::EV_READ)
             event |= EPOLLIN;
         if(ev&networkdefs::EV_WRITE)
@@ -89,6 +89,9 @@ public:
             cf_ev oldev =it->second;
             if(oldev&event)
             {
+#if CFD_SWITCH_PRINT
+                fprintf (stderr, "AddEvent , already has,oldev=%x,event=%x \n",oldev,event);
+#endif
             }
             else
             {
@@ -102,7 +105,7 @@ public:
     }
     cf_void DelEvent(cf_fd fd,networkdefs::EV_TYPE ev)
     {
-        cf_ev event =EPOLLIN;
+        cf_ev event =0;
         if(ev&networkdefs::EV_READ)
             event |= EPOLLIN;
         if(ev&networkdefs::EV_WRITE)
@@ -119,6 +122,9 @@ public:
             }
             else
             {
+#if CFD_SWITCH_PRINT
+                fprintf (stderr, "AddEvent , already deled,oldev=%x,event=%x \n",oldev,event);
+#endif
             }
         }
         else
@@ -135,7 +141,7 @@ public:
         cf_int n =cf_epoll_wait(_epfd, &(_retEvents[0]),_maxEvents,
                                 timeoutMilliseconds);
 #if _DEBUG
-        usleep(500*1000); // only for testing
+        usleep(100*1000); // only for testing
 #endif
 #if CFD_SWITCH_PRINT
         fprintf (stderr, "epoll_wait return , n=%d \n",n);
@@ -215,12 +221,10 @@ public:
 private:
     cf_void EpollCtl(cf_fd fd,cf_int op, cf_ev event)
     {
-        epoll_data_t st_data;
-        st_data.fd =fd;
-
         epoll_event st_ev;
+        memset(&st_ev,0,sizeof(epoll_event));
         st_ev.events =event;
-        st_ev.data =st_data;
+        st_ev.data.fd =fd;
 
         cf_int rt =cf_epoll_ctl(_epfd, op, fd, &st_ev);
         if(0!=rt)
