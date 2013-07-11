@@ -63,7 +63,7 @@ public:
     }
 
     cf_int SendAsync(cf_cpvoid data, ssize_t len);
-    cf_int RecvAsync(cf_pvoid data, ssize_t len);
+    cf_int RecvAsync(cf_pvoid data, ssize_t len, bool & peerClosedWhenRead);
 
     cf_fd Fd() cf_const
     {

@@ -19,10 +19,89 @@
 
 #include "netserver/cl_server.hpp"
 
+class IOCompleteHandler : public cl::EventHandler
+{
+public:
+    IOCompleteHandler():_flagRecvHeader(true),_headLen(4)
+    {
+    }
+    ~IOCompleteHandler()
+    {
+    }
+    cf_void OnAcceptComplete(cf::T_SESSION session)
+    {
+        CF_PRINT_FUNC;
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnAcceptComplete,fd=%d,addr=%s \n",
+                 session->Fd(),session->Addr().c_str());
+#endif
+        AsyncRead(session->Fd(), _headLen);
+        _flagRecvHeader =true;
+    }
+    cf_void OnReadComplete(cf::T_SESSION session,
+                           std::shared_ptr < cl::ReadBuffer > readBuffer)
+    {
+        CF_PRINT_FUNC;
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnReadComplete,fd=%d,addr=%s,total()=%d,buf=%s \n",
+                 session->Fd(),session->Addr().c_str(),readBuffer->GetTotal(),
+                 (cf_char *)(readBuffer->GetBuffer()));
+#endif
+
+        cf_uint32 totalLen =readBuffer->GetTotal();
+        if(_flagRecvHeader)
+        {
+            if(_headLen!=totalLen)
+            {
+#if CFD_SWITCH_PRINT
+                fprintf (stderr, "OnReadComplete,fd=%d,_headLen{%u}!=totalLen{%u} \n",
+                         session->Fd(),_headLen,totalLen);
+#endif
+            }
+            else
+            {
+#if CFD_SWITCH_PRINT
+                fprintf (stderr, "OnReadComplete,fd=%d,_headLen{%u}==totalLen{%u} \n",
+                         session->Fd(),_headLen,totalLen);
+#endif
+                cf_uint32 * p =(cf_uint32 *)(readBuffer->GetBuffer());
+                cf_uint32 size =ntohl(*p);
+                _flagRecvHeader =false;
+                if(size>0)
+                    AsyncRead(session->Fd(), size);
+                else
+                    _THROW(cf::ValueError, "size==0 !");
+            }
+        }
+        else
+        {
+#if CFD_SWITCH_PRINT
+            fprintf (stderr, "OnReadComplete,fd=%d,_flagRecvHeader==false \n" ,
+                     session->Fd());
+#endif
+            _flagRecvHeader =true;
+            AsyncWrite(session->Fd(), readBuffer->GetBuffer(), totalLen);
+            AsyncRead(session->Fd(), _headLen);
+        }
+    }
+    cf_void OnWriteComplete(cf::T_SESSION session)
+    {
+        CF_PRINT_FUNC;
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnWriteComplete,fd=%d,addr=%s\n",
+                 session->Fd(),session->Addr().c_str());
+#endif
+    }
+private:
+    bool _flagRecvHeader;
+    const cf_uint32 _headLen;
+};
 
 cf_void Run()
 {
-    std::shared_ptr < cl::TcpServer > server(new cl::TcpServer(8601));
+    IOCompleteHandler ioHandler;
+    typedef cl::TcpServer < IOCompleteHandler > ServerType;
+    std::shared_ptr < ServerType > server(new ServerType(ioHandler,8601));
     server->Start();
 }
 

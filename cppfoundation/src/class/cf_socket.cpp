@@ -28,9 +28,9 @@ cf_int Socket::SendAsync(cf_cpvoid data, ssize_t len)
 {
     return SendSegmentAsync(_fd,cf_cpstr(data), len);
 }
-cf_int Socket::RecvAsync(cf_pvoid data, ssize_t len)
+cf_int Socket::RecvAsync(cf_pvoid data, ssize_t len, bool & peerClosedWhenRead)
 {
-    return RecvSegmentAsync(_fd,(cf_char * )(data), len);
+    return RecvSegmentAsync(_fd,(cf_char * )(data), len,peerClosedWhenRead);
 }
 
 } // namespace cf

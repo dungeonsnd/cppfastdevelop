@@ -52,18 +52,15 @@ template <typename EventHandlerType>
 class EventLoop : public cf::NonCopyable
 {
 public:
-    EventLoop(cf_fd listenfd)
-        :_stop(false)
+    EventLoop(cf_fd listenfd, EventHandlerType & handler)
+        :_stop(false),_handler(handler)
     {
         CF_NEWOBJ(p, Demux, listenfd);
         if(NULL==p)
             _THROW(AllocateMemoryError, "Allocate memory failed !");
         _demux.reset(p);
 
-        CF_NEWOBJ(p1, EventHandlerType , listenfd, _demux);
-        if(NULL==p1)
-            _THROW(AllocateMemoryError, "Allocate memory failed !");
-        _handler.reset(p1);
+        _handler.Init(listenfd, _demux);
     }
     cf_void Stop()
     {
@@ -93,19 +90,19 @@ public:
                     switch(it->second)
                     {
                     case networkdefs::EV_ACCEPT:
-                        _handler->OnAccept();
+                        _handler.OnAccept();
                         break;
                     case networkdefs::EV_READ:
-                        _handler->OnRead(it->first);
+                        _handler.OnRead(it->first);
                         break;
                     case networkdefs::EV_WRITE:
-                        _handler->OnWrite(it->first);
+                        _handler.OnWrite(it->first);
                         break;
                     case networkdefs::EV_CLOSE:
-                        _handler->OnClose(it->first);
+                        _handler.OnClose(it->first);
                         break;
                     case networkdefs::EV_ERROR:
-                        _handler->OnError(it->first);
+                        _handler.OnError(it->first);
                         break;
                     default:
                         break;
@@ -114,13 +111,13 @@ public:
             }
             else
             {
-                _handler->OnTimeout();
+                _handler.OnTimeout();
             }
         }
     }
 private:
     bool _stop;
-    std::shared_ptr < EventHandlerType > _handler;
+    EventHandlerType & _handler;
     std::shared_ptr < Demux > _demux;
     Demux::TYPE_VECEVENT _vecEvent;
 };

@@ -44,10 +44,10 @@ public:
         _already =0;
     }
 
-    cf_int Read(cf::T_SESSION session)
+    cf_int Read(cf::T_SESSION session, bool & peerClosedWhenRead)
     {
         cf_char * p =&_buf[0];
-        cf_int rdn =session->RecvAsync(p+_already, GetLeft());
+        cf_int rdn =session->RecvAsync(p+_already, GetLeft(),peerClosedWhenRead);
         _already +=rdn;
 
 #if CFD_SWITCH_PRINT

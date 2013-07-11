@@ -41,78 +41,31 @@ public:
     typedef std::map < cf_fd, std::shared_ptr < ReadBuffer >  > T_MAPREADBUFFER;
     typedef std::map < cf_fd, std::shared_ptr < WriteBuffer >  > T_MAPWRITEBUFFER;
 
-    EventHandler(cf_fd listenfd, std::shared_ptr < cf::Demux > demux)
-        :_listenfd(listenfd),_demux(demux),_flagRecvHeader(true)
+    EventHandler()
     {
     }
     ~EventHandler()
     {
     }
+    void Init(cf_fd listenfd, std::shared_ptr < cf::Demux > demux)
+    {
+        _listenfd =listenfd;
+        _demux =demux;
+    }
 
     virtual cf_void OnAcceptComplete(cf::T_SESSION session)
     {
         CF_PRINT_FUNC;
-#if CFD_SWITCH_PRINT
-        fprintf (stderr, "OnAcceptComplete,fd=%d,addr=%s \n",
-                 session->Fd(),session->Addr().c_str());
-        AsyncRead(session->Fd(), 4);
-        _flagRecvHeader =true;
-#endif
     }
     virtual cf_void OnReadComplete(cf::T_SESSION session,
                                    std::shared_ptr < ReadBuffer > readBuffer)
     {
         CF_PRINT_FUNC;
-#if CFD_SWITCH_PRINT
-        fprintf (stderr, "OnReadComplete,fd=%d,addr=%s,total()=%d,buf=%s \n",
-                 session->Fd(),session->Addr().c_str(),readBuffer->GetTotal(),
-                 (cf_char *)(readBuffer->GetBuffer()));
-#endif
-
-        cf_uint32 totalLen =readBuffer->GetTotal();
-        if(_flagRecvHeader)
-        {
-            if(4!=totalLen)
-            {
-#if CFD_SWITCH_PRINT
-                fprintf (stderr, "OnReadComplete,fd=%d,4!=totalLen{%u} \n",
-                         session->Fd(),totalLen);
-#endif
-            }
-            else
-            {
-#if CFD_SWITCH_PRINT
-                fprintf (stderr, "OnReadComplete,fd=%d,4==totalLen{%u} \n",
-                         session->Fd(),totalLen);
-#endif
-                cf_uint32 * p =(cf_uint32 *)(readBuffer->GetBuffer());
-                cf_uint32 size =ntohl(*p);
-                _flagRecvHeader =false;
-                if(size>0)
-                    AsyncRead(session->Fd(), size);
-                else
-                    _THROW(cf::ValueError, "size==0 !");
-            }
-        }
-        else
-        {
-#if CFD_SWITCH_PRINT
-            fprintf (stderr, "OnReadComplete,fd=%d,_flagRecvHeader==false \n" ,
-                     session->Fd());
-#endif
-            _flagRecvHeader =true;
-            AsyncWrite(session->Fd(), readBuffer->GetBuffer(), totalLen);
-            AsyncRead(session->Fd(), 4);
-        }
     }
 
     virtual cf_void OnWriteComplete(cf::T_SESSION session)
     {
         CF_PRINT_FUNC;
-#if CFD_SWITCH_PRINT
-        fprintf (stderr, "OnWriteComplete,fd=%d,addr=%s\n",
-                 session->Fd(),session->Addr().c_str());
-#endif
     }
     cf_void AsyncRead(cf_fd fd, cf_uint32 sizeToRead)
     {
@@ -215,10 +168,14 @@ public:
         {
             cf::T_SESSION session =it->second;
             std::shared_ptr < ReadBuffer > readBuffer =itbuf->second;
-            readBuffer->Read(session);
-            if(readBuffer->IsComplete())
+            bool peerClosedWhenRead =false;
+            readBuffer->Read(session, peerClosedWhenRead);
+            if(peerClosedWhenRead||readBuffer->IsComplete())
             {
                 _demux->DelEvent(fd, cf::networkdefs::EV_READ);
+            }
+            if(readBuffer->IsComplete())
+            {
                 OnReadComplete(session, readBuffer);
             }
         }
@@ -258,6 +215,7 @@ public:
     cf_void OnClose(cf_fd fd)
     {
         CF_PRINT_FUNC;
+        _demux->DelConn(fd);
     }
     cf_void OnTimeout()
     {
@@ -266,6 +224,7 @@ public:
     cf_void OnError(cf_fd fd)
     {
         CF_PRINT_FUNC;
+        _demux->DelConn(fd);
     }
 private:
     cf_fd _listenfd;
@@ -274,8 +233,6 @@ private:
 
     T_MAPREADBUFFER _readBuf;
     T_MAPWRITEBUFFER _writeBuf;
-
-    bool _flagRecvHeader;
 };
 
 

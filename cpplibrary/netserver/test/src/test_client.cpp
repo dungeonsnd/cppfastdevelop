@@ -57,10 +57,11 @@ cf_void Run()
         printf("Send timeout ! \n");
 
 
+    bool peerClosedWhenRead =false;
     ssize_t hasRecv =0;
     std::string bufrecv(1024,'\0');
-    succ =cf::RecvSegmentSync(sockfd,&bufrecv[0], hasSent-4,hasRecv,5000,
-                              buf.size());
+    succ =cf::RecvSegmentSync(sockfd,&bufrecv[0], hasSent-4,hasRecv,
+                              peerClosedWhenRead,2000);
     if(succ)
         printf("Recv succeeded ! hasRecv=%d , buff=%s \n",int(hasRecv),
                bufrecv.c_str());

@@ -199,10 +199,12 @@ bool SendSegmentSync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
 }
 
 bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
-                     ssize_t & hasDone,cf_int32 timeoutMilliSeconds,ssize_t segsize)
+                     ssize_t & hasDone, bool & peerClosedWhenRead,
+                     cf_int32 timeoutMilliSeconds,ssize_t segsize)
 {
     if(totalLen == 0)
         return true;
+    peerClosedWhenRead =false;
     ssize_t len=0;
     ssize_t lenLeft =0;
     time_t end,begin;
@@ -224,7 +226,10 @@ bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
         hasDone =alreadyDone;
 
         if ( 0==len ) // len==0 means reaching end.
+        {
+            peerClosedWhenRead =true;
             return true;
+        }
 
         if ( (time_t)(-1)==(end=cf_time(NULL)) )
             _THROW(SyscallExecuteError, "Failed to execute cf_time !");
@@ -246,7 +251,7 @@ cf_void AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
         cf_int infd = cf_accept (listenfd, (sockaddr *)&in_addr, &in_len);
         if (infd == -1)
         {
-            if ((errno == EAGAIN)||(errno == EWOULDBLOCK))
+            if ((errno == EAGAIN)||(errno == EWOULDBLOCK)||(errno==ECONNABORTED))
                 break;
             else
             {
@@ -295,10 +300,11 @@ cf_int SendSegmentAsync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
 }
 
 cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
-                        ssize_t segsize)
+                        bool & peerClosedWhenRead, ssize_t segsize)
 {
     if(totalLen == 0)
         return 0;
+    peerClosedWhenRead =false;
     ssize_t len=0;
     ssize_t lenLeft =0;
     ssize_t alreadyDone=0;
@@ -318,7 +324,10 @@ cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
         }
         alreadyDone +=len;
         if ( 0==len ) // len==0 means reaching end.
+        {
+            peerClosedWhenRead =true;
             break;
+        }
     }
     return cf_int(alreadyDone);
 }

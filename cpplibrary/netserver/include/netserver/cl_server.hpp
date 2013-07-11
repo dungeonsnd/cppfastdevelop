@@ -30,6 +30,7 @@
 namespace cl
 {
 
+template <typename EventHandlerType>
 class Server : public cf::NonCopyable
 {
 public:
@@ -39,9 +40,10 @@ public:
     ~Server()
     {
     }
-    cf_void Init(cf_fd listenfd)
+
+    cf_void Init(cf_fd listenfd, EventHandlerType & handler)
     {
-        CF_NEWOBJ(p, cf::EventLoop < EventHandler > , listenfd );
+        CF_NEWOBJ(p, cf::EventLoop< EventHandlerType > , listenfd, handler);
         if(NULL==p)
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
         _eventloop.reset(p);
@@ -59,14 +61,15 @@ public:
         _eventloop->Stop();
     }
 private:
-    std::shared_ptr < cf::EventLoop < EventHandler > > _eventloop;
+    std::shared_ptr < cf::EventLoop < EventHandlerType > > _eventloop;
     cf_int _timeoutMilliseconds;
 };
 
+template <typename EventHandlerType>
 class TcpServer : public cf::NonCopyable
 {
 public:
-    TcpServer(cf_uint32 port,const int backlog =32)
+    TcpServer(EventHandlerType & handler, cf_uint32 port,const int backlog =32)
     {
         _listenfd =cf::CreateServerSocket(port,SOCK_STREAM,false,backlog);
         if(_listenfd<0)
@@ -76,12 +79,12 @@ public:
         fprintf (stderr, "CreateServerSocket return , _listenfd=%d \n",_listenfd);
 #endif
 
-        CF_NEWOBJ(p, Server );
+        CF_NEWOBJ(p, Server < EventHandlerType > );
         if(NULL==p)
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
         _server.reset(p);
 
-        _server->Init(_listenfd);
+        _server->Init(_listenfd, handler);
     }
     ~TcpServer()
     {
@@ -95,7 +98,7 @@ public:
         _server->Stop();
     }
 private:
-    std::shared_ptr < Server > _server;
+    std::shared_ptr < Server < EventHandlerType > > _server;
     cf_fd _listenfd;
 };
 
