@@ -24,6 +24,7 @@
 #include "cppfoundation/cf_exception.hpp"
 #include "cppfoundation/cf_memory.hpp"
 #include "cppfoundation/cf_network.hpp"
+#include "cppfoundation/cf_utility.hpp"
 //#include "cppfoundation/cf_ipc.hpp"
 
 namespace cf
@@ -135,13 +136,23 @@ public:
     {
         _retEvents.clear();
 #if CFD_SWITCH_PRINT
-        fprintf (stderr, "before epoll_wait ,timeoutMilliseconds=%d \n",
-                 timeoutMilliseconds);
+        cf_uint64 seconds =0;
+        cf_uint32 useconds =0;
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr,
+                 "+++ before epoll_wait ,timeoutMilliseconds=%d ,time=%llu.%u \n",
+                 timeoutMilliseconds,seconds,useconds);
 #endif
         cf_int n =cf_epoll_wait(_epfd, &(_retEvents[0]),_maxEvents,
                                 timeoutMilliseconds);
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr,
+                 "--- after epoll_wait ,timeoutMilliseconds=%d ,time=%llu.%u \n",
+                 timeoutMilliseconds,seconds,useconds);
+#endif
 #if _DEBUG
-        usleep(100*1000); // only for testing
+        //        usleep(100*1000); // only for testing
 #endif
 #if CFD_SWITCH_PRINT
         fprintf (stderr, "epoll_wait return , n=%d \n",n);
@@ -161,22 +172,22 @@ public:
         {
             for(cf_int i=0; i<n; i++)
             {
-                if((_retEvents[i].events & EPOLLERR)||(_retEvents[i].events & EPOLLHUP))
-                {
-#if CFD_SWITCH_PRINT
-                    fprintf (stderr, "epoll_wait return , EPOLLERR or EPOLLHUP\n");
-#endif
-                    vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
-                                                       networkdefs::EV_ERROR) );
-                    continue;
-                }
-                else if(_retEvents[i].data.fd==_listenfd)
+                if(_retEvents[i].data.fd==_listenfd)
                 {
 #if CFD_SWITCH_PRINT
                     fprintf (stderr, "epoll_wait return , EV_ACCEPT\n");
 #endif
                     vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
                                                        networkdefs::EV_ACCEPT) );
+                    continue;
+                }
+                else if((_retEvents[i].events & EPOLLERR)||(_retEvents[i].events & EPOLLHUP))
+                {
+#if CFD_SWITCH_PRINT
+                    fprintf (stderr, "epoll_wait return , EPOLLERR or EPOLLHUP\n");
+#endif
+                    vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
+                                                       networkdefs::EV_ERROR) );
                     continue;
                 }
                 /*

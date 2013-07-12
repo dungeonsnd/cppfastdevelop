@@ -51,8 +51,8 @@ cf_void SetBlocking(cf_int sockfd,bool blocking)
         _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !");
 }
 
-int CreateServerSocket (const int port,const int socktype,bool blocking,
-                        const int backlog)
+cf_int CreateServerSocket (const int port,const int socktype,bool blocking,
+                           const int backlog)
 {
     struct addrinfo hints;
     struct addrinfo * result, *rp;
@@ -63,12 +63,13 @@ int CreateServerSocket (const int port,const int socktype,bool blocking,
 
     std::string portstr(8,'\0');
     snprintf(&portstr[0],portstr.size(),"%d",port);
-    int rt = cf_getaddrinfo (NULL, portstr.c_str(), &hints, &result);
+    cf_int rt = cf_getaddrinfo (NULL, portstr.c_str(), &hints, &result);
     if (rt != 0)
         _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_getaddrinfo ! %s.",
                    gai_strerror (rt));
 
-    int listenfd;
+    cf_int listenfd;
+    cf_int tmperrno =0;
     for (rp = result; rp != NULL; rp = rp->ai_next)
     {
         listenfd = cf_socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
@@ -76,6 +77,7 @@ int CreateServerSocket (const int port,const int socktype,bool blocking,
             continue;
 
         rt = cf_bind (listenfd, rp->ai_addr, rp->ai_addrlen);
+        tmperrno =errno;
         if (rt == 0)
             break;/* We managed to bind successfully! */
         cf_close (listenfd);
@@ -85,7 +87,8 @@ int CreateServerSocket (const int port,const int socktype,bool blocking,
     {
         //fprintf (stderr, "Could not bind\n");
         cf_freeaddrinfo (result);
-        return -1;
+        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_bind ! tmperrno=%d ",
+                   tmperrno);
     }
     cf_freeaddrinfo (result);
     if ( 0!=cf_listen(listenfd, backlog) )
@@ -110,9 +113,9 @@ int CreateLocalServerSocket(const std::string & path,const int socktype,
     servaddr.sun_family = AF_LOCAL;
     cf_strcpy(servaddr.sun_path, path.c_str());
     if ( 0!=cf_bind(listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) )
-        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_unlink !");
+        _THROW(cf::SyscallExecuteError, "Failed to execute cf_unlink !");
     if ( 0!=cf_listen(listenfd, backlog) )
-        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !");
+        _THROW(cf::SyscallExecuteError, "Failed to execute cf_listen !");
     return listenfd;
 }
 

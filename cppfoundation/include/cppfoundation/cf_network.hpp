@@ -54,15 +54,15 @@ cf_int GetHostByName(cf_const std::string &, struct hostent * phe);
 cf_void SetBlocking(cf_int sockfd,bool blocking);
 
 // Create socket and bind it to the port.
-// return created socket, >0 successful, <0 Could not bind, or throw exception .
-int CreateServerSocket(const int port,const int socktype =SOCK_STREAM,
-                       bool blocking=false,
-                       const int backlog =32);
+// return created socket, >0 successful, or throw exception .
+cf_int CreateServerSocket(const int port,const int socktype =SOCK_STREAM,
+                          bool blocking=false,
+                          const int backlog =32);
 
 // Create socket and bind it to the port.
 // return created socket, >0 successful, <0 Could not bind, or throw exception .
-int CreateLocalServerSocket(const std::string & path,
-                            const int socktype =SOCK_STREAM,const int backlog =32);
+cf_int CreateLocalServerSocket(const std::string & path,
+                               const int socktype =SOCK_STREAM,const int backlog =32);
 
 // Just test socket fd is broken approximately!
 // Generally,return true means fd is broken , else means the socket connection maybe ok.

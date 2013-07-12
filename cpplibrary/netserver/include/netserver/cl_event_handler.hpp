@@ -62,19 +62,41 @@ public:
     {
         CF_PRINT_FUNC;
     }
-
     virtual cf_void OnWriteComplete(cf::T_SESSION session)
     {
         CF_PRINT_FUNC;
     }
+    virtual cf_void OnCloseComplete(cf::T_SESSION session)
+    {
+        CF_PRINT_FUNC;
+    }
+    virtual cf_void OnTimeoutComplete()
+    {
+        CF_PRINT_FUNC;
+    }
+    virtual cf_void OnErrorComplete(cf::T_SESSION session)
+    {
+        CF_PRINT_FUNC;
+    }
+
     cf_void AsyncRead(cf_fd fd, cf_uint32 sizeToRead)
     {
+#if CFD_SWITCH_PRINT
+        cf_uint64 seconds =0;
+        cf_uint32 useconds =0;
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "+++ $$ before AsyncRead ,time=%llu.%u \n",seconds,useconds);
+#endif
         CF_PRINT_FUNC;
 #if CFD_SWITCH_PRINT
         fprintf (stderr, "AsyncRead,fd=%d ,sizeToRead=%u \n", fd, sizeToRead);
 #endif
         std::shared_ptr < ReadBuffer > rb;
         T_MAPREADBUFFER::iterator itbuf =_readBuf.find(fd);
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "+++ before 1 ,time=%llu.%u \n",seconds,useconds);
+#endif
         if( itbuf!=_readBuf.end() )
         {
             rb =itbuf->second;
@@ -85,14 +107,34 @@ public:
 #if CFD_SWITCH_PRINT
             fprintf (stderr, "AsyncRead,insert ,fd=%d \n", fd);
 #endif
+#if CFD_SWITCH_PRINT
+            cf::Gettimeofday(seconds, useconds);
+            fprintf (stderr, "+++ before 2 ,time=%llu.%u \n",seconds,useconds);
+#endif
             CF_NEWOBJ(p, ReadBuffer);
             if(NULL==p)
                 _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
             rb.reset(p);
+#if CFD_SWITCH_PRINT
+            cf::Gettimeofday(seconds, useconds);
+            fprintf (stderr, "+++ before 3 ,time=%llu.%u \n",seconds,useconds);
+#endif
             _readBuf.insert( std::make_pair(fd,rb) );
+#if CFD_SWITCH_PRINT
+            cf::Gettimeofday(seconds, useconds);
+            fprintf (stderr, "+++ before 4 ,time=%llu.%u \n",seconds,useconds);
+#endif
         }
         rb->SetTotal(sizeToRead);
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "+++ before 5 ,time=%llu.%u \n",seconds,useconds);
+#endif
         _demux->AddEvent(fd, cf::networkdefs::EV_READ);
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "--- after AsyncRead ,time=%llu.%u \n",seconds,useconds);
+#endif
     }
     cf_void AsyncWrite(cf_fd fd, cf_cpvoid buf,cf_uint32 bufSize)
     {
@@ -125,13 +167,28 @@ public:
     cf_void OnAccept()
     {
         CF_PRINT_FUNC;
+#if CFD_SWITCH_PRINT
+        cf_uint64 seconds =0;
+        cf_uint32 useconds =0;
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "+++ before accept ,time=%llu.%u \n",seconds,useconds);
+#endif
         T_VECCLIENTS clients;
         cf::AcceptAsync(_listenfd, clients);
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "--- after AcceptAsync ,time=%llu.%u \n",seconds,useconds);
+#endif
         cf_fd fd;
         for(T_VECCLIENTS::iterator it=clients.begin(); it!=clients.end(); it++)
         {
             cf::T_SESSION session =*it;
             fd =session->Fd();
+#if CFD_SWITCH_PRINT
+            cf::Gettimeofday(seconds, useconds);
+            fprintf (stderr, "--- before _mapSession.find ,time=%llu.%u \n",seconds,
+                     useconds);
+#endif
             if(_mapSession.find(fd)==_mapSession.end())
             {
 #if CFD_SWITCH_PRINT
@@ -144,10 +201,30 @@ public:
                 fprintf (stderr, "clients ,fd=%d,ip=%0x,addr=%s,port=%u \n",fd,ip,addr.c_str(),
                          port);
 #endif
+#if CFD_SWITCH_PRINT
+                cf::Gettimeofday(seconds, useconds);
+                fprintf (stderr, "--- before 1 ,time=%llu.%u \n",seconds,useconds);
+#endif
                 _mapSession.insert( std::make_pair(fd,session) );
+#if CFD_SWITCH_PRINT
+                cf::Gettimeofday(seconds, useconds);
+                fprintf (stderr, "--- before 2 ,time=%llu.%u \n",seconds,useconds);
+#endif
                 cf::SetBlocking(fd,false);
+#if CFD_SWITCH_PRINT
+                cf::Gettimeofday(seconds, useconds);
+                fprintf (stderr, "--- before 3 ,time=%llu.%u \n",seconds,useconds);
+#endif
                 _demux->AddConn(fd, cf::networkdefs::EV_CLOSE);
+#if CFD_SWITCH_PRINT
+                cf::Gettimeofday(seconds, useconds);
+                fprintf (stderr, "--- before 4 ,time=%llu.%u \n",seconds,useconds);
+#endif
                 OnAcceptComplete(session);
+#if CFD_SWITCH_PRINT
+                cf::Gettimeofday(seconds, useconds);
+                fprintf (stderr, "--- before 5 ,time=%llu.%u \n",seconds,useconds);
+#endif
             }
             else
             {
@@ -157,6 +234,10 @@ public:
 #endif
             }
         }
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "--- after accept ,time=%llu.%u \n",seconds,useconds);
+#endif
     }
 
     cf_void OnRead(cf_fd fd)
@@ -208,7 +289,7 @@ public:
         {
             //Warning
 #if CFD_SWITCH_PRINT
-            fprintf (stderr, "OnRead,Warning ,fd=%d \n", fd);
+            fprintf (stderr, "OnWrite,Warning ,fd=%d \n", fd);
 #endif
         }
     }
@@ -216,15 +297,44 @@ public:
     {
         CF_PRINT_FUNC;
         _demux->DelConn(fd);
+
+        T_MAPSESSIONS::iterator it =_mapSession.find(fd);
+        if( it!=_mapSession.end() )
+        {
+            cf::T_SESSION session =it->second;
+            OnCloseComplete(session);
+        }
+        else
+        {
+            //Warning
+#if CFD_SWITCH_PRINT
+            fprintf (stderr, "OnClose,Warning ,fd=%d \n", fd);
+#endif
+        }
     }
     cf_void OnTimeout()
     {
         CF_PRINT_FUNC;
+        OnTimeoutComplete();
     }
     cf_void OnError(cf_fd fd)
     {
         CF_PRINT_FUNC;
         _demux->DelConn(fd);
+
+        T_MAPSESSIONS::iterator it =_mapSession.find(fd);
+        if( it!=_mapSession.end() )
+        {
+            cf::T_SESSION session =it->second;
+            OnErrorComplete(session);
+        }
+        else
+        {
+            //Warning
+#if CFD_SWITCH_PRINT
+            fprintf (stderr, "OnClose,Warning ,fd=%d \n", fd);
+#endif
+        }
     }
 private:
     cf_fd _listenfd;
@@ -234,7 +344,6 @@ private:
     T_MAPREADBUFFER _readBuf;
     T_MAPWRITEBUFFER _writeBuf;
 };
-
 
 } // namespace cl
 

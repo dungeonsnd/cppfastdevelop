@@ -22,7 +22,7 @@
 class IOCompleteHandler : public cl::EventHandler
 {
 public:
-    IOCompleteHandler():_flagRecvHeader(true),_headLen(4)
+    IOCompleteHandler():_headLen(4)
     {
     }
     ~IOCompleteHandler()
@@ -30,18 +30,32 @@ public:
     }
     cf_void OnAcceptComplete(cf::T_SESSION session)
     {
-        CF_PRINT_FUNC;
 #if CFD_SWITCH_PRINT
         fprintf (stderr, "OnAcceptComplete,fd=%d,addr=%s \n",
                  session->Fd(),session->Addr().c_str());
 #endif
+#if CFD_SWITCH_PRINT
+        cf_uint64 seconds =0;
+        cf_uint32 useconds =0;
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "+++ $$ before OnAcceptComplete ,time=%llu.%u \n",seconds,
+                 useconds);
+#endif
         AsyncRead(session->Fd(), _headLen);
-        _flagRecvHeader =true;
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "+++ before 1 ,time=%llu.%u \n",seconds,useconds);
+#endif
+        _recvHeader[session->Fd()] =true;
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "+++ after OnAcceptComplete ,time=%llu.%u \n",seconds,
+                 useconds);
+#endif
     }
     cf_void OnReadComplete(cf::T_SESSION session,
                            std::shared_ptr < cl::ReadBuffer > readBuffer)
     {
-        CF_PRINT_FUNC;
 #if CFD_SWITCH_PRINT
         fprintf (stderr, "OnReadComplete,fd=%d,addr=%s,total()=%d,buf=%s \n",
                  session->Fd(),session->Addr().c_str(),readBuffer->GetTotal(),
@@ -49,7 +63,7 @@ public:
 #endif
 
         cf_uint32 totalLen =readBuffer->GetTotal();
-        if(_flagRecvHeader)
+        if(_recvHeader[session->Fd()])
         {
             if(_headLen!=totalLen)
             {
@@ -66,7 +80,7 @@ public:
 #endif
                 cf_uint32 * p =(cf_uint32 *)(readBuffer->GetBuffer());
                 cf_uint32 size =ntohl(*p);
-                _flagRecvHeader =false;
+                _recvHeader[session->Fd()] =false;
                 if(size>0)
                     AsyncRead(session->Fd(), size);
                 else
@@ -79,21 +93,42 @@ public:
             fprintf (stderr, "OnReadComplete,fd=%d,_flagRecvHeader==false \n" ,
                      session->Fd());
 #endif
-            _flagRecvHeader =true;
+            _recvHeader[session->Fd()] =true;
             AsyncWrite(session->Fd(), readBuffer->GetBuffer(), totalLen);
             AsyncRead(session->Fd(), _headLen);
         }
     }
     cf_void OnWriteComplete(cf::T_SESSION session)
     {
-        CF_PRINT_FUNC;
 #if CFD_SWITCH_PRINT
         fprintf (stderr, "OnWriteComplete,fd=%d,addr=%s\n",
                  session->Fd(),session->Addr().c_str());
 #endif
     }
+
+    virtual cf_void OnCloseComplete(cf::T_SESSION session)
+    {
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnCloseComplete,fd=%d,addr=%s\n",
+                 session->Fd(),session->Addr().c_str());
+#endif
+    }
+    virtual cf_void OnTimeoutComplete()
+    {
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnTimeoutComplete\n");
+#endif
+    }
+    virtual cf_void OnErrorComplete(cf::T_SESSION session)
+    {
+#if CFD_SWITCH_PRINT
+        fprintf (stderr, "OnErrorComplete,fd=%d,addr=%s\n",
+                 session->Fd(),session->Addr().c_str());
+#endif
+    }
+
 private:
-    bool _flagRecvHeader;
+    std::map < cf_fd , bool > _recvHeader;
     const cf_uint32 _headLen;
 };
 

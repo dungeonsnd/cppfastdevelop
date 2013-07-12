@@ -34,19 +34,32 @@ namespace cf
     }
 #endif // ERR
 
+#define CF_PRINT_FUNC ;
+
 #ifndef CF_PRINT_FUNC
-#ifdef CFD_SWITCH_PRINT
+#if CFD_SWITCH_PRINT
 #define CF_PRINT_FUNC \
     { \
         fprintf(stdout,"func=%s,file=%s,line=%d \n",__PRETTY_FUNCTION__,__FILE__,__LINE__); \
     }
+#else
+#define CF_PRINT_FUNC ;
 #endif //  CFD_SWITCH_PRINT    
-#endif // ERR
+#endif // CF_PRINT_FUNC
 
 cf_void SetProcessDaemon();
 
 cf_void IgnoreSignals();
 
+inline cf_void Gettimeofday(cf_uint64 & seconds, cf_uint32 & useconds)
+{
+    static struct timeval tv;
+    cf_int rt =gettimeofday(&tv, NULL);
+    if (-1==rt)
+        _THROW(cf::SyscallExecuteError, "Failed to execute gettimeofday !");
+    seconds =(cf_uint64)tv.tv_sec;
+    useconds =(cf_uint32)tv.tv_usec;
+}
 
 // type traits
 // If invoker give "T * obj", use these PointerTraits can get the 'T' type.

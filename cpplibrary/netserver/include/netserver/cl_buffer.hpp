@@ -23,15 +23,27 @@
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
 #include "cppfoundation/cf_socket.hpp"
+#include "cppfoundation/cf_memory.hpp"
 
 namespace cl
 {
+
+namespace bufferdefs
+{
+enum
+{
+    SIZE_BUFFER_DEFAULT =4096,
+    SIZE_READBUFFER_DEFAULT =1024,
+    SIZE_WRITEBUFFER_DEFAULT =1024
+};
+} // namespace bufferdefs
+
 
 class ReadBuffer : public cf::NonCopyable
 {
 public:
     ReadBuffer()
-        :_buf(0,'\0'),_already(0)
+        :_buf(bufferdefs::SIZE_BUFFER_DEFAULT,'\0'),_total(0),_already(0)
     {
     }
     ~ReadBuffer()
@@ -41,6 +53,7 @@ public:
     cf_void Clear()
     {
         _buf.clear();
+        _total =0;
         _already =0;
     }
 
@@ -52,7 +65,7 @@ public:
 
 #if CFD_SWITCH_PRINT
         fprintf (stderr, "Read,fd=%d,addr=%s,rdn=%d,_total=%u,_already=%u,buf=%s \n",
-                 session->Fd(),session->Addr().c_str(),rdn,(cf_uint32)(_buf.size()),_already,p);
+                 session->Fd(),session->Addr().c_str(),rdn,_total,_already,p);
 #endif
         return rdn;
     }
@@ -62,29 +75,31 @@ public:
     }
     cf_void SetTotal(cf_uint32 total)
     {
-        if(_buf.size())
-            _THROW_FMT(cf::ValueError, "_buf.size(){%u}!=0 !", (cf_uint32)(_buf.size()));
+        if(_total)
+            _THROW_FMT(cf::ValueError, "_total{%u}!=0 !", _total);
         _buf.resize(total);
+        _total =total;
     }
     cf_uint32 GetTotal() cf_const
     {
-        return (cf_uint32)(_buf.size());
+        return _total;
     }
     cf_uint32 GetLeft() cf_const
     {
-        if((cf_uint32)(_buf.size())>_already)
-            return _buf.size()-_already;
+        if(_total>_already)
+            return _total-_already;
         else
-            _THROW_FMT(cf::ValueError, "_buf.size(){%u}<=_already{%u} !", (cf_uint32)(_buf.size()),_already);
+            _THROW_FMT(cf::ValueError, "_total{%u}<=_already{%u} !", _total,_already);
     }
     bool IsComplete() cf_const
     {
-        if(0==_buf.size())
-            _THROW(cf::ValueError, "0==_buf.size() !");
-        return (cf_uint32)(_buf.size())==_already;
+        if(0==_total)
+            _THROW(cf::ValueError, "0==_total !");
+        return _total==_already;
     }
 private:
     std::string _buf;
+    cf_uint32 _total;
     cf_uint32 _already;
 };
 
@@ -92,7 +107,7 @@ class WriteBuffer : public cf::NonCopyable
 {
 public:
     WriteBuffer()
-        :_buf(0,'\0'),_already(0)
+        :_buf(bufferdefs::SIZE_BUFFER_DEFAULT,'\0'),_total(0),_already(0)
     {
     }
     ~WriteBuffer()
@@ -102,6 +117,7 @@ public:
     cf_void Clear()
     {
         _buf.clear();
+        _total =0;
         _already =0;
     }
 
@@ -113,40 +129,127 @@ public:
 
 #if CFD_SWITCH_PRINT
         fprintf (stderr,
-                 "Read,fd=%d,addr=%s,rdn=%d,_buf.size()=%u,_already=%u,buf=%s \n",
-                 session->Fd(),session->Addr().c_str(),rdn,(cf_uint32)(_buf.size()),_already,p);
+                 "Read,fd=%d,addr=%s,rdn=%d,_total=%u,_already=%u,buf=%s \n",
+                 session->Fd(),session->Addr().c_str(),rdn,_total,_already,p);
 #endif
         return rdn;
     }
     cf_void SetBuffer(cf_cpvoid buffer, cf_uint32 total)
     {
-        if(_buf.size())
-            _THROW_FMT(cf::ValueError, "_buf.size(){%u}!=0 !", (cf_uint32)(_buf.size()));
+        if(_total)
+            _THROW_FMT(cf::ValueError, "_total{%u}!=0 !", _total);
         _buf.resize(total);
         memcpy(&_buf[0],buffer,total);
+        _total =total;
     }
     cf_uint32 GetTotal() cf_const
     {
-        return (cf_uint32)(_buf.size());
+        return _total;
     }
     cf_uint32 GetLeft() cf_const
     {
-        if((cf_uint32)(_buf.size())>_already)
-            return (cf_uint32)(_buf.size())-_already;
+        if(_total>_already)
+            return _total-_already;
         else
-            _THROW_FMT(cf::ValueError, "_buf.size(){%u}<=_already{%u} !", (cf_uint32)(_buf.size()),_already);
+            _THROW_FMT(cf::ValueError, "_total{%u}<=_already{%u} !", _total,_already);
     }
     bool IsComplete() cf_const
     {
         if(0==_buf.size())
-            _THROW(cf::ValueError, "0==_buf.size() !");
-        return (cf_uint32)(_buf.size())==_already;
+            _THROW(cf::ValueError, "0==_total !");
+        return _total==_already;
     }
 private:
     std::string _buf;
+    cf_uint32 _total;
     cf_uint32 _already;
 private:
 };
+
+
+class ReadBufferPool : public cf::NonCopyable
+{
+public:
+    ReadBufferPool(cf_int poolsize)
+    {
+        if(poolsize<1)
+            _THROW_FMT(cf::ValueError, "poolsize{%u}!=0 !", poolsize);
+        for(cf_int i=0; i<poolsize; i++)
+        {
+            _free.push_back(AllocOne());
+        }
+    }
+    ~ReadBufferPool()
+    {
+    }
+
+    static std::shared_ptr<ReadBuffer> AllocOne()
+    {
+        std::shared_ptr < ReadBuffer > rb;
+        CF_NEWOBJ(p, ReadBuffer);
+        if(NULL==p)
+            _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
+        rb.reset(p);
+        return rb;
+    }
+
+    std::shared_ptr < ReadBuffer > GetFromPool()
+    {
+        if(_free.empty())
+        {
+            std::shared_ptr<ReadBuffer> rb =AllocOne();
+            return rb;
+        }
+        else
+        {
+            std::shared_ptr<ReadBuffer> rb =_free.front();
+            _free.pop_front();
+            return rb;
+        }
+    }
+    cf_void PutIntoPool(std::shared_ptr < ReadBuffer > rb)
+    {
+        _free.push_back(rb);
+    }
+
+private:
+    std::list < std::shared_ptr < ReadBuffer > > _free;
+};
+
+class WriteBufferPool : public cf::NonCopyable
+{
+public:
+    WriteBufferPool()
+    {
+    }
+    ~WriteBufferPool()
+    {
+    }
+};
+
+
+class ReadBufferPoolGuard : public cf::NonCopyable
+{
+public:
+    ReadBufferPoolGuard(ReadBufferPool & rbp)
+        :_rbp(rbp)
+    {
+        _rb =_rbp.GetFromPool();
+    }
+    ~ReadBufferPoolGuard()
+    {
+        _rbp.PutIntoPool(_rb);
+    }
+
+    std::shared_ptr < ReadBuffer > Get()
+    {
+        return _rb;
+    }
+private:
+    ReadBufferPool & _rbp;
+    std::shared_ptr<ReadBuffer> _rb;
+};
+
 
 
 } // namespace cl

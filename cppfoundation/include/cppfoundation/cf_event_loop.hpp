@@ -75,11 +75,11 @@ public:
     {
         // only for valgrind test,
         // to check exit program gracefully other than ctrl+c.
-        cf_int times =35;
+        cf_int times =5000;
         while(false==_stop)
         {
             if(0==times--)
-                break;
+                ;//break;
 
             _vecEvent.clear();
             _demux->WaitEvent(_vecEvent,timeoutMilliseconds);
