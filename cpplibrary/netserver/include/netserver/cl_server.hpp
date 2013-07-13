@@ -71,6 +71,7 @@ class TcpServer : public cf::NonCopyable
 public:
     TcpServer(EventHandlerType & handler, cf_uint32 port,const int backlog =32)
     {
+
         _listenfd =cf::CreateServerSocket(port,SOCK_STREAM,false,backlog);
 #if CFD_SWITCH_PRINT
         fprintf (stderr, "CreateServerSocket return , _listenfd=%d \n",_listenfd);

@@ -21,7 +21,31 @@
 #include "cppfoundation/cf_utility.hpp"
 #include "cppfoundation/cf_network.hpp"
 
+
 int g_times =1;
+std::vector < std::string > g_vecStr;
+
+#define REQ_SIZE 1024
+cf_void InitVecStr()
+{
+    srand(time(NULL));
+    std::string tmp;
+    char tmp1[2];
+    int r =0;
+    for(int i=0; i<g_times; i++)
+    {
+        tmp ="";
+        for(int j=0; j<REQ_SIZE; j++)
+        {
+            r =rand()%26+'A';
+            memset(tmp1,0,sizeof tmp1);
+            snprintf(tmp1,sizeof tmp1,"%c",r);
+            tmp.append(tmp1);
+        }
+        g_vecStr.push_back(tmp);
+    }
+}
+
 cf_pvoid Run(void *)
 {
     cf_int sockfd;
@@ -43,7 +67,7 @@ cf_pvoid Run(void *)
 
     for(int k=0; k<g_times; k++) // send times
     {
-        std::string body("cppfastdevelop");
+        std::string body(g_vecStr[k]);
         cf_uint32 bodylen =htonl(body.size());
         std::string buf(4+body.size(),'\0');
         memcpy(&buf[0],&bodylen,4);
@@ -53,8 +77,11 @@ cf_pvoid Run(void *)
         bool succ =cf::SendSegmentSync(sockfd,buf.c_str(), buf.size(),hasSent,5000,
                                        buf.size());
         if(succ)
-            printf("Sent succeeded ! hasSent=%d , buff=%s , k=%d \n",int(hasSent),
-                   buf.c_str()+4, k);
+        {
+            printf("Sent succeeded ! hasSent=%d ,k=%d ,",int(hasSent),k);
+            //            printf("buff=%s \n",buf.c_str()+4);
+            printf("\n");
+        }
         else
             printf("Send timeout ! \n");
 
@@ -65,8 +92,11 @@ cf_pvoid Run(void *)
         succ =cf::RecvSegmentSync(sockfd,&bufrecv[0], hasSent-4,hasRecv,
                                   peerClosedWhenRead,2000);
         if(succ)
-            printf("Recv succeeded ! hasRecv=%d , buff=%s , k=%d \n",int(hasRecv),
-                   bufrecv.c_str(), k);
+        {
+            printf("Recv succeeded ! hasRecv=%d , k=%d ,",int(hasRecv),k);
+            //            printf("buff=%s \n",bufrecv.c_str());
+            printf("\n");
+        }
         else
             printf("Recv timeout ! \n");
     }
@@ -80,10 +110,11 @@ cf_int main(cf_int argc,cf_char * argv[])
 {
     if(argc<2)
     {
-        printf("Usage: program <times/thread> ");
+        printf("Usage: program <times/thread> \n");
         return 1;
     }
     g_times =atoi(argv[1]);
+    InitVecStr();
 
     pthread_t tid[512];
     int num_threads =1;

@@ -245,6 +245,9 @@ bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
 
 cf_void AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
 {
+    static cf_fd nullfd =cf_open("/dev/null",O_RDONLY|O_CLOEXEC,0);
+    //    if(nullfd<0) // Don't test for performance.
+    //        _THROW(cf::SyscallExecuteError, "Failed to execute cf_open !");
     while (true)
     {
         struct sockaddr_in in_addr;
@@ -256,6 +259,19 @@ cf_void AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
         {
             if ((errno == EAGAIN)||(errno == EWOULDBLOCK)||(errno==ECONNABORTED))
                 break;
+            else if ((errno == EMFILE)||(errno == ENFILE)||(errno == ENOBUFS)
+                     ||(errno == ENOMEM))
+            {
+                cf_close(nullfd);
+                nullfd =cf_accept(listenfd, NULL, NULL);
+                if(nullfd<0)
+                    _THROW(cf::SyscallExecuteError, "Failed to execute cf_accept !");
+                cf_close(nullfd);
+                nullfd =open("/dev/null",O_RDONLY|O_CLOEXEC,0);
+                if(nullfd<0)
+                    _THROW(cf::SyscallExecuteError, "Failed to execute cf_open !");
+                continue;
+            }
             else
             {
                 _THROW(cf::SyscallExecuteError, "Failed to execute accept !");

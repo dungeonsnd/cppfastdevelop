@@ -64,8 +64,8 @@ public:
         _already +=rdn;
 
 #if CFD_SWITCH_PRINT
-        fprintf (stderr, "Read,fd=%d,addr=%s,rdn=%d,_total=%u,_already=%u,buf=%s \n",
-                 session->Fd(),session->Addr().c_str(),rdn,_total,_already,p);
+        //        fprintf (stderr, "Read,fd=%d,addr=%s,rdn=%d,_total=%u,_already=%u,buf=%s \n",
+        //                 session->Fd(),session->Addr().c_str(),rdn,_total,_already,p);
 #endif
         return rdn;
     }
@@ -128,9 +128,8 @@ public:
         _already +=rdn;
 
 #if CFD_SWITCH_PRINT
-        fprintf (stderr,
-                 "Read,fd=%d,addr=%s,rdn=%d,_total=%u,_already=%u,buf=%s \n",
-                 session->Fd(),session->Addr().c_str(),rdn,_total,_already,p);
+        //        fprintf (stderr,"Write,fd=%d,addr=%s,rdn=%d,_total=%u,_already=%u,buf=%s \n",
+        //                 session->Fd(),session->Addr().c_str(),rdn,_total,_already,p);
 #endif
         return rdn;
     }
