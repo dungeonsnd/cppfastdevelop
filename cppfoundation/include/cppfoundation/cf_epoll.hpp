@@ -175,6 +175,11 @@ public:
                 if(_retEvents[i].data.fd==_listenfd)
                 {
 #if CFD_SWITCH_PRINT
+                    cf::Gettimeofday(seconds, useconds);
+                    fprintf (stderr,
+                             "--- vecEvent.push_back ,time=%llu.%u \n",seconds,useconds);
+#endif
+#if CFD_SWITCH_PRINT
                     fprintf (stderr, "epoll_wait return , EV_ACCEPT\n");
 #endif
                     vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
@@ -207,8 +212,18 @@ public:
 #if CFD_SWITCH_PRINT
                     fprintf (stderr, "epoll_wait return , EPOLLIN\n");
 #endif
+#if CFD_SWITCH_PRINT
+                    cf::Gettimeofday(seconds, useconds);
+                    fprintf (stderr,
+                             "--- before vecEvent.push_back ,time=%llu.%u \n",seconds,useconds);
+#endif
                     vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
                                                        networkdefs::EV_READ) );
+#if CFD_SWITCH_PRINT
+                    cf::Gettimeofday(seconds, useconds);
+                    fprintf (stderr,
+                             "--- after vecEvent.push_back ,time=%llu.%u \n",seconds,useconds);
+#endif
                 }
                 if(_retEvents[i].events & EPOLLOUT)
                 {

@@ -243,20 +243,57 @@ public:
     cf_void OnRead(cf_fd fd)
     {
         CF_PRINT_FUNC;
+#if CFD_SWITCH_PRINT
+        cf_uint64 seconds =0;
+        cf_uint32 useconds =0;
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr,
+                 "+++ before _mapSession.find ,time=%llu.%u \n",seconds,useconds);
+#endif
         T_MAPSESSIONS::iterator it =_mapSession.find(fd);
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr,
+                 "+++ after _mapSession.find ,time=%llu.%u \n",seconds,useconds);
+#endif
         T_MAPREADBUFFER::iterator itbuf =_readBuf.find(fd);
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr,
+                 "+++ after _readBuf.find ,time=%llu.%u \n",seconds,useconds);
+#endif
         if( it!=_mapSession.end() && itbuf!=_readBuf.end() )
         {
             cf::T_SESSION session =it->second;
             std::shared_ptr < ReadBuffer > readBuffer =itbuf->second;
             bool peerClosedWhenRead =false;
+#if CFD_SWITCH_PRINT
+            cf::Gettimeofday(seconds, useconds);
+            fprintf (stderr,
+                     "+++ before readBuffer->Read ,time=%llu.%u \n",seconds,useconds);
+#endif
             readBuffer->Read(session, peerClosedWhenRead);
+#if CFD_SWITCH_PRINT
+            cf::Gettimeofday(seconds, useconds);
+            fprintf (stderr,
+                     "+++ after readBuffer->Read ,time=%llu.%u \n",seconds,useconds);
+#endif
             if(peerClosedWhenRead||readBuffer->IsComplete())
             {
+#if CFD_SWITCH_PRINT
+                cf::Gettimeofday(seconds, useconds);
+                fprintf (stderr,
+                         "+++ before _demux->DelEvent,time=%llu.%u \n",seconds,useconds);
+#endif
                 _demux->DelEvent(fd, cf::networkdefs::EV_READ);
             }
             if(readBuffer->IsComplete())
             {
+#if CFD_SWITCH_PRINT
+                cf::Gettimeofday(seconds, useconds);
+                fprintf (stderr,
+                         "+++ before OnReadComplete,time=%llu.%u \n",seconds,useconds);
+#endif
                 OnReadComplete(session, readBuffer);
             }
         }

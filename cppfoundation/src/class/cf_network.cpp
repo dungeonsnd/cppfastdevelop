@@ -20,6 +20,7 @@
 #include "cppfoundation/cf_network.hpp"
 #include "cppfoundation/cf_lock.hpp"
 #include "cppfoundation/cf_lock_guard.hpp"
+#include "cppfoundation/cf_utility.hpp"
 
 namespace cf
 {
@@ -327,12 +328,23 @@ cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
     ssize_t len=0;
     ssize_t lenLeft =0;
     ssize_t alreadyDone=0;
+#if CFD_SWITCH_PRINT
+    cf_uint64 seconds =0;
+    cf_uint32 useconds =0;
+    cf::Gettimeofday(seconds, useconds);
+    fprintf (stderr, "+++ before cf_recv ,totalLen,time=%llu.%u \n",seconds,
+             useconds);
+#endif
     while(alreadyDone < totalLen)
     {
         lenLeft = totalLen-alreadyDone;
         if (segsize>0 && lenLeft > segsize)
             lenLeft = segsize;
         len =cf_recv(sockfd,&buf[alreadyDone],lenLeft,MSG_DONTWAIT);
+        fprintf (stderr,
+                 "+++ cf_recv,totalLen=%u,alreadyDone=%u,lenLeft=%u,len=%u, time=%llu.%u \n",
+                 (cf_uint32)totalLen,(cf_uint32)alreadyDone,(cf_uint32)lenLeft,(cf_uint32)len,
+                 seconds,useconds);
         if(-1==len)
         {
             if(EAGAIN==errno||EWOULDBLOCK==errno)
@@ -341,6 +353,11 @@ cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
                 _THROW(SyscallExecuteError, "Failed to execute cf_write !");
 
         }
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "+++ after cf_recv ,time=%llu.%u \n",seconds,
+                 useconds);
+#endif
         alreadyDone +=len;
         if ( 0==len ) // len==0 means reaching end.
         {
@@ -348,6 +365,11 @@ cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
             break;
         }
     }
+#if CFD_SWITCH_PRINT
+    cf::Gettimeofday(seconds, useconds);
+    fprintf (stderr, "+++ before RecvSegmentAsync ,time=%llu.%u \n",seconds,
+             useconds);
+#endif
     return cf_int(alreadyDone);
 }
 

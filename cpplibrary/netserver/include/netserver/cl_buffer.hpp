@@ -24,6 +24,7 @@
 #include "cppfoundation/cf_exception.hpp"
 #include "cppfoundation/cf_socket.hpp"
 #include "cppfoundation/cf_memory.hpp"
+#include "cppfoundation/cf_utility.hpp"
 
 namespace cl
 {
@@ -59,13 +60,25 @@ public:
 
     cf_int Read(cf::T_SESSION session, bool & peerClosedWhenRead)
     {
+#if CFD_SWITCH_PRINT
+        cf_uint64 seconds =0;
+        cf_uint32 useconds =0;
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr, "+++ before session->RecvAsync ,time=%llu.%u \n",seconds,
+                 useconds);
+#endif
         cf_char * p =&_buf[0];
         cf_int rdn =session->RecvAsync(p+_already, GetLeft(),peerClosedWhenRead);
         _already +=rdn;
 
 #if CFD_SWITCH_PRINT
-        //        fprintf (stderr, "Read,fd=%d,addr=%s,rdn=%d,_total=%u,_already=%u,buf=%s \n",
-        //                 session->Fd(),session->Addr().c_str(),rdn,_total,_already,p);
+        fprintf (stderr, "Read,fd=%d,addr=%s,rdn=%d,_total=%u,_already=%u,buf=%s \n",
+                 session->Fd(),session->Addr().c_str(),rdn,_total,_already,p);
+#endif
+#if CFD_SWITCH_PRINT
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr,
+                 "+++ after session->RecvAsync,time=%llu.%u \n",seconds,useconds);
 #endif
         return rdn;
     }

@@ -62,6 +62,13 @@ public:
         //                 (cf_char *)(readBuffer->GetBuffer()));
 #endif
 
+#if CFD_SWITCH_PRINT
+        cf_uint64 seconds =0;
+        cf_uint32 useconds =0;
+        cf::Gettimeofday(seconds, useconds);
+        fprintf (stderr,
+                 "+++ before OnReadComplete ,time=%llu.%u \n",seconds,useconds);
+#endif
         cf_uint32 totalLen =readBuffer->GetTotal();
         if(_recvHeader[session->Fd()])
         {
@@ -81,10 +88,20 @@ public:
                 cf_uint32 * p =(cf_uint32 *)(readBuffer->GetBuffer());
                 cf_uint32 size =ntohl(*p);
                 _recvHeader[session->Fd()] =false;
+#if CFD_SWITCH_PRINT
+                cf::Gettimeofday(seconds, useconds);
+                fprintf (stderr,
+                         "+++ before AsyncRead ,time=%llu.%u \n",seconds,useconds);
+#endif
                 if(size>0)
                     AsyncRead(session->Fd(), size);
                 else
                     _THROW(cf::ValueError, "size==0 !");
+#if CFD_SWITCH_PRINT
+                cf::Gettimeofday(seconds, useconds);
+                fprintf (stderr,
+                         "+++ after AsyncRead ,time=%llu.%u \n",seconds,useconds);
+#endif
             }
         }
         else
@@ -93,9 +110,24 @@ public:
             fprintf (stderr, "OnReadComplete,fd=%d,_flagRecvHeader==false \n" ,
                      session->Fd());
 #endif
+#if CFD_SWITCH_PRINT
+            cf::Gettimeofday(seconds, useconds);
+            fprintf (stderr,
+                     "+++ before AsyncWrite ,time=%llu.%u \n",seconds,useconds);
+#endif
             _recvHeader[session->Fd()] =true;
             AsyncWrite(session->Fd(), readBuffer->GetBuffer(), totalLen);
+#if CFD_SWITCH_PRINT
+            cf::Gettimeofday(seconds, useconds);
+            fprintf (stderr,
+                     "+++ before AsyncRead ,time=%llu.%u \n",seconds,useconds);
+#endif
             AsyncRead(session->Fd(), _headLen);
+#if CFD_SWITCH_PRINT
+            cf::Gettimeofday(seconds, useconds);
+            fprintf (stderr,
+                     "+++ after AsyncRead ,time=%llu.%u \n",seconds,useconds);
+#endif
         }
     }
     cf_void OnWriteComplete(cf::T_SESSION session)

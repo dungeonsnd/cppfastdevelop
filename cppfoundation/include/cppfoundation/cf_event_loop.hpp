@@ -81,7 +81,22 @@ public:
             if(0==times--)
                 ;//break;
 
+#if CFD_SWITCH_PRINT
+            cf_uint64 seconds =0;
+            cf_uint32 useconds =0;
+            cf::Gettimeofday(seconds, useconds);
+            fprintf (stderr,
+                     "+++ before _vecEvent.clear ,time=%llu.%u \n",seconds,useconds);
+#endif
+
             _vecEvent.clear();
+
+#if CFD_SWITCH_PRINT
+            cf::Gettimeofday(seconds, useconds);
+            fprintf (stderr,
+                     "+++ after _vecEvent.clear ,time=%llu.%u \n",seconds,useconds);
+#endif
+
             _demux->WaitEvent(_vecEvent,timeoutMilliseconds);
             if(_vecEvent.size())
             {
@@ -90,7 +105,18 @@ public:
                     switch(it->second)
                     {
                     case networkdefs::EV_ACCEPT:
+
+#if CFD_SWITCH_PRINT
+                        cf::Gettimeofday(seconds, useconds);
+                        fprintf (stderr,
+                                 "+++ before _handler.OnAccept ,time=%llu.%u \n",seconds,useconds);
+#endif
                         _handler.OnAccept();
+#if CFD_SWITCH_PRINT
+                        cf::Gettimeofday(seconds, useconds);
+                        fprintf (stderr,
+                                 "+++ after _handler.OnAccept ,time=%llu.%u \n",seconds,useconds);
+#endif
                         break;
                     case networkdefs::EV_READ:
                         _handler.OnRead(it->first);
