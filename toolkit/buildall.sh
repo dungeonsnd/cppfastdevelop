@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd toolkit/tools/codeformat/
+cd toolkit/misc/codeformat/
 ./format_cpp.sh
 cd ../../../
 pwd

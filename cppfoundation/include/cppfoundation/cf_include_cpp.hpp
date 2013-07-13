@@ -49,6 +49,7 @@
 #ifndef __GXX_EXPERIMENTAL_CXX0X__ // std::tr1
 //        #pragma message("$$$$ Using shared_ptr from <tr1/memory> !")
 #include <tr1/memory>
+#include <tr1/unordered_map>
 namespace std
 {
 using tr1::bad_weak_ptr;
@@ -60,25 +61,31 @@ using tr1::shared_ptr;
 using tr1::static_pointer_cast;
 using tr1::swap;
 using tr1::weak_ptr;
+
+using tr1::unordered_map;
 }
 #else
 //        #pragma message("$$$$ Using shared_ptr from <memory> in c++ standard library !")
 #include <memory>
+#include <unordered_map>
 #endif // __GXX_EXPERIMENTAL_CXX0X__
 #else
 //    #pragma message("$$$$ Using shared_ptr from <boost/tr1/memory.hpp> !")
 #include <boost/tr1/memory.hpp> // boost tr1
+#include<boost/unordered_map.hpp>
 namespace std
 {
-using tr1::bad_weak_ptr;
-using tr1::const_pointer_cast;
-using tr1::dynamic_pointer_cast;
-using tr1::enable_shared_from_this;
-using tr1::get_deleter;
-using tr1::shared_ptr;
-using tr1::static_pointer_cast;
-using tr1::swap;
-using tr1::weak_ptr;
+using boost::bad_weak_ptr;
+using boost::const_pointer_cast;
+using boost::dynamic_pointer_cast;
+using boost::enable_shared_from_this;
+using boost::get_deleter;
+using boost::shared_ptr;
+using boost::static_pointer_cast;
+using boost::swap;
+using boost::weak_ptr;
+
+using boost::unordered_map;
 }
 #endif
 
