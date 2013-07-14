@@ -76,7 +76,7 @@ public:
     {
         CF_PRINT_FUNC;
         _listenfd =cf::CreateServerSocket(port,SOCK_STREAM,false,backlog);
-#if CFD_SWITCH_PRINT
+#if CF_SWITCH_PRINT
         fprintf (stderr, "CreateServerSocket return , _listenfd=%d \n",_listenfd);
 #endif
         CF_NEWOBJ(p, Server < EventHandlerType > );

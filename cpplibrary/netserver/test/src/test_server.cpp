@@ -31,7 +31,7 @@ public:
     cf_void OnAcceptComplete(cf::T_SESSION session)
     {
         CF_PRINT_FUNC;
-#if CFD_SWITCH_PRINT
+#if CF_SWITCH_PRINT
         fprintf (stderr, "OnAcceptComplete,fd=%d,addr=%s \n",
                  session->Fd(),session->Addr().c_str());
 #endif
@@ -42,7 +42,7 @@ public:
                            std::shared_ptr < cl::ReadBuffer > readBuffer)
     {
         CF_PRINT_FUNC;
-#if CFD_SWITCH_PRINT
+#if CF_SWITCH_PRINT
         //        fprintf (stderr, "OnReadComplete,fd=%d,addr=%s,total()=%d,buf=%s \n",
         //                 session->Fd(),session->Addr().c_str(),readBuffer->GetTotal(),
         //                 (cf_char *)(readBuffer->GetBuffer()));
@@ -53,7 +53,7 @@ public:
         {
             if(_headLen!=totalLen)
             {
-#if CFD_SWITCH_PRINT
+#if CF_SWITCH_PRINT
                 //                fprintf (stderr, "OnReadComplete,fd=%d,_headLen{%u}!=totalLen{%u} \n",
                 //                         session->Fd(),_headLen,totalLen);
 #endif

@@ -176,22 +176,23 @@ bool SendSegmentSync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
     ssize_t len=0;
     ssize_t lenLeft =0;
     time_t end,begin;
-    for(ssize_t alreadyDone=0; alreadyDone < totalLen;)
+    for(hasDone=0; hasDone < totalLen;)
     {
         if ( (time_t)(-1)==(begin=cf_time(NULL)) )
             _THROW(SyscallExecuteError, "Failed to execute cf_time !");
 
         if(0==OutputWait(sockfd,timeoutMilliSeconds)) // timeout!
             return false;
-        lenLeft = totalLen-alreadyDone;
+        lenLeft = totalLen-hasDone;
         if (segsize>0 && lenLeft > segsize)
             lenLeft = segsize;
-        len =cf_write(sockfd,&buf[alreadyDone],lenLeft);
+        len =cf_write(sockfd,&(buf[hasDone]),lenLeft);
         if(-1==len)
             _THROW(SyscallExecuteError, "Failed to execute cf_write !");
 
-        alreadyDone +=len;
-        hasDone =alreadyDone;
+        hasDone +=len;
+        //        printf("after cf_write , totalLen=%u,hasDone=%u,len=%u,lenLeft=%u \n",
+        //            (cf_uint32)totalLen,(cf_uint32)hasDone,(cf_uint32)len,(cf_uint32)lenLeft);
 
         if ( (time_t)(-1)==(end=cf_time(NULL)) )
             _THROW(SyscallExecuteError, "Failed to execute cf_time !");
@@ -212,26 +213,28 @@ bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
     ssize_t len=0;
     ssize_t lenLeft =0;
     time_t end,begin;
-    for(ssize_t alreadyDone=0; alreadyDone < totalLen;)
+    for(hasDone=0; hasDone < totalLen;)
     {
         if ( (time_t)(-1)==(begin=cf_time(NULL)) )
             _THROW(SyscallExecuteError, "Failed to execute cf_time !");
 
         if(0==InputWait(sockfd,timeoutMilliSeconds)) // timeout!
             return false;
-        lenLeft = totalLen-alreadyDone;
+        lenLeft = totalLen-hasDone;
         if (segsize>0 && lenLeft > segsize)
             lenLeft = segsize;
-        len =cf_read(sockfd,&buf[alreadyDone],lenLeft);
+        len =cf_read(sockfd,&(buf[hasDone]),lenLeft);
         if(-1==len)
             _THROW(SyscallExecuteError, "Failed to execute cf_write !");
 
-        alreadyDone +=len;
-        hasDone =alreadyDone;
+        hasDone +=len;
+        //        printf("after cf_read , totalLen=%u,hasDone=%u,len=%u,lenLeft=%u \n",
+        //            (cf_uint32)totalLen,(cf_uint32)hasDone,(cf_uint32)len,(cf_uint32)lenLeft);
 
         if ( 0==len ) // len==0 means reaching end.
         {
             peerClosedWhenRead =true;
+            printf("after cf_read , 0==len \n");
             return true;
         }
 
@@ -244,6 +247,10 @@ bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
     return true;
 }
 
+#define CF_NETWORK_ACCEPT_BREAK \
+    ((errno == EAGAIN)||(errno == EWOULDBLOCK)||(errno==ECONNABORTED))
+#define CF_NETWORK_NULLFD \
+    ((errno == EMFILE)||(errno == ENFILE)||(errno == ENOBUFS)||(errno == ENOMEM))
 cf_void AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
 {
     static cf_fd nullfd =cf_open("/dev/null",O_RDONLY|O_CLOEXEC,0);
@@ -258,15 +265,29 @@ cf_void AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
         cf_int infd = cf_accept (listenfd, (sockaddr *)&in_addr, &in_len);
         if (infd == -1)
         {
-            if ((errno == EAGAIN)||(errno == EWOULDBLOCK)||(errno==ECONNABORTED))
+            if (CF_NETWORK_ACCEPT_BREAK)
                 break;
-            else if ((errno == EMFILE)||(errno == ENFILE)||(errno == ENOBUFS)
-                     ||(errno == ENOMEM))
+            else if (CF_NETWORK_NULLFD)
             {
+#if CF_SWITCH_PRINT
+                fprintf (stderr, "Warning,accept return CF_NETWORK_NULLFD,"
+                         "accept return -1 and errno=%d,%s!\n"
+                         "going to close fd(%d),and close this client!\n",
+                         errno,strerror(errno),nullfd);
+#endif
+
                 cf_close(nullfd);
                 nullfd =cf_accept(listenfd, NULL, NULL);
+                if ( nullfd==-1&&CF_NETWORK_ACCEPT_BREAK )
+                {
+                    nullfd =open("/dev/null",O_RDONLY|O_CLOEXEC,0);
+                    if(nullfd<0)
+                        _THROW(cf::SyscallExecuteError, "Failed to execute cf_open !");
+                    break;
+                }
                 if(nullfd<0)
                     _THROW(cf::SyscallExecuteError, "Failed to execute cf_accept !");
+
                 cf_close(nullfd);
                 nullfd =open("/dev/null",O_RDONLY|O_CLOEXEC,0);
                 if(nullfd<0)
@@ -305,7 +326,7 @@ cf_int SendSegmentAsync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
         lenLeft = totalLen-alreadyDone;
         if (segsize>0 && lenLeft > segsize)
             lenLeft = segsize;
-        len =cf_send(sockfd,&buf[alreadyDone],lenLeft,MSG_DONTWAIT);
+        len =cf_send(sockfd,&(buf[alreadyDone]),lenLeft,MSG_DONTWAIT);
         if(-1==len)
         {
             if(EAGAIN==errno||EWOULDBLOCK==errno)
@@ -315,6 +336,10 @@ cf_int SendSegmentAsync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
 
         }
         alreadyDone +=len;
+        /*         fprintf (stderr,
+                     "+++ cf_send,totalLen=%u,alreadyDone=%u,lenLeft=%u,len=%u\n",
+                     (cf_uint32)totalLen,(cf_uint32)alreadyDone,
+                     (cf_uint32)lenLeft,(cf_uint32)len); */
     }
     return cf_int(alreadyDone);
 }
@@ -328,23 +353,12 @@ cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
     ssize_t len=0;
     ssize_t lenLeft =0;
     ssize_t alreadyDone=0;
-#if CFD_SWITCH_PRINT
-    cf_uint64 seconds =0;
-    cf_uint32 useconds =0;
-    cf::Gettimeofday(seconds, useconds);
-    fprintf (stderr, "+++ before cf_recv ,totalLen,time=%llu.%u \n",seconds,
-             useconds);
-#endif
     while(alreadyDone < totalLen)
     {
         lenLeft = totalLen-alreadyDone;
         if (segsize>0 && lenLeft > segsize)
             lenLeft = segsize;
-        len =cf_recv(sockfd,&buf[alreadyDone],lenLeft,MSG_DONTWAIT);
-        fprintf (stderr,
-                 "+++ cf_recv,totalLen=%u,alreadyDone=%u,lenLeft=%u,len=%u, time=%llu.%u \n",
-                 (cf_uint32)totalLen,(cf_uint32)alreadyDone,(cf_uint32)lenLeft,(cf_uint32)len,
-                 seconds,useconds);
+        len =cf_recv(sockfd,&(buf[alreadyDone]),lenLeft,MSG_DONTWAIT);
         if(-1==len)
         {
             if(EAGAIN==errno||EWOULDBLOCK==errno)
@@ -353,23 +367,17 @@ cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
                 _THROW(SyscallExecuteError, "Failed to execute cf_write !");
 
         }
-#if CFD_SWITCH_PRINT
-        cf::Gettimeofday(seconds, useconds);
-        fprintf (stderr, "+++ after cf_recv ,time=%llu.%u \n",seconds,
-                 useconds);
-#endif
         alreadyDone +=len;
+        /*          fprintf (stderr,
+                    "+++ cf_recv,totalLen=%u,alreadyDone=%u,lenLeft=%u,len=%u \n",
+                   (cf_uint32)totalLen,(cf_uint32)alreadyDone,
+                   (cf_uint32)lenLeft,(cf_uint32)len); */
         if ( 0==len ) // len==0 means reaching end.
         {
             peerClosedWhenRead =true;
             break;
         }
     }
-#if CFD_SWITCH_PRINT
-    cf::Gettimeofday(seconds, useconds);
-    fprintf (stderr, "+++ before RecvSegmentAsync ,time=%llu.%u \n",seconds,
-             useconds);
-#endif
     return cf_int(alreadyDone);
 }
 

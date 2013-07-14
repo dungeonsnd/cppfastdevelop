@@ -122,12 +122,18 @@ public:
         T_VECCLIENTS clients;
         cf::AcceptAsync(_listenfd, clients);
         cf_fd fd;
+#if CF_SWITCH_PRINT
+        fprintf (stderr, "OnAccept,clients.size()=%u \n", (cf_uint32)clients.size());
+#endif
         for(T_VECCLIENTS::iterator it=clients.begin(); it!=clients.end(); it++)
         {
             cf::T_SESSION session =*it;
             fd =session->Fd();
             if(_mapSession.find(fd)==_mapSession.end())
             {
+#if CF_SWITCH_PRINT
+                fprintf (stderr, "OnAccept,new connection ,fd=%d \n", fd);
+#endif
                 _mapSession.insert( std::make_pair(fd,session) );
                 cf::SetBlocking(fd,false);
                 _demux->AddConn(fd, cf::networkdefs::EV_CLOSE);
@@ -136,7 +142,7 @@ public:
             else
             {
                 //Warning
-#if CFD_SWITCH_PRINT
+#if CF_SWITCH_PRINT
                 fprintf (stderr, "OnAccept,Warning ,fd=%d \n", fd);
 #endif
             }
@@ -166,7 +172,7 @@ public:
         else
         {
             //Warning
-#if CFD_SWITCH_PRINT
+#if CF_SWITCH_PRINT
             fprintf (stderr, "OnRead,Warning ,fd=%d \n", fd);
 #endif
         }
@@ -191,7 +197,7 @@ public:
         else
         {
             //Warning
-#if CFD_SWITCH_PRINT
+#if CF_SWITCH_PRINT
             fprintf (stderr, "OnWrite,Warning ,fd=%d \n", fd);
 #endif
         }
@@ -210,7 +216,7 @@ public:
         else
         {
             //Warning
-#if CFD_SWITCH_PRINT
+#if CF_SWITCH_PRINT
             fprintf (stderr, "OnClose,Warning ,fd=%d \n", fd);
 #endif
         }
@@ -234,7 +240,7 @@ public:
         else
         {
             //Warning
-#if CFD_SWITCH_PRINT
+#if CF_SWITCH_PRINT
             fprintf (stderr, "OnClose,Warning ,fd=%d \n", fd);
 #endif
         }

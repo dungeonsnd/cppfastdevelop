@@ -45,14 +45,16 @@ inline cf_void Gettimeofday(cf_uint64 & seconds, cf_uint32 & useconds)
     useconds =(cf_uint32)tv.tv_usec;
 }
 
+#define CF_SWITCH_PRINT 0
+
 #ifndef CF_PRINT_FUNC
-#if CFD_SWITCH_PRINT
+#if CF_SWITCH_PRINT
 #define CF_PRINT_FUNC \
     { \
         cf_uint64 seconds =0; \
         cf_uint32 useconds =0; \
         cf::Gettimeofday(seconds, useconds); \
-        fprintf(stdout,"%llu %u %u [%s:%d,%s] \n", \
+        fprintf(stdout,"%llu %03u %03u [%s:%d,%s] \n", \
                 seconds,useconds/1000,useconds%1000,\
                 strrchr (__FILE__, '/') == 0 ? __FILE__ : strrchr (__FILE__, '/') + 1,\
                 __LINE__,__FUNCTION__); \
@@ -63,14 +65,14 @@ inline cf_void Gettimeofday(cf_uint64 & seconds, cf_uint32 & useconds)
         cf_uint64 seconds =0; \
         cf_uint32 useconds =0; \
         cf::Gettimeofday(seconds, useconds); \
-        fprintf(stdout,"%llu %u %u [%s:%d,%s] %s\n", \
+        fprintf(stdout,"%llu %03u %03u [%s:%d,%s] %s\n", \
                 seconds,useconds/1000,useconds%1000,\
                 strrchr (__FILE__, '/') == 0 ? __FILE__ : strrchr (__FILE__, '/') + 1,\
                 __LINE__,__FUNCTION__ , MSG); \
     }
 #else
 #define CF_PRINT_FUNC ;
-#endif //  CFD_SWITCH_PRINT    
+#endif //  CF_SWITCH_PRINT    
 #endif // CF_PRINT_FUNC
 
 cf_void SetProcessDaemon();
