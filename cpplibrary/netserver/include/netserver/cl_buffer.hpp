@@ -53,6 +53,7 @@ public:
 
     cf_void Clear()
     {
+        CF_PRINT_FUNC;
         _buf.clear();
         _total =0;
         _already =0;
@@ -60,26 +61,10 @@ public:
 
     cf_int Read(cf::T_SESSION session, bool & peerClosedWhenRead)
     {
-#if CFD_SWITCH_PRINT
-        cf_uint64 seconds =0;
-        cf_uint32 useconds =0;
-        cf::Gettimeofday(seconds, useconds);
-        fprintf (stderr, "+++ before session->RecvAsync ,time=%llu.%u \n",seconds,
-                 useconds);
-#endif
+        CF_PRINT_FUNC;
         cf_char * p =&_buf[0];
         cf_int rdn =session->RecvAsync(p+_already, GetLeft(),peerClosedWhenRead);
         _already +=rdn;
-
-#if CFD_SWITCH_PRINT
-        fprintf (stderr, "Read,fd=%d,addr=%s,rdn=%d,_total=%u,_already=%u,buf=%s \n",
-                 session->Fd(),session->Addr().c_str(),rdn,_total,_already,p);
-#endif
-#if CFD_SWITCH_PRINT
-        cf::Gettimeofday(seconds, useconds);
-        fprintf (stderr,
-                 "+++ after session->RecvAsync,time=%llu.%u \n",seconds,useconds);
-#endif
         return rdn;
     }
     cf_pvoid GetBuffer()
@@ -88,6 +73,7 @@ public:
     }
     cf_void SetTotal(cf_uint32 total)
     {
+        CF_PRINT_FUNC;
         if(_total)
             _THROW_FMT(cf::ValueError, "_total{%u}!=0 !", _total);
         _buf.resize(total);
@@ -129,6 +115,7 @@ public:
 
     cf_void Clear()
     {
+        CF_PRINT_FUNC;
         _buf.clear();
         _total =0;
         _already =0;
@@ -136,18 +123,15 @@ public:
 
     cf_int Write(cf::T_SESSION session)
     {
+        CF_PRINT_FUNC;
         cf_char * p =&_buf[0];
         cf_int rdn =session->SendAsync(p+_already, GetLeft());
         _already +=rdn;
-
-#if CFD_SWITCH_PRINT
-        //        fprintf (stderr,"Write,fd=%d,addr=%s,rdn=%d,_total=%u,_already=%u,buf=%s \n",
-        //                 session->Fd(),session->Addr().c_str(),rdn,_total,_already,p);
-#endif
         return rdn;
     }
     cf_void SetBuffer(cf_cpvoid buffer, cf_uint32 total)
     {
+        CF_PRINT_FUNC;
         if(_total)
             _THROW_FMT(cf::ValueError, "_total{%u}!=0 !", _total);
         _buf.resize(total);

@@ -34,22 +34,6 @@ namespace cf
     }
 #endif // ERR
 
-#define CF_PRINT_FUNC ;
-
-#ifndef CF_PRINT_FUNC
-#if CFD_SWITCH_PRINT
-#define CF_PRINT_FUNC \
-    { \
-        fprintf(stdout,"func=%s,file=%s,line=%d \n",__PRETTY_FUNCTION__,__FILE__,__LINE__); \
-    }
-#else
-#define CF_PRINT_FUNC ;
-#endif //  CFD_SWITCH_PRINT    
-#endif // CF_PRINT_FUNC
-
-cf_void SetProcessDaemon();
-
-cf_void IgnoreSignals();
 
 inline cf_void Gettimeofday(cf_uint64 & seconds, cf_uint32 & useconds)
 {
@@ -60,6 +44,39 @@ inline cf_void Gettimeofday(cf_uint64 & seconds, cf_uint32 & useconds)
     seconds =(cf_uint64)tv.tv_sec;
     useconds =(cf_uint32)tv.tv_usec;
 }
+
+#ifndef CF_PRINT_FUNC
+#if CFD_SWITCH_PRINT
+#define CF_PRINT_FUNC \
+    { \
+        cf_uint64 seconds =0; \
+        cf_uint32 useconds =0; \
+        cf::Gettimeofday(seconds, useconds); \
+        fprintf(stdout,"%llu %u %u [%s:%d,%s] \n", \
+                seconds,useconds/1000,useconds%1000,\
+                strrchr (__FILE__, '/') == 0 ? __FILE__ : strrchr (__FILE__, '/') + 1,\
+                __LINE__,__FUNCTION__); \
+    }
+
+#define CF_PRINT_FUNC_ARGS(MSG) \
+    { \
+        cf_uint64 seconds =0; \
+        cf_uint32 useconds =0; \
+        cf::Gettimeofday(seconds, useconds); \
+        fprintf(stdout,"%llu %u %u [%s:%d,%s] %s\n", \
+                seconds,useconds/1000,useconds%1000,\
+                strrchr (__FILE__, '/') == 0 ? __FILE__ : strrchr (__FILE__, '/') + 1,\
+                __LINE__,__FUNCTION__ , MSG); \
+    }
+#else
+#define CF_PRINT_FUNC ;
+#endif //  CFD_SWITCH_PRINT    
+#endif // CF_PRINT_FUNC
+
+cf_void SetProcessDaemon();
+
+cf_void IgnoreSignals();
+
 
 // type traits
 // If invoker give "T * obj", use these PointerTraits can get the 'T' type.

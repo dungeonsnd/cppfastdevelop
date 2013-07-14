@@ -28,6 +28,7 @@ std::vector < std::string > g_vecStr;
 #define REQ_SIZE 1024
 cf_void InitVecStr()
 {
+    CF_PRINT_FUNC;
     srand(time(NULL));
     std::string tmp;
     char tmp1[2];
@@ -48,6 +49,7 @@ cf_void InitVecStr()
 
 cf_pvoid Run(void *)
 {
+    CF_PRINT_FUNC;
     cf_int sockfd;
     struct sockaddr_in servaddr;
     sockfd=cf_socket(AF_INET, SOCK_STREAM, 0);
@@ -74,13 +76,14 @@ cf_pvoid Run(void *)
         memcpy((cf_char *)(&buf[0])+4,body.c_str(),body.size());
 
         ssize_t hasSent =0;
+        //        CF_PRINT_FUNC_ARGS("Before SendSegmentSync");
         bool succ =cf::SendSegmentSync(sockfd,buf.c_str(), buf.size(),hasSent,5000,
                                        buf.size());
         if(succ)
         {
-            printf("Sent succeeded ! hasSent=%d ,k=%d ,",int(hasSent),k);
+            //printf("Sent succeeded ! hasSent=%d ,k=%d ,",int(hasSent),k);
             //            printf("buff=%s \n",buf.c_str()+4);
-            printf("\n");
+            //printf("\n");
         }
         else
             printf("Send timeout ! \n");
@@ -89,13 +92,14 @@ cf_pvoid Run(void *)
         bool peerClosedWhenRead =false;
         ssize_t hasRecv =0;
         std::string bufrecv(1024,'\0');
+        //        CF_PRINT_FUNC_ARGS("Before RecvSegmentSync");
         succ =cf::RecvSegmentSync(sockfd,&bufrecv[0], hasSent-4,hasRecv,
                                   peerClosedWhenRead,2000);
         if(succ)
         {
-            printf("Recv succeeded ! hasRecv=%d , k=%d ,",int(hasRecv),k);
+            //printf("Recv succeeded ! hasRecv=%d , k=%d ,",int(hasRecv),k);
             //            printf("buff=%s \n",bufrecv.c_str());
-            printf("\n");
+            //printf("\n");
         }
         else
             printf("Recv timeout ! \n");
@@ -103,11 +107,13 @@ cf_pvoid Run(void *)
 
     printf("cf_close ! tid=%u \n",(cf_uint32)pthread_self());
     cf_close(sockfd);
+    CF_PRINT_FUNC;
     return NULL;
 }
 
 cf_int main(cf_int argc,cf_char * argv[])
 {
+    CF_PRINT_FUNC;
     if(argc<2)
     {
         printf("Usage: program <times/thread> \n");

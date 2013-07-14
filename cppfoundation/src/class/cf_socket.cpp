@@ -19,6 +19,7 @@
 
 #include "cppfoundation/cf_socket.hpp"
 #include "cppfoundation/cf_network.hpp"
+#include "cppfoundation/cf_utility.hpp"
 
 namespace cf
 {
@@ -26,10 +27,12 @@ namespace cf
 
 cf_int Socket::SendAsync(cf_cpvoid data, ssize_t len)
 {
+    CF_PRINT_FUNC;
     return SendSegmentAsync(_fd,cf_cpstr(data), len);
 }
 cf_int Socket::RecvAsync(cf_pvoid data, ssize_t len, bool & peerClosedWhenRead)
 {
+    CF_PRINT_FUNC;
     return RecvSegmentAsync(_fd,(cf_char * )(data), len,peerClosedWhenRead);
 }
 

@@ -43,6 +43,7 @@ public:
 
     cf_void Init(cf_fd listenfd, EventHandlerType & handler)
     {
+        CF_PRINT_FUNC;
         CF_NEWOBJ(p, cf::EventLoop< EventHandlerType > , listenfd, handler);
         if(NULL==p)
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
@@ -54,10 +55,12 @@ public:
     }
     cf_void Start()
     {
+        CF_PRINT_FUNC;
         _eventloop->WaitEvent(_timeoutMilliseconds);
     }
     cf_void Stop()
     {
+        CF_PRINT_FUNC;
         _eventloop->Stop();
     }
 private:
@@ -71,12 +74,11 @@ class TcpServer : public cf::NonCopyable
 public:
     TcpServer(EventHandlerType & handler, cf_uint32 port,const int backlog =32)
     {
-
+        CF_PRINT_FUNC;
         _listenfd =cf::CreateServerSocket(port,SOCK_STREAM,false,backlog);
 #if CFD_SWITCH_PRINT
         fprintf (stderr, "CreateServerSocket return , _listenfd=%d \n",_listenfd);
 #endif
-
         CF_NEWOBJ(p, Server < EventHandlerType > );
         if(NULL==p)
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");

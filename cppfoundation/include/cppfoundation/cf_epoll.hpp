@@ -62,6 +62,7 @@ public:
     }
     cf_void AddConn(cf_fd fd,networkdefs::EV_TYPE ev=networkdefs::EV_READ)
     {
+        CF_PRINT_FUNC;
         cf_ev event =EPOLLRDHUP;
         if(ev&networkdefs::EV_READ)
             event |= EPOLLIN;
@@ -73,11 +74,13 @@ public:
     }
     cf_void DelConn(cf_fd fd)
     {
+        CF_PRINT_FUNC;
         EpollCtl(fd,EPOLL_CTL_DEL, 0);
         _mapEvent.erase(fd);
     }
     cf_void AddEvent(cf_fd fd,networkdefs::EV_TYPE ev)
     {
+        CF_PRINT_FUNC;
         cf_ev event =0;
         if(ev&networkdefs::EV_READ)
             event |= EPOLLIN;
@@ -106,6 +109,7 @@ public:
     }
     cf_void DelEvent(cf_fd fd,networkdefs::EV_TYPE ev)
     {
+        CF_PRINT_FUNC;
         cf_ev event =0;
         if(ev&networkdefs::EV_READ)
             event |= EPOLLIN;
@@ -134,23 +138,10 @@ public:
     }
     cf_void WaitEvent(TYPE_VECEVENT & vecEvent, cf_int timeoutMilliseconds)
     {
+        CF_PRINT_FUNC;
         _retEvents.clear();
-#if CFD_SWITCH_PRINT
-        cf_uint64 seconds =0;
-        cf_uint32 useconds =0;
-        cf::Gettimeofday(seconds, useconds);
-        fprintf (stderr,
-                 "+++ before epoll_wait ,timeoutMilliseconds=%d ,time=%llu.%u \n",
-                 timeoutMilliseconds,seconds,useconds);
-#endif
         cf_int n =cf_epoll_wait(_epfd, &(_retEvents[0]),_maxEvents,
                                 timeoutMilliseconds);
-#if CFD_SWITCH_PRINT
-        cf::Gettimeofday(seconds, useconds);
-        fprintf (stderr,
-                 "--- after epoll_wait ,timeoutMilliseconds=%d ,time=%llu.%u \n",
-                 timeoutMilliseconds,seconds,useconds);
-#endif
 #if _DEBUG
         //        usleep(100*1000); // only for testing
 #endif
@@ -174,11 +165,6 @@ public:
             {
                 if(_retEvents[i].data.fd==_listenfd)
                 {
-#if CFD_SWITCH_PRINT
-                    cf::Gettimeofday(seconds, useconds);
-                    fprintf (stderr,
-                             "--- vecEvent.push_back ,time=%llu.%u \n",seconds,useconds);
-#endif
 #if CFD_SWITCH_PRINT
                     fprintf (stderr, "epoll_wait return , EV_ACCEPT\n");
 #endif
@@ -212,18 +198,8 @@ public:
 #if CFD_SWITCH_PRINT
                     fprintf (stderr, "epoll_wait return , EPOLLIN\n");
 #endif
-#if CFD_SWITCH_PRINT
-                    cf::Gettimeofday(seconds, useconds);
-                    fprintf (stderr,
-                             "--- before vecEvent.push_back ,time=%llu.%u \n",seconds,useconds);
-#endif
                     vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
                                                        networkdefs::EV_READ) );
-#if CFD_SWITCH_PRINT
-                    cf::Gettimeofday(seconds, useconds);
-                    fprintf (stderr,
-                             "--- after vecEvent.push_back ,time=%llu.%u \n",seconds,useconds);
-#endif
                 }
                 if(_retEvents[i].events & EPOLLOUT)
                 {
@@ -247,6 +223,7 @@ public:
 private:
     cf_void EpollCtl(cf_fd fd,cf_int op, cf_ev event)
     {
+        CF_PRINT_FUNC;
         epoll_event st_ev;
         memset(&st_ev,0,sizeof(epoll_event));
         st_ev.events =event;
