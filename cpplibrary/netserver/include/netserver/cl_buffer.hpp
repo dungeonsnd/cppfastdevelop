@@ -35,7 +35,8 @@ enum
 {
     SIZE_BUFFER_DEFAULT =4096,
     SIZE_READBUFFER_DEFAULT =1024,
-    SIZE_WRITEBUFFER_DEFAULT =1024
+    SIZE_WRITEBUFFER_DEFAULT =1024,
+    SIZE_POOLSIZE_DEFAULT =1024
 };
 } // namespace bufferdefs
 
@@ -166,7 +167,7 @@ private:
 class ReadBufferPool : public cf::NonCopyable
 {
 public:
-    ReadBufferPool(cf_int poolsize)
+    ReadBufferPool(cf_int poolsize =SIZE_POOLSIZE_DEFAULT)
     {
         if(poolsize<1)
             _THROW_FMT(cf::ValueError, "poolsize{%u}!=0 !", poolsize);
