@@ -33,9 +33,8 @@ namespace bufferdefs
 {
 enum
 {
-    SIZE_BUFFER_DEFAULT =4096,
-    SIZE_READBUFFER_DEFAULT =1024,
-    SIZE_WRITEBUFFER_DEFAULT =1024,
+    SIZE_READBUFFER_DEFAULT =2048,
+    SIZE_WRITEBUFFER_DEFAULT =8192,
     SIZE_POOLSIZE_DEFAULT =1024
 };
 } // namespace bufferdefs
@@ -45,7 +44,7 @@ class ReadBuffer : public cf::NonCopyable
 {
 public:
     ReadBuffer()
-        :_buf(bufferdefs::SIZE_BUFFER_DEFAULT,'\0'),_total(0),_already(0)
+        :_buf(bufferdefs::SIZE_READBUFFER_DEFAULT,'\0'),_total(0),_already(0)
     {
     }
     ~ReadBuffer()
@@ -107,7 +106,7 @@ class WriteBuffer : public cf::NonCopyable
 {
 public:
     WriteBuffer()
-        :_buf(bufferdefs::SIZE_BUFFER_DEFAULT,'\0'),_total(0),_already(0)
+        :_buf(bufferdefs::SIZE_WRITEBUFFER_DEFAULT,'\0'),_total(0),_already(0)
     {
     }
     ~WriteBuffer()
@@ -163,11 +162,11 @@ private:
 private:
 };
 
-
-class ReadBufferPool : public cf::NonCopyable
+template < typename BufferType >
+class BufferPool : public cf::NonCopyable
 {
 public:
-    ReadBufferPool(cf_int poolsize =SIZE_POOLSIZE_DEFAULT)
+    BufferPool(cf_int poolsize =bufferdefs::SIZE_POOLSIZE_DEFAULT)
     {
         if(poolsize<1)
             _THROW_FMT(cf::ValueError, "poolsize{%u}!=0 !", poolsize);
@@ -176,76 +175,52 @@ public:
             _free.push_back(AllocOne());
         }
     }
-    ~ReadBufferPool()
+    ~BufferPool()
     {
     }
 
-    static std::shared_ptr<ReadBuffer> AllocOne()
+    static std::shared_ptr<BufferType> AllocOne()
     {
-        std::shared_ptr < ReadBuffer > rb;
-        CF_NEWOBJ(p, ReadBuffer);
+        std::shared_ptr < BufferType > rb;
+        CF_NEWOBJ(p, BufferType);
         if(NULL==p)
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
         rb.reset(p);
         return rb;
     }
 
-    std::shared_ptr < ReadBuffer > GetFromPool()
+    std::shared_ptr < BufferType > GetFromPool()
     {
         if(_free.empty())
         {
-            std::shared_ptr<ReadBuffer> rb =AllocOne();
+#if CF_SWITCH_PRINT
+            fprintf (stderr, "BufferTypePool,GetFromPool,AllocOne \n");
+#endif
+            std::shared_ptr<BufferType> rb =AllocOne();
             return rb;
         }
         else
         {
-            std::shared_ptr<ReadBuffer> rb =_free.front();
+#if CF_SWITCH_PRINT
+            fprintf (stderr, "BufferTypePool,GetFromPool,pop_front \n");
+#endif
+            std::shared_ptr<BufferType> rb =_free.front();
             _free.pop_front();
             return rb;
         }
     }
-    cf_void PutIntoPool(std::shared_ptr < ReadBuffer > rb)
+    cf_void PutIntoPool(std::shared_ptr < BufferType > rb)
     {
+#if CF_SWITCH_PRINT
+        fprintf (stderr, "BufferTypePool,PutIntoPool \n");
+#endif
         _free.push_back(rb);
     }
 
 private:
-    std::list < std::shared_ptr < ReadBuffer > > _free;
+    std::list < std::shared_ptr < BufferType > > _free;
 };
 
-class WriteBufferPool : public cf::NonCopyable
-{
-public:
-    WriteBufferPool()
-    {
-    }
-    ~WriteBufferPool()
-    {
-    }
-};
-
-
-class ReadBufferPoolGuard : public cf::NonCopyable
-{
-public:
-    ReadBufferPoolGuard(ReadBufferPool & rbp)
-        :_rbp(rbp)
-    {
-        _rb =_rbp.GetFromPool();
-    }
-    ~ReadBufferPoolGuard()
-    {
-        _rbp.PutIntoPool(_rb);
-    }
-
-    std::shared_ptr < ReadBuffer > Get()
-    {
-        return _rb;
-    }
-private:
-    ReadBufferPool & _rbp;
-    std::shared_ptr<ReadBuffer> _rb;
-};
 
 
 

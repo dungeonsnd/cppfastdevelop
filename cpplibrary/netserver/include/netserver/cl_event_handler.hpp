@@ -85,10 +85,7 @@ public:
         }
         else
         {
-            CF_NEWOBJ(p, ReadBuffer);
-            if(NULL==p)
-                _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
-            rb.reset(p);
+            rb =_rbpool.GetFromPool();
             _readBuf.insert( std::make_pair(fd,rb) );
         }
         rb->SetTotal(sizeToRead);
@@ -204,6 +201,8 @@ public:
     }
     cf_void OnClose(cf_fd fd)
     {
+        // TODO: When to invoke _rbpool.PutIntoPool() and
+        //       when to remove k-v from _readBuf。Alse write pool and buf.
         CF_PRINT_FUNC;
         _demux->DelConn(fd);
 
@@ -228,6 +227,7 @@ public:
     }
     cf_void OnError(cf_fd fd)
     {
+        // TODO : Remove k-v from map, release buf from pool.
         CF_PRINT_FUNC;
         _demux->DelConn(fd);
 
@@ -252,6 +252,9 @@ private:
 
     T_MAPREADBUFFER _readBuf;
     T_MAPWRITEBUFFER _writeBuf;
+
+    BufferPool < ReadBuffer > _rbpool;
+    BufferPool < WriteBuffer > _wbpool;
 };
 
 } // namespace cl
