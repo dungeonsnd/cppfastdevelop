@@ -112,6 +112,11 @@ public:
         wb->SetBuffer(buf,bufSize);
         _demux->AddEvent(fd, cf::networkdefs::EV_WRITE);
     }
+    cf_void AsyncClose(cf_fd fd)
+    {
+        CF_PRINT_FUNC;
+        // TODO
+    }
 
     cf_void OnAccept()
     {

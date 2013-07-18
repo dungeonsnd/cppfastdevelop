@@ -32,6 +32,7 @@
 #include <execinfo.h>
 #include <sys/resource.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 #include <stdint.h> // for uint16_t,for ntohs
 

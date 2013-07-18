@@ -72,13 +72,20 @@ template <typename EventHandlerType>
 class TcpServer : public cf::NonCopyable
 {
 public:
-    TcpServer(EventHandlerType & handler, cf_uint32 port,const int backlog =32)
+    static cf_fd CreateListenSocket(cf_uint32 port,const int backlog =32)
     {
         CF_PRINT_FUNC;
-        _listenfd =cf::CreateServerSocket(port,SOCK_STREAM,false,backlog);
+        cf_fd listenfd =cf::CreateServerSocket(port,SOCK_STREAM,false,backlog);
 #if CF_SWITCH_PRINT
-        fprintf (stderr, "CreateServerSocket return , _listenfd=%d \n",_listenfd);
+        fprintf (stderr, "CreateServerSocket return , listenfd=%d \n",listenfd);
 #endif
+        return listenfd;
+    }
+
+    TcpServer(cf_fd listenfd, EventHandlerType & handler)
+        :_listenfd(listenfd)
+    {
+        CF_PRINT_FUNC;
         CF_NEWOBJ(p, Server < EventHandlerType > );
         if(NULL==p)
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
@@ -88,6 +95,7 @@ public:
     }
     ~TcpServer()
     {
+        close(_listenfd);
     }
     cf_void Start()
     {

@@ -266,14 +266,19 @@ cf_void AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
         if (infd == -1)
         {
             if (CF_NETWORK_ACCEPT_BREAK)
+            {
+#if CF_SWITCH_PRINT
+                fprintf (stderr, "CF_NETWORK_ACCEPT_BREAK , pid=%d \n",int(getpid()));
+#endif
                 break;
+            }
             else if (CF_NETWORK_NULLFD)
             {
 #if CF_SWITCH_PRINT
                 fprintf (stderr, "Warning,accept return CF_NETWORK_NULLFD,"
                          "accept return -1 and errno=%d,%s!\n"
-                         "going to close fd(%d),and close this client!\n",
-                         errno,strerror(errno),nullfd);
+                         "going to close fd(%d),and close this client! pid=%d \n",
+                         errno,strerror(errno),nullfd,int(getpid()));
 #endif
 
                 cf_close(nullfd);

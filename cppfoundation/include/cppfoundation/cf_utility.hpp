@@ -54,8 +54,8 @@ inline cf_void Gettimeofday(cf_uint64 & seconds, cf_uint32 & useconds)
         cf_uint64 seconds =0; \
         cf_uint32 useconds =0; \
         cf::Gettimeofday(seconds, useconds); \
-        fprintf(stdout,"%llu %03u %03u [%s:%d,%s] \n", \
-                seconds,useconds/1000,useconds%1000,\
+        fprintf(stdout,"%llu %03u %03u [%d %s:%d,%s] \n", \
+                seconds,useconds/1000,useconds%1000,int(getpid()),\
                 strrchr (__FILE__, '/') == 0 ? __FILE__ : strrchr (__FILE__, '/') + 1,\
                 __LINE__,__FUNCTION__); \
     }

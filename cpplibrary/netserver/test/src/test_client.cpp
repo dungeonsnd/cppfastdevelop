@@ -104,8 +104,7 @@ cf_pvoid Run(void * p)
         if(succ)
         {
             /*             printf("Sent succeeded ! hasSent=%d ,k=%d ,",int(hasSent),k);
-                                    printf("buff=%s \n",body.c_str()+HEADER_LEN);
-                        printf("\n"); */
+                        printf("buff=%s \n",body.c_str()+HEADER_LEN); */
         }
         else
             printf("Warning,Send timeout ! \n");
@@ -121,8 +120,7 @@ cf_pvoid Run(void * p)
         if(succ)
         {
             /*             printf("Recv succeeded ! hasRecv=%d , k=%d ,",int(hasRecv),k);
-                                    printf("buff=%s \n",g_bufrecv.c_str());
-                        printf("\n"); */
+                        printf("buff=%s \n",g_bufrecv.c_str()); */
         }
         else
             printf("Warning,Recv timeout ! \n");
@@ -202,6 +200,8 @@ cf_int main(cf_int argc,cf_char * argv[])
     cf_uint64 resultUS =(seconds2-seconds1)*1000000+useconds2-useconds1;
     printf("Acctual using time=%llu.%06u seconds \n",
            (cf_uint64)(resultUS/1000000),(cf_uint32)(resultUS%1000000));
+    printf("QPS=%d\n",
+           int(double(g_threadscnt)*g_times/(resultUS/1000000.0)));
 
     return 0;
 }

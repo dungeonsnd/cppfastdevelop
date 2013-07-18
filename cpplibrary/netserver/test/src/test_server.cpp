@@ -47,7 +47,7 @@ public:
         //                 session->Fd(),session->Addr().c_str(),readBuffer->GetTotal(),
         //                 (cf_char *)(readBuffer->GetBuffer()));
 #endif
-
+        //        printf("pid=%d \n",int(getpid()));
         cf_uint32 totalLen =readBuffer->GetTotal();
         if(_recvHeader[session->Fd()])
         {
@@ -99,16 +99,52 @@ private:
     const cf_uint32 _headLen;
 };
 
+int g_numprocess =0;
 cf_void Run()
 {
     IOCompleteHandler ioHandler;
     typedef cl::TcpServer < IOCompleteHandler > ServerType;
-    std::shared_ptr < ServerType > server(new ServerType(ioHandler,8601));
-    server->Start();
+    cf_fd severfd =ServerType::CreateListenSocket(8601);
+
+    std::vector < pid_t > pids;
+    pid_t pid;
+    for(int i=0; i<g_numprocess; i++)
+    {
+        pid =fork();
+        if(pid<0)
+        {
+            printf("fork error,error=%s \n",strerror(errno));
+            break;
+        }
+        else if(pid==0)
+        {
+            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler));
+            printf("child, pid=%d \n",int(getpid()));
+            server->Start();
+        }
+        else
+        {
+            printf("father, pid=%d \n",int(getpid()));
+            pids.push_back(pid);
+            continue;
+        }
+    }
+
+    int status =0;
+    for(int i=0; i<int(pids.size()); i++)
+    {
+        waitpid(pids[i],&status,WUNTRACED | WCONTINUED);
+    }
 }
 
 cf_int main(cf_int argc,cf_char * argv[])
 {
+    if(argc<2)
+    {
+        printf("Usage:%s <process count> \n",argv[0]);
+        return 0;
+    }
+    g_numprocess =atoi(argv[1]);
     Run();
     return 0;
 }
