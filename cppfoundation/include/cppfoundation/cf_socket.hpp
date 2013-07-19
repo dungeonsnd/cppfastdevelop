@@ -39,25 +39,23 @@ class Socket : public NonCopyable
 {
 public:
     Socket(cf_fd fd, in_addr ip ,cf_uint16 port):
-        _fd(fd),_ip(ip),_port(port)
+        _fd(fd),_ip(ip),_port(port),_bShutdown(false)
     {}
     ~Socket()
     {
         if (_fd > 0)
-            cf_shutdown(_fd, SHUT_WR);
-    }
-    cf_void Close()
-    {
-        if (_fd > 0)
             cf_close(_fd);
-        else
-            _THROW_FMT(ValueError, "_fd{%d}<=0 !", cf_int(_fd));
-        _fd =-1;
     }
     cf_void Shutdown()
     {
+        if (_bShutdown)
+            return;
         if (_fd > 0)
-            cf_shutdown(_fd, SHUT_WR);
+        {
+            if (0!=cf_shutdown(_fd, SHUT_WR))
+                _THROW(SyscallExecuteError, "Failed to execute cf_shutdown !");
+            _bShutdown =true;
+        }
         else
             _THROW_FMT(ValueError, "_fd{%d}<=0 !", cf_int(_fd));
     }
@@ -94,6 +92,7 @@ private:
     cf_fd _fd;
     in_addr _ip;
     cf_uint16 _port;
+    bool _bShutdown;
 };
 
 typedef std::shared_ptr < Socket > T_SESSION;

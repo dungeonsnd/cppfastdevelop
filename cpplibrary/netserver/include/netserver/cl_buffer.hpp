@@ -33,9 +33,9 @@ namespace bufferdefs
 {
 enum
 {
-    SIZE_READBUFFER_DEFAULT =2048,
-    SIZE_WRITEBUFFER_DEFAULT =8192,
-    SIZE_POOLSIZE_DEFAULT =1024
+    SIZE_READBUFFER_DEFAULT =2048, // 2k
+    SIZE_WRITEBUFFER_DEFAULT =4096, // 6k
+    SIZE_POOLSIZE_DEFAULT =4096 // 4k
 };
 } // namespace bufferdefs
 
@@ -73,10 +73,10 @@ public:
     }
     cf_void SetTotal(cf_uint32 total)
     {
-        CF_PRINT_FUNC;
         if(_total)
             _THROW_FMT(cf::ValueError, "_total{%u}!=0 !", _total);
-        _buf.resize(total);
+        if(total>_total)
+            _buf.resize(total);
         _total =total;
     }
     cf_uint32 GetTotal() cf_const
@@ -134,7 +134,8 @@ public:
         CF_PRINT_FUNC;
         if(_total)
             _THROW_FMT(cf::ValueError, "_total{%u}!=0 !", _total);
-        _buf.resize(total);
+        if(total>_total)
+            _buf.resize(total);
         memcpy(&_buf[0],buffer,total);
         _total =total;
     }
@@ -166,6 +167,8 @@ template < typename BufferType >
 class BufferPool : public cf::NonCopyable
 {
 public:
+    typedef std::list< std::shared_ptr< BufferType > > T_LISTFREE;
+
     BufferPool(cf_int poolsize =bufferdefs::SIZE_POOLSIZE_DEFAULT)
     {
         if(poolsize<1)
@@ -217,8 +220,14 @@ public:
         _free.push_back(rb);
     }
 
+    cf_void DumpStatus()
+    {
+        //        typename T_LISTFREE::iterator it =_free.begin();
+        printf("_free.size=%u \n",(cf_uint32)(_free.size()));
+
+    }
 private:
-    std::list < std::shared_ptr < BufferType > > _free;
+    T_LISTFREE _free;
 };
 
 

@@ -86,6 +86,7 @@ public:
         else
         {
             rb =_rbpool.GetFromPool();
+            rb->Clear();
             _readBuf.insert( std::make_pair(fd,rb) );
         }
         rb->SetTotal(sizeToRead);
@@ -103,10 +104,8 @@ public:
         }
         else
         {
-            CF_NEWOBJ(p, WriteBuffer);
-            if(NULL==p)
-                _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
-            wb.reset(p);
+            wb =_wbpool.GetFromPool();
+            wb->Clear();
             _writeBuf.insert( std::make_pair(fd,wb) );
         }
         wb->SetBuffer(buf,bufSize);
@@ -115,7 +114,25 @@ public:
     cf_void AsyncClose(cf_fd fd)
     {
         CF_PRINT_FUNC;
-        // TODO
+        // TODO: Need test. Be careful about _rbpool.PutIntoPool() and removing k-v from _readBuf.
+        // Shall we support half-close ?
+        _demux->DelConn(fd);
+        ClearSessionAndBuffer(fd);
+        /*
+                T_MAPSESSIONS::iterator it =_mapSession.find(fd);
+                if( it!=_mapSession.end() )
+                {
+                    cf::T_SESSION session =it->second;
+                    OnCloseComplete(session); // Don't need to notify user,i think.
+                }
+                else
+                {
+                    //Warning
+        #if CF_SWITCH_PRINT
+                    fprintf (stderr, "OnClose,Warning ,fd=%d \n", fd);
+        #endif
+                }
+        */
     }
 
     cf_void OnAccept()
@@ -124,9 +141,11 @@ public:
         T_VECCLIENTS clients;
         cf::AcceptAsync(_listenfd, clients);
         cf_fd fd;
-#if CF_SWITCH_PRINT
-        fprintf (stderr, "OnAccept,clients.size()=%u \n", (cf_uint32)clients.size());
+#if 1
+        fprintf (stderr, "OnAccept,clients.size()=%u,_mapSession.size()=%u,pid=%d\n",
+                 (cf_uint32)clients.size(),(cf_uint32)_mapSession.size(),int(getpid()));
 #endif
+
         for(T_VECCLIENTS::iterator it=clients.begin(); it!=clients.end(); it++)
         {
             cf::T_SESSION session =*it;
@@ -178,6 +197,10 @@ public:
             fprintf (stderr, "OnRead,Warning ,fd=%d \n", fd);
 #endif
         }
+#if 0
+        printf("++++++++, OnRead, pid=%d \n",int(getpid()));
+        DumpStatus();
+#endif
     }
 
     cf_void OnWrite(cf_fd fd)
@@ -206,8 +229,7 @@ public:
     }
     cf_void OnClose(cf_fd fd)
     {
-        // TODO: When to invoke _rbpool.PutIntoPool() and
-        //       when to remove k-v from _readBuf。Alse write pool and buf.
+        // TODO: Need test. Be careful about _rbpool.PutIntoPool() and removing k-v from _readBuf.
         CF_PRINT_FUNC;
         _demux->DelConn(fd);
 
@@ -216,6 +238,7 @@ public:
         {
             cf::T_SESSION session =it->second;
             OnCloseComplete(session);
+            ClearSessionAndBuffer(fd);
         }
         else
         {
@@ -224,15 +247,22 @@ public:
             fprintf (stderr, "OnClose,Warning ,fd=%d \n", fd);
 #endif
         }
+#if 0
+        fprintf (stderr, "OnClose,fd=%d, pid=%d \n", fd,int(getpid()));
+#endif
     }
     cf_void OnTimeout()
     {
         CF_PRINT_FUNC;
         OnTimeoutComplete();
+#if 1
+        printf("++++++++, OnTimeout, pid=%d \n",int(getpid()));
+        DumpStatus();
+#endif
     }
     cf_void OnError(cf_fd fd)
     {
-        // TODO : Remove k-v from map, release buf from pool.
+        // TODO :  Need test. Be careful about _rbpool.PutIntoPool() and removing k-v from _readBuf.
         CF_PRINT_FUNC;
         _demux->DelConn(fd);
 
@@ -241,16 +271,99 @@ public:
         {
             cf::T_SESSION session =it->second;
             OnErrorComplete(session);
+            ClearSessionAndBuffer(fd);
         }
         else
         {
             //Warning
 #if CF_SWITCH_PRINT
-            fprintf (stderr, "OnClose,Warning ,fd=%d \n", fd);
+            fprintf (stderr, "OnError,Warning ,fd=%d \n", fd);
 #endif
         }
     }
 private:
+    cf_void ClearSessionAndBuffer(cf_fd fd)
+    {
+        if (1!=_mapSession.erase(fd))
+        {
+#if CF_SWITCH_PRINT
+            fprintf (stderr, "AsyncClose,Warning ,fd=%d not in _mapSession \n", fd);
+#endif
+        }
+
+        T_MAPREADBUFFER::iterator itrd =_readBuf.find(fd);
+        if( itrd!=_readBuf.end() )
+        {
+            std::shared_ptr < ReadBuffer > rb =itrd->second;
+            _rbpool.PutIntoPool(rb);
+            _readBuf.erase(itrd);
+        }
+        else
+        {
+#if CF_SWITCH_PRINT
+            fprintf (stderr, "AsyncClose,Warning ,fd=%d not in _readBuf \n", fd);
+#endif
+        }
+
+        T_MAPWRITEBUFFER::iterator itwr =_writeBuf.find(fd);
+        if( itwr!=_writeBuf.end() )
+        {
+            std::shared_ptr < WriteBuffer > wb =itwr->second;
+            _wbpool.PutIntoPool(wb);
+            _writeBuf.erase(itwr);
+        }
+        else
+        {
+#if CF_SWITCH_PRINT
+            fprintf (stderr, "AsyncClose,Warning ,fd=%d not in _writeBuf \n", fd);
+#endif
+        }
+    }
+
+    cf_void DumpStatus()
+    {
+        T_MAPSESSIONS::iterator it =_mapSession.begin();
+        printf("_mapSession.size()=%u: \n",(cf_uint32)(_mapSession.size()));
+        for(; it!=_mapSession.end(); )
+        {
+            printf("%d",it->first);
+            it++;
+            if(it!=_mapSession.end())
+                printf(", ");
+            else
+                printf(" \n");
+        }
+
+        T_MAPREADBUFFER::iterator itrb =_readBuf.begin();
+        printf("_readBuf.size()=%u: \n",(cf_uint32)(_readBuf.size()));
+        for(; itrb!=_readBuf.end();)
+        {
+            printf("%d",itrb->first);
+            itrb++;
+            if(itrb!=_readBuf.end())
+                printf(", ");
+            else
+                printf(" \n");
+        }
+
+        T_MAPWRITEBUFFER::iterator itwb =_writeBuf.begin();
+        printf("_writeBuf.size()=%u: \n",(cf_uint32)(_writeBuf.size()));
+        for(; itwb!=_writeBuf.end();)
+        {
+            printf("%d",itwb->first);
+            itwb++;
+            if(itwb!=_writeBuf.end())
+                printf(", ");
+            else
+                printf(" \n");
+        }
+
+        printf("_rbpool: \n");
+        _rbpool.DumpStatus();
+        printf("_wbpool: \n");
+        _wbpool.DumpStatus();
+    }
+
     cf_fd _listenfd;
     std::shared_ptr < cf::Demux > _demux;
     T_MAPSESSIONS _mapSession;

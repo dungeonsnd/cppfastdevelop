@@ -29,6 +29,13 @@
 
 namespace cl
 {
+namespace serverdefs
+{
+enum
+{
+    WAIT_TIMEOUTMSEC_DEFAULT =4000
+};
+} // namespace serverdefs
 
 template <typename EventHandlerType>
 class Server : public cf::NonCopyable
@@ -48,7 +55,7 @@ public:
         if(NULL==p)
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
         _eventloop.reset(p);
-        _timeoutMilliseconds =8000;
+        _timeoutMilliseconds =serverdefs::WAIT_TIMEOUTMSEC_DEFAULT;
     }
     cf_void Final(cf_fd listenfd)
     {

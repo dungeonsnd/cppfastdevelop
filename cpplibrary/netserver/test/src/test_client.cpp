@@ -103,8 +103,10 @@ cf_pvoid Run(void * p)
                                        body.size());
         if(succ)
         {
-            /*             printf("Sent succeeded ! hasSent=%d ,k=%d ,",int(hasSent),k);
-                        printf("buff=%s \n",body.c_str()+HEADER_LEN); */
+#if 0
+            printf("Sent succeeded ! hasSent=%d ,k=%d ,",int(hasSent),k);
+            printf("buff=%s \n",body.c_str()+HEADER_LEN);
+#endif
         }
         else
             printf("Warning,Send timeout ! \n");
@@ -119,8 +121,10 @@ cf_pvoid Run(void * p)
                                   peerClosedWhenRead,8000);
         if(succ)
         {
-            /*             printf("Recv succeeded ! hasRecv=%d , k=%d ,",int(hasRecv),k);
-                        printf("buff=%s \n",g_bufrecv.c_str()); */
+#if 0
+            printf("Recv succeeded ! hasRecv=%d ,k=%d ,",int(hasRecv),k);
+            printf("buff=%s \n",g_bufrecv.c_str());
+#endif
         }
         else
             printf("Warning,Recv timeout ! \n");
@@ -129,7 +133,9 @@ cf_pvoid Run(void * p)
                    (cf_uint32)hasRecv,(cf_uint32)shouldRecv,cf_uint32(peerClosedWhenRead));
     }
 
-    //    printf("cf_close ! tid=%u\n",(cf_uint32)pthread_self());
+#if 0
+    printf("cf_close ! tid=%u\n",(cf_uint32)pthread_self());
+#endif
     cf_close(sockfd);
     return NULL;
 }

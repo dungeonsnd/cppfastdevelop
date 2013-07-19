@@ -102,7 +102,6 @@ private:
 int g_numprocess =0;
 cf_void Run()
 {
-    IOCompleteHandler ioHandler;
     typedef cl::TcpServer < IOCompleteHandler > ServerType;
     cf_fd severfd =ServerType::CreateListenSocket(8601);
 
@@ -118,13 +117,15 @@ cf_void Run()
         }
         else if(pid==0)
         {
+            IOCompleteHandler ioHandler;
             std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler));
             printf("child, pid=%d \n",int(getpid()));
             server->Start();
+            return ;
         }
         else
         {
-            printf("father, pid=%d \n",int(getpid()));
+            printf("parent, pid=%d \n",int(getpid()));
             pids.push_back(pid);
             continue;
         }
