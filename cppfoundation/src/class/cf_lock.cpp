@@ -69,18 +69,20 @@ cf_void PthreadMutex::UnLock() cf_const
     if (0!=rt)
         _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_mutex_unlock , rt=%d !",rt)
     }
-cf_void PthreadMutex::TryLock() cf_const
+bool PthreadMutex::TryLock() cf_const
 {
     cf_int rt =pthread_mutex_trylock(&_mutex);
     if (0!=rt)
     {
         if(EBUSY==rt)
-            _THROW_FMT(AlreadyLockedInfo,
-            "Failed to execute pthread_mutex_trylock , rt=%d , already locked!",rt)
-            else
-                _THROW_FMT(SyscallExecuteError,
-                "Failed to execute pthread_mutex_trylock , rt=%d !",rt)
-            }
+            return false;
+        else
+        {
+            _THROW_FMT(SyscallExecuteError,
+            "Failed to execute pthread_mutex_trylock , rt=%d !",rt);
+        }
+    }
+    return true;
 }
 
 pthread_mutex_t & PthreadMutex::GetMutex()
@@ -112,18 +114,20 @@ cf_void RawPthreadMutex::UnLock() cf_const
     if (0!=rt)
         _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_mutex_unlock , rt=%d !",rt)
     }
-cf_void RawPthreadMutex::TryLock() cf_const
+bool RawPthreadMutex::TryLock() cf_const
 {
     cf_int rt =pthread_mutex_trylock(_mutex);
     if (0!=rt)
     {
         if(EBUSY==rt)
-            _THROW_FMT(AlreadyLockedInfo,
-            "Failed to execute pthread_mutex_trylock , rt=%d , already locked!",rt)
-            else
-                _THROW_FMT(SyscallExecuteError,
-                "Failed to execute pthread_mutex_trylock , rt=%d !",rt)
-            }
+            return false;
+        else
+        {
+            _THROW_FMT(SyscallExecuteError,
+            "Failed to execute pthread_mutex_trylock , rt=%d !",rt);
+        }
+    }
+    return true;
 }
 
 
@@ -155,15 +159,18 @@ cf_void PosixSemaphore::Lock() cf_const
 }
 
 
-cf_void PosixSemaphore::TryLock() cf_const
+bool PosixSemaphore::TryLock() cf_const
 {
     if (0 != cf_sem_trywait(_sem))
     {
         if(EAGAIN==errno)
-            _THROW(WouldBlockInfo, "Failed to execute cf_sem_trywait, would block !")
-            else
-                _THROW(SyscallExecuteError, "Failed to execute cf_sem_trywait !")
-            }
+            return false;
+        else
+        {
+            _THROW(SyscallExecuteError, "Failed to execute cf_sem_trywait !");
+        }
+    }
+    return true;
 }
 
 cf_void PosixSemaphore::UnLock() cf_const
@@ -211,18 +218,20 @@ cf_void RawPthreadRWMutex::ReadLock() cf_const
     if (0!=rt)
         _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_rwlock_rdlock , rt=%d !",rt)
     }
-cf_void RawPthreadRWMutex::TryReadLock() cf_const
+bool RawPthreadRWMutex::TryReadLock() cf_const
 {
     cf_int rt =pthread_rwlock_tryrdlock(&_lock);
     if (0!=rt)
     {
         if(EBUSY==rt)
-            _THROW_FMT(AlreadyLockedInfo,
-            "Failed to execute pthread_rwlock_tryrdlock , rt=%d , already locked!",rt)
-            else
-                _THROW_FMT(SyscallExecuteError,
-                "Failed to execute pthread_rwlock_tryrdlock , rt=%d !",rt)
-            }
+            return false;
+        else
+        {
+            _THROW_FMT(SyscallExecuteError,
+            "Failed to execute pthread_rwlock_tryrdlock , rt=%d !",rt);
+        }
+    }
+    return true;
 }
 
 cf_void RawPthreadRWMutex::WriteLock() cf_const
@@ -231,18 +240,20 @@ cf_void RawPthreadRWMutex::WriteLock() cf_const
     if (0!=rt)
         _THROW_FMT(SyscallExecuteError, "Failed to execute pthread_rwlock_wrlock , rt=%d !",rt)
     }
-cf_void RawPthreadRWMutex::TryWriteLock() cf_const
+bool RawPthreadRWMutex::TryWriteLock() cf_const
 {
     cf_int rt =pthread_rwlock_trywrlock(&_lock);
     if (0!=rt)
     {
         if(EBUSY==rt)
-            _THROW_FMT(AlreadyLockedInfo,
-            "Failed to execute pthread_rwlock_trywrlock , rt=%d , already locked!",rt)
-            else
-                _THROW_FMT(SyscallExecuteError,
-                "Failed to execute pthread_rwlock_trywrlock , rt=%d !",rt)
-            }
+            return false;
+        else
+        {
+            _THROW_FMT(SyscallExecuteError,
+            "Failed to execute pthread_rwlock_trywrlock , rt=%d !",rt);
+        }
+    }
+    return true;
 }
 
 cf_void RawPthreadRWMutex::UnLock() cf_const
@@ -260,7 +271,7 @@ RawFileRWMutex::RawFileRWMutex(cf_const std::string & file)
         _THROW(SyscallExecuteError, "Failed to execute cf_open !")
     }
 
-cf_void RawFileRWMutex::ReadLock()cf_const
+cf_void RawFileRWMutex::ReadLock()
 {
     struct flock lock;
     lock.l_type = F_RDLCK;
@@ -271,7 +282,7 @@ cf_void RawFileRWMutex::ReadLock()cf_const
         _THROW(SyscallExecuteError, "Failed to execute cf_fcntl !")
     }
 
-cf_void RawFileRWMutex::TryReadLock()cf_const
+bool RawFileRWMutex::TryReadLock()
 {
     struct flock lock;
     lock.l_type = F_RDLCK;
@@ -282,13 +293,15 @@ cf_void RawFileRWMutex::TryReadLock()cf_const
     if(-1==rt)
     {
         if(EACCES==rt || EAGAIN==rt)
-            _THROW_FMT(AlreadyLockedInfo,
-            "Failed to execute cf_fcntl , rt=%d , already locked!",rt)
-            else
-                _THROW(SyscallExecuteError, "Failed to execute cf_fcntl !")
-            }
+            return false;
+        else
+        {
+            _THROW(SyscallExecuteError, "Failed to execute cf_fcntl !")
+        }
+    }
+    return true;
 }
-cf_void RawFileRWMutex::WriteLock()cf_const
+cf_void RawFileRWMutex::WriteLock()
 {
     struct flock lock;
     lock.l_type = F_WRLCK;
@@ -296,9 +309,9 @@ cf_void RawFileRWMutex::WriteLock()cf_const
     lock.l_start = 0;
     lock.l_len = 0;
     if(-1==cf_fcntl(_fd, F_SETLKW, &lock))
-        _THROW(SyscallExecuteError, "Failed to execute cf_fcntl !")
-    }
-cf_void RawFileRWMutex::TryWriteLock()cf_const
+        _THROW(SyscallExecuteError, "Failed to execute cf_fcntl !");
+}
+bool RawFileRWMutex::TryWriteLock()
 {
     struct flock lock;
     lock.l_type = F_WRLCK;
@@ -309,13 +322,17 @@ cf_void RawFileRWMutex::TryWriteLock()cf_const
     if(-1==rt)
     {
         if(EACCES==rt || EAGAIN==rt)
-            _THROW_FMT(AlreadyLockedInfo,
-            "Failed to execute cf_fcntl , rt=%d , already locked!",rt)
-            else
-                _THROW(SyscallExecuteError, "Failed to execute cf_fcntl !")
-            }
+        {
+            return false;
+        }
+        else
+        {
+            _THROW(SyscallExecuteError, "Failed to execute cf_fcntl !");
+        }
+    }
+    return true;
 }
-cf_void RawFileRWMutex::UnLock()cf_const
+cf_void RawFileRWMutex::UnLock()
 {
     struct flock lock;
     lock.l_type = F_UNLCK;
@@ -326,7 +343,7 @@ cf_void RawFileRWMutex::UnLock()cf_const
     if(-1==cf_fcntl(_fd, F_SETLK, &lock))
         _THROW(SyscallExecuteError, "Failed to execute cf_fcntl !")
     }
-bool RawFileRWMutex::IsLock()cf_const
+bool RawFileRWMutex::IsLock()
 {
     struct flock lock;
     lock.l_type = F_WRLCK;
@@ -344,7 +361,7 @@ bool RawFileRWMutex::IsLock()cf_const
         }
     return locked;
 }
-bool RawFileRWMutex::IsLock(pid_t  lockedpid)cf_const
+bool RawFileRWMutex::IsLock(pid_t  lockedpid)
 {
     struct flock lock;
     lock.l_type = F_WRLCK;

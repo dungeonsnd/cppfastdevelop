@@ -31,6 +31,14 @@
 namespace cl
 {
 
+namespace eventhandlerdefs
+{
+enum
+{
+    SIZE_MAXCONN = 50
+};
+} // namespace eventhandlerdefs
+
 class EventHandler : public cf::NonCopyable
 {
 public:
@@ -139,11 +147,12 @@ public:
     {
         CF_PRINT_FUNC;
         T_VECCLIENTS clients;
-        cf::AcceptAsync(_listenfd, clients);
-        cf_fd fd;
-#if 1
-        fprintf (stderr, "OnAccept,clients.size()=%u,_mapSession.size()=%u,pid=%d\n",
-                 (cf_uint32)clients.size(),(cf_uint32)_mapSession.size(),int(getpid()));
+        if(false==cf::AcceptAsync(_listenfd, clients))
+            return;
+        cf_fd fd =0;
+#if CF_SWITCH_PRINT
+        fprintf (stderr, "OnAccept,clients.size()=%u,pid=%d\n",
+                 (cf_uint32)clients.size(),int(getpid()));
 #endif
 
         for(T_VECCLIENTS::iterator it=clients.begin(); it!=clients.end(); it++)
@@ -168,6 +177,20 @@ public:
 #endif
             }
         }
+
+        // load balance.
+        cf_uint32 conncount =(cf_uint32)_mapSession.size();
+        if (conncount>=eventhandlerdefs::SIZE_MAXCONN)
+        {
+            fprintf (stderr, "OnAccept,conncount=%u,pid=%d\n",
+                     conncount,int(getpid()));
+            _demux->DelConn(_listenfd);
+        }
+
+#if CF_SWITCH_PRINT
+        fprintf (stderr, "OnAccept,conncount=%u,pid=%d\n",
+                 (cf_uint32)_mapSession.size(),int(getpid()));
+#endif
     }
 
     cf_void OnRead(cf_fd fd)
@@ -290,6 +313,17 @@ private:
             fprintf (stderr, "AsyncClose,Warning ,fd=%d not in _mapSession \n", fd);
 #endif
         }
+
+        // load balance.
+        if(_mapSession.size()<eventhandlerdefs::SIZE_MAXCONN)
+        {
+#if 1
+            fprintf (stderr, "ClearSessionAndBuffer,_demux->AddConn,conncount=%u,pid=%d\n",
+                     (cf_uint32)(_mapSession.size()),int(getpid()));
+#endif
+            _demux->AddConn(_listenfd, cf::networkdefs::EV_READ);
+        }
+
 
         T_MAPREADBUFFER::iterator itrd =_readBuf.find(fd);
         if( itrd!=_readBuf.end() )

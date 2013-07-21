@@ -57,7 +57,7 @@ public:
     ~FakeMutex() {};
     cf_void Lock() cf_const {}
     cf_void UnLock() cf_const {}
-    cf_void TryLock() cf_const {}
+    bool TryLock() cf_const {return true;}
 };
 // Used to add no-operation.
 class FakeRWMutex : public NonCopyable
@@ -66,10 +66,10 @@ public:
     FakeRWMutex() {};
     ~FakeRWMutex() {};
     cf_void ReadLock() cf_const {}
-    cf_void TryReadLock() cf_const {}
+    bool TryReadLock() cf_const {return true;}
     cf_void WriteLock() cf_const {}
     cf_void TryWriteLock() cf_const {}
-    cf_void UnLock() cf_const {}
+    bool UnLock() cf_const {return true;}
 };
 
 
@@ -80,7 +80,7 @@ public:
     ~PthreadMutex();
     cf_void Lock() cf_const;
     cf_void UnLock() cf_const;
-    cf_void TryLock() cf_const;
+    bool TryLock() cf_const;
     pthread_mutex_t & GetMutex();
 private:
     mutable pthread_mutex_t _mutex;
@@ -92,7 +92,7 @@ public:
     RawPthreadMutex(pthread_mutex_t * m);
     cf_void Lock() cf_const;
     cf_void UnLock() cf_const;
-    cf_void TryLock() cf_const;
+    bool TryLock() cf_const;
     pthread_mutex_t & GetMutex()
     {
         return *_mutex;
@@ -113,7 +113,7 @@ public:
     ~PosixSemaphore();
     cf_int GetValue() cf_const;
     cf_void Lock() cf_const;
-    cf_void TryLock() cf_const;
+    bool TryLock() cf_const;
     cf_void UnLock() cf_const;
     cf_void Unlink();
     cf_void Close();
@@ -133,9 +133,9 @@ public:
     RawPthreadRWMutex();
     ~RawPthreadRWMutex();
     cf_void ReadLock() cf_const;
-    cf_void TryReadLock() cf_const;
+    bool TryReadLock() cf_const;
     cf_void WriteLock() cf_const;
-    cf_void TryWriteLock() cf_const;
+    bool TryWriteLock() cf_const;
     cf_void UnLock() cf_const;
 private:
     mutable pthread_rwlock_t _lock;
@@ -146,13 +146,13 @@ class RawFileRWMutex : public NonCopyable
 public:
     RawFileRWMutex(cf_const std::string & file);
     ~RawFileRWMutex();
-    cf_void ReadLock() cf_const;
-    cf_void TryReadLock() cf_const;
-    cf_void WriteLock() cf_const;
-    cf_void TryWriteLock() cf_const;
-    cf_void UnLock() cf_const;
-    bool IsLock() cf_const;
-    bool IsLock(pid_t  lockedpid) cf_const;
+    cf_void ReadLock();
+    bool TryReadLock();
+    cf_void WriteLock();
+    bool TryWriteLock();
+    cf_void UnLock();
+    bool IsLock();
+    bool IsLock(pid_t  lockedpid);
 private:
     cf_int _fd;
 };
@@ -187,20 +187,21 @@ public:
     {
         _lock.UnLock();
     }
-    cf_void TryLock() cf_const
+    bool TryLock() cf_const
     {
         if (_type == lockdefs::READ)
         {
-            _lock.TryReadLock();
+            return _lock.TryReadLock();
         }
         else if (_type == lockdefs::WRITE)
         {
-            _lock.TryWriteLock();
+            return _lock.TryWriteLock();
         }
         else
         {
             _THROW_FMT(RuntimeWarning, "_type{%d} unexpected !",_type);
         }
+        return true;
     }
 protected:
     T_RawRWMutex & _lock;

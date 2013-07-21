@@ -51,7 +51,7 @@ public:
         :_listenfd(listenfd),_maxEvents(maxEvents)
     {
         _epfd =cf_epoll_create(epolldefs::SIZE_CREATE);
-        EpollCtl(_listenfd,EPOLL_CTL_ADD, EPOLLIN);
+        AddConn(_listenfd,networkdefs::EV_READ);
         //        EpollCtl(_pipe[0],EPOLL_CTL_ADD, EPOLLIN);
         if(_maxEvents<1)
             _THROW_FMT(ValueError, "_maxEvents{%d}<1 !",_maxEvents);
@@ -146,7 +146,7 @@ public:
         //        usleep(100*1000); // only for testing
 #endif
 #if CFD_SWITCH_PRINT
-        fprintf (stderr, "epoll_wait return , n=%d \n",n);
+        fprintf (stderr, "epoll_wait return , n=%d ,pid=%d \n",n,cf_int(getpid()));
 #endif
 
         if(-1==n)

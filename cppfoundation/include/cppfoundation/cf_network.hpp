@@ -97,7 +97,7 @@ bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
                      ssize_t & hasDone, bool & peerClosedWhenRead,
                      cf_int32 timeoutMilliSeconds =-1, ssize_t segsize =-1);
 
-cf_void AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients);
+bool AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients);
 cf_int SendSegmentAsync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
                         ssize_t segsize =-1);
 cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,

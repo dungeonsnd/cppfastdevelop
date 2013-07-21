@@ -251,24 +251,26 @@ bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
     ((errno == EAGAIN)||(errno == EWOULDBLOCK)||(errno==ECONNABORTED))
 #define CF_NETWORK_NULLFD \
     ((errno == EMFILE)||(errno == ENFILE)||(errno == ENOBUFS)||(errno == ENOMEM))
-cf_void AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
+bool AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
 {
     static cf_fd nullfd =cf_open("/dev/null",O_RDONLY|O_CLOEXEC,0);
     //    if(nullfd<0) // Don't test for performance.
     //        _THROW(cf::SyscallExecuteError, "Failed to execute cf_open !");
+
+    bool rt =false;
     while (true)
     {
         struct sockaddr_in in_addr;
         socklen_t in_len;
-
         in_len = sizeof in_addr;
         cf_int infd = cf_accept (listenfd, (sockaddr *)&in_addr, &in_len);
         if (infd == -1)
         {
             if (CF_NETWORK_ACCEPT_BREAK)
             {
-#if CF_SWITCH_PRINT
-                fprintf (stderr, "CF_NETWORK_ACCEPT_BREAK , pid=%d \n",int(getpid()));
+#if 0
+                fprintf (stderr, "CF_NETWORK_ACCEPT_BREAK ,errno=%d,%s, pid=%d \n\n",
+                         errno,strerror(errno),int(getpid()));
 #endif
                 break;
             }
@@ -314,8 +316,10 @@ cf_void AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
             ses.reset(p);
 
             clients.push_back(ses);
+            rt =true;
         }
     }
+    return rt;
 }
 
 cf_int SendSegmentAsync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
