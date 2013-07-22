@@ -52,7 +52,7 @@ template <typename EventHandlerType>
 class EventLoop : public cf::NonCopyable
 {
 public:
-    EventLoop(cf_fd listenfd, EventHandlerType & handler)
+    EventLoop(cf_fd listenfd, EventHandlerType & handler, cf_int index)
         :_stop(false),_handler(handler)
     {
         CF_NEWOBJ(p, Demux, listenfd);
@@ -60,7 +60,7 @@ public:
             _THROW(AllocateMemoryError, "Allocate memory failed !");
         _demux.reset(p);
 
-        _handler.Init(listenfd, _demux);
+        _handler.Init(listenfd, _demux, index);
     }
     cf_void Stop()
     {

@@ -153,6 +153,12 @@ public:
     cf_void UnLock();
     bool IsLock();
     bool IsLock(pid_t  lockedpid);
+    cf_int GetFd()
+    {
+        if(_fd<=0)
+            _THROW(ValueError, "_fd<=0 !");
+        return _fd;
+    }
 private:
     cf_int _fd;
 };

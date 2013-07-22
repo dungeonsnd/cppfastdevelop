@@ -118,7 +118,7 @@ cf_void Run()
         else if(pid==0)
         {
             IOCompleteHandler ioHandler;
-            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler));
+            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler,i));
             printf("child, pid=%d \n",int(getpid()));
             server->Start();
             return ;

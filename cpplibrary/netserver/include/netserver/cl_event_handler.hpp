@@ -55,10 +55,11 @@ public:
     ~EventHandler()
     {
     }
-    void Init(cf_fd listenfd, std::shared_ptr < cf::Demux > demux)
+    void Init(cf_fd listenfd, std::shared_ptr < cf::Demux > demux, cf_int index)
     {
         _listenfd =listenfd;
         _demux =demux;
+        _index =index;
     }
 
     virtual cf_void OnAcceptComplete(cf::T_SESSION session)
@@ -178,7 +179,13 @@ public:
             }
         }
 
+
         // load balance.
+        /*         static RawFileRWMutex lk("/tmp/netserverload.lock");
+                lk.WriteLock();
+                LockGuardUnlock lg(lk);
+                cf_int fd =lk.GetFd();
+                cf_write(); */
         cf_uint32 conncount =(cf_uint32)_mapSession.size();
         if (conncount>=eventhandlerdefs::SIZE_MAXCONN)
         {
@@ -186,6 +193,7 @@ public:
                      conncount,int(getpid()));
             _demux->DelConn(_listenfd);
         }
+
 
 #if CF_SWITCH_PRINT
         fprintf (stderr, "OnAccept,conncount=%u,pid=%d\n",
@@ -314,6 +322,7 @@ private:
 #endif
         }
 
+
         // load balance.
         if(_mapSession.size()<eventhandlerdefs::SIZE_MAXCONN)
         {
@@ -400,6 +409,7 @@ private:
 
     cf_fd _listenfd;
     std::shared_ptr < cf::Demux > _demux;
+    cf_int _index;
     T_MAPSESSIONS _mapSession;
 
     T_MAPREADBUFFER _readBuf;

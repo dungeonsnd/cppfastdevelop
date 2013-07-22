@@ -60,6 +60,22 @@ private:
     cf_const T * _lock;
 };
 
+
+template <typename T>
+class LockGuardUnlock : public NonCopyable
+{
+public:
+    LockGuardUnlock(cf_const T & lock):_lock(lock)
+    {
+    }
+    ~LockGuardUnlock()
+    {
+        _lock.UnLock();
+    }
+private:
+    cf_const T & _lock;
+};
+
 } // namespace cf
 #endif // _HEADER_FILE_CFD_CF_LOCK_GUARD_HPP_
 
