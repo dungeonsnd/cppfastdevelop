@@ -48,10 +48,12 @@ public:
     {
     }
 
-    cf_void Init(cf_fd listenfd, EventHandlerType & handler, cf_int index)
+    cf_void Init(cf_fd listenfd, EventHandlerType & handler,
+                 cf_int index, cf_uint maxConnections)
     {
         CF_PRINT_FUNC;
-        CF_NEWOBJ(p, cf::EventLoop< EventHandlerType > , listenfd, handler, index);
+        CF_NEWOBJ(p, cf::EventLoop< EventHandlerType > ,
+                  listenfd, handler, index, maxConnections);
         if(NULL==p)
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
         _eventloop.reset(p);
@@ -89,7 +91,8 @@ public:
         return listenfd;
     }
 
-    TcpServer(cf_fd listenfd, EventHandlerType & handler, cf_int index)
+    TcpServer(cf_fd listenfd, EventHandlerType & handler,
+              cf_int index, cf_uint maxConnections)
         :_listenfd(listenfd)
     {
         CF_PRINT_FUNC;
@@ -98,7 +101,7 @@ public:
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
         _server.reset(p);
 
-        _server->Init(_listenfd, handler, index);
+        _server->Init(_listenfd, handler, index, maxConnections);
     }
     ~TcpServer()
     {

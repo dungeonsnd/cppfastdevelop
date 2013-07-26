@@ -104,15 +104,15 @@ cf_pvoid Run(void * p)
         if(succ)
         {
 #if 0
-            printf("Sent succeeded ! hasSent=%d ,k=%d ,",int(hasSent),k);
-            printf("buff=%s \n",body.c_str()+HEADER_LEN);
+            fprintf(stderr,"Sent succeeded ! hasSent=%d ,k=%d ,",int(hasSent),k);
+            fprintf(stderr,"buff=%s \n",body.c_str()+HEADER_LEN);
 #endif
         }
         else
-            printf("Warning,Send timeout ! \n");
+            fprintf(stderr,"Warning,Send timeout ! \n");
         if(hasSent!=(cf_uint32)body.size())
-            printf("Warning,Recved len{%u}!=body.size(){%u}! \n",
-                   (cf_uint32)hasSent,(cf_uint32)(body.size()));
+            fprintf(stderr,"Warning,Recved len{%u}!=body.size(){%u}! \n",
+                    (cf_uint32)hasSent,(cf_uint32)(body.size()));
 
         peerClosedWhenRead =false;
         hasRecv =0;
@@ -122,19 +122,20 @@ cf_pvoid Run(void * p)
         if(succ)
         {
 #if 0
-            printf("Recv succeeded ! hasRecv=%d ,k=%d ,",int(hasRecv),k);
-            printf("buff=%s \n",g_bufrecv.c_str());
+            fprintf(stderr,"Recv succeeded ! hasRecv=%d ,k=%d ,",int(hasRecv),k);
+            fprintf(stderr,"buff=%s \n",g_bufrecv.c_str());
 #endif
         }
         else
-            printf("Warning,Recv timeout ! \n");
+            fprintf(stderr,"Warning,Recv timeout ! \n");
         if(hasRecv!=shouldRecv)
-            printf("Warning,Recved hasRecv{%u}!=shouldRecv{%u}! peerClosedWhenRead=%u \n",
-                   (cf_uint32)hasRecv,(cf_uint32)shouldRecv,cf_uint32(peerClosedWhenRead));
+            fprintf(stderr,
+                    "Warning,Recved hasRecv{%u}!=shouldRecv{%u}! peerClosedWhenRead=%u \n",
+                    (cf_uint32)hasRecv,(cf_uint32)shouldRecv,cf_uint32(peerClosedWhenRead));
     }
 
 #if 0
-    printf("cf_close ! tid=%u\n",(cf_uint32)pthread_self());
+    fprintf(stderr,"cf_close ! tid=%u\n",(cf_uint32)pthread_self());
 #endif
     cf_close(sockfd);
     return NULL;

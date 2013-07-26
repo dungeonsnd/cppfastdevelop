@@ -35,14 +35,15 @@ namespace epolldefs
 enum
 {
     SIZE_CREATE = 1,
-    SIZE_MAXEVENTS = 8192
+    SIZE_MAXEVENTS = 1024
 };
 } // namespace lockdefs
 
 class Epoll : public cf::NonCopyable
 {
 public:
-    typedef std::map < cf_fd, cf_ev > TYPE_MAPEVENT;
+    //    typedef std::map < cf_fd, cf_ev > TYPE_MAPEVENT;
+    typedef std::unordered_map < cf_fd, cf_ev > TYPE_MAPEVENT;
     typedef TYPE_MAPEVENT::iterator TYPE_MAPEVENT_ITER;
     typedef std::vector < std::pair < cf_fd, networkdefs::EV_TYPE > > TYPE_VECEVENT;
     typedef TYPE_VECEVENT::iterator TYPE_VECEVENT_ITER;

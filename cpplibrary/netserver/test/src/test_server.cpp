@@ -31,7 +31,7 @@ public:
     cf_void OnAcceptComplete(cf::T_SESSION session)
     {
         CF_PRINT_FUNC;
-#if CF_SWITCH_PRINT
+#if 0
         fprintf (stderr, "OnAcceptComplete,fd=%d,addr=%s \n",
                  session->Fd(),session->Addr().c_str());
 #endif
@@ -42,10 +42,10 @@ public:
                            std::shared_ptr < cl::ReadBuffer > readBuffer)
     {
         CF_PRINT_FUNC;
-#if CF_SWITCH_PRINT
-        //        fprintf (stderr, "OnReadComplete,fd=%d,addr=%s,total()=%d,buf=%s \n",
-        //                 session->Fd(),session->Addr().c_str(),readBuffer->GetTotal(),
-        //                 (cf_char *)(readBuffer->GetBuffer()));
+#if 0
+        fprintf (stderr, "OnReadComplete,fd=%d,addr=%s,total()=%d,buf=%s \n",
+                 session->Fd(),session->Addr().c_str(),readBuffer->GetTotal(),
+                 (cf_char *)(readBuffer->GetBuffer()));
 #endif
         //        printf("pid=%d \n",int(getpid()));
         cf_uint32 totalLen =readBuffer->GetTotal();
@@ -118,7 +118,8 @@ cf_void Run()
         else if(pid==0)
         {
             IOCompleteHandler ioHandler;
-            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler,i));
+            //            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler,i,i==1?0:25));
+            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler,i,25));
             printf("child, pid=%d \n",int(getpid()));
             server->Start();
             return ;

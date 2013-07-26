@@ -43,11 +43,17 @@ class EventHandler : public cf::NonCopyable
 {
 public:
 
-    typedef std::map < cf_fd, cf::T_SESSION  > T_MAPSESSIONS;
+    //    typedef std::map < cf_fd, cf::T_SESSION  > T_MAPSESSIONS;
+    typedef std::unordered_map < cf_fd, cf::T_SESSION  > T_MAPSESSIONS;
+
     typedef std::vector < cf::T_SESSION > T_VECCLIENTS;
 
-    typedef std::map < cf_fd, std::shared_ptr < ReadBuffer >  > T_MAPREADBUFFER;
-    typedef std::map < cf_fd, std::shared_ptr < WriteBuffer >  > T_MAPWRITEBUFFER;
+    //    typedef std::map < cf_fd, std::shared_ptr < ReadBuffer >  > T_MAPREADBUFFER;
+    typedef std::unordered_map < cf_fd, std::shared_ptr < ReadBuffer >  >
+    T_MAPREADBUFFER;
+    //    typedef std::map < cf_fd, std::shared_ptr < WriteBuffer >  > T_MAPWRITEBUFFER;
+    typedef std::unordered_map < cf_fd, std::shared_ptr < WriteBuffer >  >
+    T_MAPWRITEBUFFER;
 
     EventHandler()
     {
@@ -55,11 +61,13 @@ public:
     ~EventHandler()
     {
     }
-    void Init(cf_fd listenfd, std::shared_ptr < cf::Demux > demux, cf_int index)
+    void Init(cf_fd listenfd, std::shared_ptr < cf::Demux > demux,
+              cf_int index, cf_uint maxConnections =eventhandlerdefs::SIZE_MAXCONN)
     {
         _listenfd =listenfd;
         _demux =demux;
         _index =index;
+        _maxConnections =maxConnections;
     }
 
     virtual cf_void OnAcceptComplete(cf::T_SESSION session)
@@ -187,7 +195,7 @@ public:
                 cf_int fd =lk.GetFd();
                 cf_write(); */
         cf_uint32 conncount =(cf_uint32)_mapSession.size();
-        if (conncount>=eventhandlerdefs::SIZE_MAXCONN)
+        if (_maxConnections>0&&conncount>=_maxConnections)
         {
             fprintf (stderr, "OnAccept,conncount=%u,pid=%d\n",
                      conncount,int(getpid()));
@@ -324,7 +332,7 @@ private:
 
 
         // load balance.
-        if(_mapSession.size()<eventhandlerdefs::SIZE_MAXCONN)
+        if(_maxConnections>0&&_mapSession.size()<_maxConnections)
         {
 #if 1
             fprintf (stderr, "ClearSessionAndBuffer,_demux->AddConn,conncount=%u,pid=%d\n",
@@ -410,6 +418,7 @@ private:
     cf_fd _listenfd;
     std::shared_ptr < cf::Demux > _demux;
     cf_int _index;
+    cf_uint _maxConnections;
     T_MAPSESSIONS _mapSession;
 
     T_MAPREADBUFFER _readBuf;
