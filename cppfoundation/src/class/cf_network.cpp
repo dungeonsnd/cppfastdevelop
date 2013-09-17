@@ -52,8 +52,8 @@ cf_void SetBlocking(cf_int sockfd,bool blocking)
         _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !");
 }
 
-cf_int CreateServerSocket (const int port,const int socktype,bool blocking,
-                           const int backlog)
+cf_fd CreateServerSocket (const cf_int port,const cf_int socktype,bool blocking,
+                          const cf_int backlog)
 {
     struct addrinfo hints;
     struct addrinfo * result, *rp;
@@ -69,7 +69,7 @@ cf_int CreateServerSocket (const int port,const int socktype,bool blocking,
         _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_getaddrinfo ! %s.",
                    gai_strerror (rt));
 
-    cf_int listenfd;
+    cf_fd listenfd;
     cf_int tmperrno =0;
     for (rp = result; rp != NULL; rp = rp->ai_next)
     {
@@ -101,10 +101,10 @@ cf_int CreateServerSocket (const int port,const int socktype,bool blocking,
     return listenfd;
 }
 
-int CreateLocalServerSocket(const std::string & path,const int socktype,
-                            const int backlog)
+cf_int CreateLocalServerSocket(const std::string & path,const cf_int socktype,
+                               const cf_int backlog)
 {
-    int listenfd = cf_socket(AF_LOCAL, SOCK_STREAM, 0);
+    cf_int listenfd = cf_socket(AF_LOCAL, SOCK_STREAM, 0);
     if (listenfd != 0)
         _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_socket !");
     if ( 0!=cf_unlink(path.c_str()) )
@@ -121,7 +121,7 @@ int CreateLocalServerSocket(const std::string & path,const int socktype,
 }
 
 
-bool IsSocketBroken(cf_int fd)
+bool IsSocketBroken(cf_fd fd)
 {
     std::string buf(8, 0);
     cf_int flags = cf_fcntl(fd, F_GETFL, 0);
@@ -141,6 +141,26 @@ bool IsSocketBroken(cf_int fd)
     return broken;
 }
 
+cf_void ConnectToServer(cf_cpstr ip,cf_uint32 port,cf_uint32 sum,
+                        std::vector<cf_fd> & clientfds)
+{
+    for(cf_uint32 i=0; i<sum; i++)
+    {
+        cf_fd sockfd;
+        struct sockaddr_in servaddr;
+        sockfd=cf_socket(AF_INET, SOCK_STREAM, 0);
+        if(-1==sockfd)
+            _THROW(cf::SyscallExecuteError, "Failed to execute cf_socket !");
+        bzero(&servaddr, sizeof(servaddr));
+        servaddr.sin_family=AF_INET;
+        servaddr.sin_port=htons(port);
+        inet_pton(AF_INET, ip, &servaddr.sin_addr);
+        cf_int rt =cf_connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+        if (-1==rt)
+            _THROW(cf::SyscallExecuteError, "Failed to execute cf_connect !");
+        clientfds.push_back(sockfd);
+    }
+}
 
 cf_int IOWaitting(struct pollfd & pfd,cf_int32 timeoutMilliSeconds)
 {
@@ -153,12 +173,12 @@ cf_int IOWaitting(struct pollfd & pfd,cf_int32 timeoutMilliSeconds)
     return rt;
 }
 
-cf_int OutputWait(cf_int sockfd,cf_int32 timeoutMilliSeconds)
+cf_int OutputWait(cf_fd sockfd,cf_int32 timeoutMilliSeconds)
 {
     struct pollfd pfd = {sockfd,POLLOUT,0};
     return IOWaitting(pfd,timeoutMilliSeconds);
 }
-cf_int InputWait(cf_int sockfd,cf_int32 timeoutMilliSeconds)
+cf_int InputWait(cf_fd sockfd,cf_int32 timeoutMilliSeconds)
 {
     struct pollfd pfd = {sockfd,POLLIN,0};
     return IOWaitting(pfd,timeoutMilliSeconds);
@@ -168,7 +188,7 @@ cf_int InputWait(cf_int sockfd,cf_int32 timeoutMilliSeconds)
 return true,send successfully.hasDone bytes have sent.
 return false,timeout,hasDone bytes have sent.
 **/
-bool SendSegmentSync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
+bool SendSegmentSync(cf_fd sockfd,cf_cpstr buf, ssize_t totalLen,
                      ssize_t & hasDone,cf_int32 timeoutMilliSeconds,ssize_t segsize)
 {
     if(totalLen == 0)
@@ -203,7 +223,7 @@ bool SendSegmentSync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
     return true;
 }
 
-bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
+bool RecvSegmentSync(cf_fd sockfd,cf_char * buf, ssize_t totalLen,
                      ssize_t & hasDone, bool & peerClosedWhenRead,
                      cf_int32 timeoutMilliSeconds,ssize_t segsize)
 {
@@ -270,7 +290,7 @@ bool AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
             {
 #if 0
                 fprintf (stderr, "CF_NETWORK_ACCEPT_BREAK ,errno=%d,%s, pid=%d \n\n",
-                         errno,strerror(errno),int(getpid()));
+                         errno,strerror(errno),cf_int(getpid()));
 #endif
                 break;
             }
@@ -280,7 +300,7 @@ bool AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
                 fprintf (stderr, "Warning,accept return CF_NETWORK_NULLFD,"
                          "accept return -1 and errno=%d,%s!\n"
                          "going to close fd(%d),and close this client! pid=%d \n",
-                         errno,strerror(errno),nullfd,int(getpid()));
+                         errno,strerror(errno),nullfd,cf_int(getpid()));
 #endif
 
                 cf_close(nullfd);
@@ -322,7 +342,7 @@ bool AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients)
     return rt;
 }
 
-cf_int SendSegmentAsync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
+cf_int SendSegmentAsync(cf_fd sockfd,cf_cpstr buf, ssize_t totalLen,
                         ssize_t segsize)
 {
     if(totalLen == 0)
@@ -353,7 +373,7 @@ cf_int SendSegmentAsync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
     return cf_int(alreadyDone);
 }
 
-cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
+cf_int RecvSegmentAsync(cf_fd sockfd,cf_char * buf, ssize_t totalLen,
                         bool & peerClosedWhenRead, ssize_t segsize)
 {
     if(totalLen == 0)
@@ -397,48 +417,49 @@ namespace networkdefs
 union control_un_single
 {
     struct cmsghdr cm;
-    char control[ CMSG_SPACE(sizeof(int)*1) ];
+    char control[ CMSG_SPACE(sizeof(cf_int)*1) ];
 } ;
 const size_t sizeof_control_un_single =sizeof(control_un_single);
 
 union control_un_tiny
 {
     struct cmsghdr cm;
-    char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_TINY) ];
+    char control[ CMSG_SPACE(sizeof(cf_int)*SEND_FDS_SUMMAX_TINY) ];
 } ;
 const size_t sizeof_control_un_tiny =sizeof(control_un_single);
 
 union control_un_small
 {
     struct cmsghdr cm;
-    char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_SMALL) ];
+    char control[ CMSG_SPACE(sizeof(cf_int)*SEND_FDS_SUMMAX_SMALL) ];
 } ;
 const size_t sizeof_control_un_small =sizeof(control_un_single);
 
 union control_un_medium
 {
     struct cmsghdr cm;
-    char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_MEDIUM) ];
+    char control[ CMSG_SPACE(sizeof(cf_int)*SEND_FDS_SUMMAX_MEDIUM) ];
 } ;
 const size_t sizeof_control_un_medium =sizeof(control_un_single);
 
 union control_un_large
 {
     struct cmsghdr cm;
-    char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_LARGE) ];
+    char control[ CMSG_SPACE(sizeof(cf_int)*SEND_FDS_SUMMAX_LARGE) ];
 } ;
 const size_t sizeof_control_un_large =sizeof(control_un_single);
 
 union control_un_verylarge
 {
     struct cmsghdr cm;
-    char control[ CMSG_SPACE(sizeof(int)*SEND_FDS_SUMMAX_VERYLARGE) ];
+    char control[ CMSG_SPACE(sizeof(cf_int)*SEND_FDS_SUMMAX_VERYLARGE) ];
 } ;
 const size_t sizeof_control_un_verylarge =sizeof(control_un_single);
 
 } // namespace networkdefs
 
-ssize_t SendFds(const int fd, const int * sendfdarray,const size_t fdarraylen,
+ssize_t SendFds(const cf_int fd, const cf_int * sendfdarray,
+                const size_t fdarraylen,
                 void * dataExtra, const size_t dataExtraBytes)
 {
     std::string control_un(0,'\0');
@@ -463,11 +484,11 @@ ssize_t SendFds(const int fd, const int * sendfdarray,const size_t fdarraylen,
 
     struct cmsghdr * cmptr;
     cmptr = CMSG_FIRSTHDR(&msg);
-    cmptr->cmsg_len  =CMSG_LEN( sizeof(int)*fdarraylen );
+    cmptr->cmsg_len  =CMSG_LEN( sizeof(cf_int)*fdarraylen );
     cmptr->cmsg_level = SOL_SOCKET;
     cmptr->cmsg_type = SCM_RIGHTS;
     for(size_t i=0; i<fdarraylen; i++)
-        *( (int *) (CMSG_DATA(cmptr)+sizeof(int)*i) ) = sendfdarray[i];
+        *( (cf_int *) (CMSG_DATA(cmptr)+sizeof(cf_int)*i) ) = sendfdarray[i];
 
     msg.msg_name = NULL;
     msg.msg_namelen = 0;
@@ -481,7 +502,7 @@ ssize_t SendFds(const int fd, const int * sendfdarray,const size_t fdarraylen,
     return (sendmsg(fd, &msg, 0));
 }
 
-ssize_t RecvFds(const int fd, int * recvfdarray, const size_t fdarraylen,
+ssize_t RecvFds(const cf_int fd, cf_int * recvfdarray, const size_t fdarraylen,
                 void * dataExtra, size_t dataExtraBytes)
 {
     std::string control_un(0,'\0');
@@ -518,7 +539,7 @@ ssize_t RecvFds(const int fd, int * recvfdarray, const size_t fdarraylen,
         return(n);
 
     if ( (cmptr = CMSG_FIRSTHDR(&msg)) != NULL
-         &&  cmptr->cmsg_len == CMSG_LEN(sizeof(int)*fdarraylen)
+         &&  cmptr->cmsg_len == CMSG_LEN(sizeof(cf_int)*fdarraylen)
        )
     {
         if (cmptr->cmsg_level != SOL_SOCKET)
@@ -532,7 +553,7 @@ ssize_t RecvFds(const int fd, int * recvfdarray, const size_t fdarraylen,
             return -2;
         }
         for(size_t i=0; i<fdarraylen; i++)
-            recvfdarray[i] =*( (int *) (CMSG_DATA(cmptr)+sizeof(int)*i) );
+            recvfdarray[i] =*( (cf_int *) (CMSG_DATA(cmptr)+sizeof(cf_int)*i) );
 
     }
     else

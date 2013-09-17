@@ -173,10 +173,7 @@ public:
 #if CF_SWITCH_PRINT
                 fprintf (stderr, "OnAccept,new connection ,fd=%d \n", fd);
 #endif
-                _mapSession.insert( std::make_pair(fd,session) );
-                cf::SetBlocking(fd,false);
-                _demux->AddConn(fd, cf::networkdefs::EV_CLOSE);
-                OnAcceptComplete(session);
+                AddNewConn(fd,session);
             }
             else
             {
@@ -320,7 +317,23 @@ public:
 #endif
         }
     }
+
+protected:
+    cf_void AddNewConn(cf_fd fd, cf::T_SESSION & session)
+    {
+        _mapSession.insert( std::make_pair(fd,session) );
+        cf::SetBlocking(fd,false);
+        _demux->AddConn(fd, cf::networkdefs::EV_CLOSE);
+        OnAcceptComplete(session);
+    }
+    cf_void AddNewConn(cf_fd fd)
+    {
+        cf::T_SESSION session;
+        AddNewConn(fd, session);
+    }
+
 private:
+
     cf_void ClearSessionAndBuffer(cf_fd fd)
     {
         if (1!=_mapSession.erase(fd))

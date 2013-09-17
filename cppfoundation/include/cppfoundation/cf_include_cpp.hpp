@@ -50,6 +50,7 @@
 //        #pragma message("$$$$ Using shared_ptr from <tr1/memory> !")
 #include <tr1/memory>
 #include <tr1/unordered_map>
+#include <tr1/unordered_set>
 namespace std
 {
 using tr1::bad_weak_ptr;
@@ -63,16 +64,20 @@ using tr1::swap;
 using tr1::weak_ptr;
 
 using tr1::unordered_map;
+using tr1::unordered_set;
+
 }
 #else
 //        #pragma message("$$$$ Using shared_ptr from <memory> in c++ standard library !")
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #endif // __GXX_EXPERIMENTAL_CXX0X__
 #else
 //    #pragma message("$$$$ Using shared_ptr from <boost/tr1/memory.hpp> !")
 #include <boost/tr1/memory.hpp> // boost tr1
 #include<boost/unordered_map.hpp>
+#include<boost/unordered_set.hpp>
 namespace std
 {
 using boost::bad_weak_ptr;
@@ -86,6 +91,7 @@ using boost::swap;
 using boost::weak_ptr;
 
 using boost::unordered_map;
+using boost::unordered_set;
 }
 #endif
 

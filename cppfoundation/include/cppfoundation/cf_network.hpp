@@ -51,22 +51,26 @@ enum EV_TYPE
 
 cf_int GetHostByName(cf_const std::string &, struct hostent * phe);
 
-cf_void SetBlocking(cf_int sockfd,bool blocking);
+cf_void SetBlocking(cf_fd sockfd,bool blocking);
 
 // Create socket and bind it to the port.
 // return created socket, >0 successful, or throw exception .
-cf_int CreateServerSocket(const int port,const int socktype =SOCK_STREAM,
-                          bool blocking=false,
-                          const int backlog =32);
+cf_fd CreateServerSocket(const cf_int port,const cf_int socktype =SOCK_STREAM,
+                         bool blocking=false,
+                         const cf_int backlog =32);
 
 // Create socket and bind it to the port.
 // return created socket, >0 successful, <0 Could not bind, or throw exception .
-cf_int CreateLocalServerSocket(const std::string & path,
-                               const int socktype =SOCK_STREAM,const int backlog =32);
+cf_fd CreateLocalServerSocket(const std::string & path,
+                              const cf_int socktype =SOCK_STREAM,const cf_int backlog =32);
 
 // Just test socket fd is broken approximately!
 // Generally,return true means fd is broken , else means the socket connection maybe ok.
-bool IsSocketBroken(cf_int fd);
+bool IsSocketBroken(cf_fd fd);
+
+
+cf_void ConnectToServer(cf_cpstr ip,cf_uint32 port,cf_uint32 sum,
+                        std::vector<cf_fd> & clientfds);
 
 /**
  Waitting for io being available. Can only be used in socket fd!
@@ -75,8 +79,8 @@ bool IsSocketBroken(cf_int fd);
  A value  of  0  indicates that  the call timed out and no file descriptors were ready.
  On error, throw exception.
 **/
-cf_int OutputWait(cf_int sockfd,cf_int32 timeoutMilliSeconds);
-cf_int InputWait(cf_int sockfd,cf_int32 timeoutMilliSeconds);
+cf_int OutputWait(cf_fd sockfd,cf_int32 timeoutMilliSeconds);
+cf_int InputWait(cf_fd sockfd,cf_int32 timeoutMilliSeconds);
 
 
 /**
@@ -84,7 +88,7 @@ Send data synchronously in specified milliseconds. Can only be used in socket fd
 return true,send successfully.hasDone bytes have sent.
 return false,timeout,hasDone bytes have sent.
 **/
-bool SendSegmentSync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
+bool SendSegmentSync(cf_fd sockfd,cf_cpstr buf, ssize_t totalLen,
                      ssize_t & hasDone,cf_int32 timeoutMilliSeconds =-1,
                      ssize_t segsize =-1);
 
@@ -93,14 +97,14 @@ Receive data synchronously in specified milliseconds. Can only be used in socket
 return true,recv successfully.hasDone bytes have received.
 return false,timeout,hasDone bytes have received.
 **/
-bool RecvSegmentSync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
+bool RecvSegmentSync(cf_fd sockfd,cf_char * buf, ssize_t totalLen,
                      ssize_t & hasDone, bool & peerClosedWhenRead,
                      cf_int32 timeoutMilliSeconds =-1, ssize_t segsize =-1);
 
 bool AcceptAsync(cf_fd listenfd, std::vector < T_SESSION > & clients);
-cf_int SendSegmentAsync(cf_int sockfd,cf_cpstr buf, ssize_t totalLen,
+cf_int SendSegmentAsync(cf_fd sockfd,cf_cpstr buf, ssize_t totalLen,
                         ssize_t segsize =-1);
-cf_int RecvSegmentAsync(cf_int sockfd,cf_char * buf, ssize_t totalLen,
+cf_int RecvSegmentAsync(cf_fd sockfd,cf_char * buf, ssize_t totalLen,
                         bool & peerClosedWhenRead, ssize_t segsize =-1);
 
 /**
@@ -108,9 +112,10 @@ Send/Receive fd to/from other process.
 dataExtra is extra data to send.
 **/
 
-ssize_t SendFds(const int fd, const int * sendfdarray,const size_t fdarraylen,
+ssize_t SendFds(const cf_fd fd, const cf_int * sendfdarray,
+                const size_t fdarraylen,
                 void * dataExtra, const size_t dataExtraBytes);
-ssize_t RecvFds(const int fd, int * recvfdarray, const size_t fdarraylen,
+ssize_t RecvFds(const cf_fd fd, cf_int * recvfdarray, const size_t fdarraylen,
                 void * dataExtra, size_t dataExtraBytes);
 
 

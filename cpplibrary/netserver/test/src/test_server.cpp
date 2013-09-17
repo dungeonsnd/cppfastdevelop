@@ -28,6 +28,15 @@ public:
     ~IOCompleteHandler()
     {
     }
+    cf_void AddClientfds(std::vector < cf_fd > fds)
+    {
+        for(std::vector < cf_fd >::const_iterator it =fds.begin(); it!=fds.end(); it++)
+        {
+            AddNewConn(*it);
+            _clientfds.insert(*it);
+        }
+    }
+
     cf_void OnAcceptComplete(cf::T_SESSION session)
     {
         CF_PRINT_FUNC;
@@ -97,6 +106,7 @@ public:
 private:
     std::map < cf_fd , bool > _recvHeader;
     const cf_uint32 _headLen;
+    std::unordered_set < cf_fd > _clientfds;
 };
 
 int g_numprocess =0;
@@ -120,6 +130,10 @@ cf_void Run()
             IOCompleteHandler ioHandler;
             //            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler,i,i==1?0:25));
             std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler,i,25));
+            std::vector<cf_fd> clientfds;
+            int clientSum =0;
+            cf::ConnectToServer("127.0.0.1",8601,clientSum,clientfds);
+            ioHandler.AddClientfds(clientfds);
             printf("child, pid=%d \n",int(getpid()));
             server->Start();
             return ;

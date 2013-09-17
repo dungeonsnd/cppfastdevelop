@@ -69,7 +69,7 @@ cf_void InitVecConnection()
         bzero(&servaddr, sizeof(servaddr));
         servaddr.sin_family=AF_INET;
         servaddr.sin_port=htons(8601);
-        inet_pton(AF_INET, "192.168.1.70", &servaddr.sin_addr);
+        inet_pton(AF_INET, "127.0.0.1", &servaddr.sin_addr);
         cf_int rt =cf_connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
         if(-1==rt)
         {
