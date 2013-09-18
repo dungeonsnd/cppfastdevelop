@@ -872,6 +872,15 @@ cf_const cf_char * cf_gai_strerror(cf_int errcode)
 {
     return gai_strerror(errcode);
 }
+cf_int cf_inet_pton(cf_int af, cf_cpstr src, cf_pvoid dst)
+{
+    if(ISNULL(src)||ISNULL(dst))
+    {
+        errno = CF_E_NULLPARAMS;
+        return -1;
+    }
+    return inet_pton(af, src, dst);
+}
 
 mqd_t cf_mq_open(cf_cpstr name, cf_int oflag, mode_t mode,struct mq_attr * attr)
 {

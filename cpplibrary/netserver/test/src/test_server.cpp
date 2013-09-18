@@ -19,6 +19,8 @@
 
 #include "netserver/cl_server.hpp"
 
+#define SERVER_PORT 8601
+
 class IOCompleteHandler : public cl::EventHandler
 {
 public:
@@ -32,7 +34,7 @@ public:
     {
         for(std::vector < cf_fd >::const_iterator it =fds.begin(); it!=fds.end(); it++)
         {
-            AddNewConn(*it);
+            AddNewConn(*it,"127.0.0.1",SERVER_PORT);
             _clientfds.insert(*it);
         }
     }
@@ -113,7 +115,7 @@ int g_numprocess =0;
 cf_void Run()
 {
     typedef cl::TcpServer < IOCompleteHandler > ServerType;
-    cf_fd severfd =ServerType::CreateListenSocket(8601);
+    cf_fd severfd =ServerType::CreateListenSocket(SERVER_PORT);
 
     std::vector < pid_t > pids;
     pid_t pid;
@@ -129,10 +131,10 @@ cf_void Run()
         {
             IOCompleteHandler ioHandler;
             //            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler,i,i==1?0:25));
-            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler,i,25));
+            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler,i,0));
             std::vector<cf_fd> clientfds;
             int clientSum =0;
-            cf::ConnectToServer("127.0.0.1",8601,clientSum,clientfds);
+            cf::ConnectToServer("127.0.0.1",SERVER_PORT,clientSum,clientfds);
             ioHandler.AddClientfds(clientfds);
             printf("child, pid=%d \n",int(getpid()));
             server->Start();

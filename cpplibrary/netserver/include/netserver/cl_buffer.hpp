@@ -51,51 +51,19 @@ public:
     {
     }
 
-    cf_void Clear()
-    {
-        CF_PRINT_FUNC;
-        _buf.clear();
-        _total =0;
-        _already =0;
-    }
-
-    cf_int Read(cf::T_SESSION session, bool & peerClosedWhenRead)
-    {
-        CF_PRINT_FUNC;
-        cf_char * p =&_buf[0];
-        cf_int rdn =session->RecvAsync(p+_already, GetLeft(),peerClosedWhenRead);
-        _already +=rdn;
-        return rdn;
-    }
+    cf_void Clear();
+    cf_int Read(cf::T_SESSION session, bool & peerClosedWhenRead);
     cf_pvoid GetBuffer()
     {
         return &_buf[0];
     }
-    cf_void SetTotal(cf_uint32 total)
-    {
-        if(_total)
-            _THROW_FMT(cf::ValueError, "_total{%u}!=0 !", _total);
-        if(total>_total)
-            _buf.resize(total);
-        _total =total;
-    }
+    cf_void SetTotal(cf_uint32 total);
     cf_uint32 GetTotal() cf_const
     {
         return _total;
     }
-    cf_uint32 GetLeft() cf_const
-    {
-        if(_total>_already)
-            return _total-_already;
-        else
-            _THROW_FMT(cf::ValueError, "_total{%u}<=_already{%u} !", _total,_already);
-    }
-    bool IsComplete() cf_const
-    {
-        if(0==_total)
-            _THROW(cf::ValueError, "0==_total !");
-        return _total==_already;
-    }
+    cf_uint32 GetLeft() cf_const;
+    bool IsComplete() cf_const;
 private:
     std::string _buf;
     cf_uint32 _total;
@@ -113,49 +81,15 @@ public:
     {
     }
 
-    cf_void Clear()
-    {
-        CF_PRINT_FUNC;
-        _buf.clear();
-        _total =0;
-        _already =0;
-    }
-
-    cf_int Write(cf::T_SESSION session)
-    {
-        CF_PRINT_FUNC;
-        cf_char * p =&_buf[0];
-        cf_int rdn =session->SendAsync(p+_already, GetLeft());
-        _already +=rdn;
-        return rdn;
-    }
-    cf_void SetBuffer(cf_cpvoid buffer, cf_uint32 total)
-    {
-        CF_PRINT_FUNC;
-        if(_total)
-            _THROW_FMT(cf::ValueError, "_total{%u}!=0 !", _total);
-        if(total>_total)
-            _buf.resize(total);
-        memcpy(&_buf[0],buffer,total);
-        _total =total;
-    }
+    cf_void Clear();
+    cf_int Write(cf::T_SESSION session);
+    cf_void SetBuffer(cf_cpvoid buffer, cf_uint32 total);
     cf_uint32 GetTotal() cf_const
     {
         return _total;
     }
-    cf_uint32 GetLeft() cf_const
-    {
-        if(_total>_already)
-            return _total-_already;
-        else
-            _THROW_FMT(cf::ValueError, "_total{%u}<=_already{%u} !", _total,_already);
-    }
-    bool IsComplete() cf_const
-    {
-        if(0==_buf.size())
-            _THROW(cf::ValueError, "0==_total !");
-        return _total==_already;
-    }
+    cf_uint32 GetLeft() cf_const;
+    bool IsComplete() cf_const;
 private:
     std::string _buf;
     cf_uint32 _total;

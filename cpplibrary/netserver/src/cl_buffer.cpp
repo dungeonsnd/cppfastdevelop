@@ -23,5 +23,84 @@ namespace cl
 {
 
 
+cf_void ReadBuffer::Clear()
+{
+    CF_PRINT_FUNC;
+    _buf.clear();
+    _total =0;
+    _already =0;
+}
+
+cf_int ReadBuffer::Read(cf::T_SESSION session, bool & peerClosedWhenRead)
+{
+    CF_PRINT_FUNC;
+    cf_char * p =&_buf[0];
+    cf_int rdn =session->RecvAsync(p+_already, GetLeft(),peerClosedWhenRead);
+    _already +=rdn;
+    return rdn;
+}
+cf_void ReadBuffer::SetTotal(cf_uint32 total)
+{
+    if(_total)
+        _THROW_FMT(cf::ValueError, "_total{%u}!=0 !", _total);
+    if(total>_total)
+        _buf.resize(total);
+    _total =total;
+}
+cf_uint32 ReadBuffer::GetLeft() cf_const
+{
+    if(_total>_already)
+        return _total-_already;
+    else
+        _THROW_FMT(cf::ValueError, "_total{%u}<=_already{%u} !", _total,_already);
+}
+bool ReadBuffer::IsComplete() cf_const
+{
+    if(0==_total)
+        _THROW(cf::ValueError, "0==_total !");
+    return _total==_already;
+}
+
+
+cf_void WriteBuffer::Clear()
+{
+    CF_PRINT_FUNC;
+    _buf.clear();
+    _total =0;
+    _already =0;
+}
+
+cf_int WriteBuffer::Write(cf::T_SESSION session)
+{
+    CF_PRINT_FUNC;
+    cf_char * p =&_buf[0];
+    cf_int rdn =session->SendAsync(p+_already, GetLeft());
+    _already +=rdn;
+    return rdn;
+}
+cf_void WriteBuffer::SetBuffer(cf_cpvoid buffer, cf_uint32 total)
+{
+    CF_PRINT_FUNC;
+    if(_total)
+        _THROW_FMT(cf::ValueError, "_total{%u}!=0 !", _total);
+    if(total>_total)
+        _buf.resize(total);
+    memcpy(&_buf[0],buffer,total);
+    _total =total;
+}
+cf_uint32 WriteBuffer::GetLeft() cf_const
+{
+    if(_total>_already)
+        return _total-_already;
+    else
+        _THROW_FMT(cf::ValueError, "_total{%u}<=_already{%u} !", _total,_already);
+}
+bool WriteBuffer::IsComplete() cf_const
+{
+    if(0==_buf.size())
+        _THROW(cf::ValueError, "0==_total !");
+    return _total==_already;
+}
+
 } // namespace cl
 

@@ -92,7 +92,7 @@ cf_int cf_getaddrinfo(cf_const cf_char * node, cf_const cf_char * service,
                       struct addrinfo ** res);
 cf_void cf_freeaddrinfo(struct addrinfo * res);
 cf_const cf_char * cf_gai_strerror(cf_int errcode);
-
+cf_int cf_inet_pton(cf_int af, cf_cpstr src, cf_pvoid dst);
 
 // SystemV message queue.
 cf_int cf_msgget(key_t key,cf_int oflag);

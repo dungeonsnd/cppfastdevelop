@@ -24,6 +24,19 @@
 namespace cf
 {
 
+cf_void Socket::Shutdown()
+{
+    if (_bShutdown)
+        return;
+    if (_fd > 0)
+    {
+        if (0!=cf_shutdown(_fd, SHUT_WR))
+            _THROW(SyscallExecuteError, "Failed to execute cf_shutdown !");
+        _bShutdown =true;
+    }
+    else
+        _THROW_FMT(ValueError, "_fd{%d}<=0 !", cf_int(_fd));
+}
 
 cf_int Socket::SendAsync(cf_cpvoid data, ssize_t len)
 {

@@ -80,13 +80,7 @@ cf_void SetProcessDaemon();
 cf_void IgnoreSignals();
 
 
-inline cf_void GenerateRandString(cf_uint32 stringLength, std::string & output)
-{
-    output.resize(stringLength,'\0');
-    cf_uint i=0;
-    for(i=0; i<stringLength; i++)
-        output[i] =rand()%26+'A';
-}
+cf_void GenerateRandString(cf_uint32 stringLength, std::string & output);
 
 // type traits
 // If invoker give "T * obj", use these PointerTraits can get the 'T' type.

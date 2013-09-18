@@ -49,7 +49,8 @@ public:
     }
 
     cf_void Init(cf_fd listenfd, EventHandlerType & handler,
-                 cf_int index, cf_uint maxConnections)
+                 cf_int index, cf_uint maxConnections,
+                 cf_int timeoutMilliseconds)
     {
         CF_PRINT_FUNC;
         CF_NEWOBJ(p, cf::EventLoop< EventHandlerType > ,
@@ -57,7 +58,7 @@ public:
         if(NULL==p)
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
         _eventloop.reset(p);
-        _timeoutMilliseconds =serverdefs::WAIT_TIMEOUTMSEC_DEFAULT;
+        _timeoutMilliseconds =timeoutMilliseconds;
     }
     cf_void Final(cf_fd listenfd)
     {
@@ -81,7 +82,7 @@ template <typename EventHandlerType>
 class TcpServer : public cf::NonCopyable
 {
 public:
-    static cf_fd CreateListenSocket(cf_uint32 port,const int backlog =32)
+    static cf_fd CreateListenSocket(cf_uint32 port,const int backlog =4096)
     {
         CF_PRINT_FUNC;
         cf_fd listenfd =cf::CreateServerSocket(port,SOCK_STREAM,false,backlog);
@@ -92,7 +93,8 @@ public:
     }
 
     TcpServer(cf_fd listenfd, EventHandlerType & handler,
-              cf_int index, cf_uint maxConnections)
+              cf_int index, cf_uint maxConnections,
+              cf_int timeoutMilliseconds =serverdefs::WAIT_TIMEOUTMSEC_DEFAULT)
         :_listenfd(listenfd)
     {
         CF_PRINT_FUNC;
@@ -101,7 +103,7 @@ public:
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
         _server.reset(p);
 
-        _server->Init(_listenfd, handler, index, maxConnections);
+        _server->Init(_listenfd, handler, index, maxConnections,timeoutMilliseconds);
     }
     ~TcpServer()
     {

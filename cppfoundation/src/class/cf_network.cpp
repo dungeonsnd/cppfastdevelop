@@ -154,7 +154,7 @@ cf_void ConnectToServer(cf_cpstr ip,cf_uint32 port,cf_uint32 sum,
         bzero(&servaddr, sizeof(servaddr));
         servaddr.sin_family=AF_INET;
         servaddr.sin_port=htons(port);
-        inet_pton(AF_INET, ip, &servaddr.sin_addr);
+        cf_inet_pton(AF_INET, ip, &servaddr.sin_addr);
         cf_int rt =cf_connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
         if (-1==rt)
             _THROW(cf::SyscallExecuteError, "Failed to execute cf_connect !");

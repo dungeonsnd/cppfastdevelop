@@ -29,6 +29,8 @@ std::vector < std::string > g_vecStr;
 std::vector < cf_fd > g_vecSock;
 
 #define HEADER_LEN 4
+#define SERVER_IP "127.0.0.1"
+#define SERVER_PORT 8601
 
 cf_void InitVecStr()
 {
@@ -59,24 +61,7 @@ cf_void InitVecStr()
 
 cf_void InitVecConnection()
 {
-    for(int i=0; i<g_threadscnt; i++)
-    {
-        cf_int sockfd;
-        struct sockaddr_in servaddr;
-        sockfd=cf_socket(AF_INET, SOCK_STREAM, 0);
-        if(-1==sockfd)
-            CF_ERR("cf_socket");
-        bzero(&servaddr, sizeof(servaddr));
-        servaddr.sin_family=AF_INET;
-        servaddr.sin_port=htons(8601);
-        inet_pton(AF_INET, "127.0.0.1", &servaddr.sin_addr);
-        cf_int rt =cf_connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr));
-        if(-1==rt)
-        {
-            CF_ERR("cf_connect")
-        }
-        g_vecSock.push_back(sockfd);
-    }
+    cf::ConnectToServer(SERVER_IP,SERVER_PORT,g_threadscnt,g_vecSock);
 }
 
 
