@@ -8,7 +8,7 @@ COMMINC		= -I. -I../include -I../../../cppfoundation/include
 CMPFLAG		= -g -O0 -c -fPIC -Wall $(COMMINC)
 LNKFLAG     = -shared
 CFLIBDIR	= -L. -L../../../cppfoundation/bin
-CFLIB		= $(CFLIBDIR) -l$(G_STUBNAME) -l$(G_CLASSNAME)
+CFLIB		= $(CFLIBDIR) -l$(G_CLASSNAME)
 SYTMLIB     = 
 
 
@@ -29,5 +29,5 @@ cleanall:
 	$(COMPER) $(CMPFLAG) $<
 
 $(DLL):$(OBJ)
-	$(LINKER) $(LNKFLAG) $(SYTMLIB) $(CALIB) -o $@ $?
+	$(LINKER) $(LNKFLAG) $(SYTMLIB) $(CFLIB) -o $@ $?
 	mv $@ $(BINDIR)
