@@ -217,6 +217,7 @@ cf_void EventHandler::OnClose(cf_fd fd)
         cf::T_SESSION session =it->second;
         OnCloseComplete(session);
         ClearSessionAndBuffer(fd);
+        cf_close(fd); // Need to think about the line code placed here.
     }
     else
     {
