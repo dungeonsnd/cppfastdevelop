@@ -13,16 +13,15 @@
 1.Finish cppfoundation/cf_network.
 2.Finish cppfoundation/cf_socket , wrapper of socket fd operation.
 3.Finish cppfoundation/cf_demux, epoll/kqueue/poll.
-4.Finish cpplibrary/netserver.
-5.Finish cpplibrary/logserver.
-6.Finish cpplibrary/servicewatch, two watchdogs watch the specified processes.
-7.Finish cpplibrary/dbaccess, using prepare statement,mysql.
-8.Finish cpplibrary/config, using shared memory.
-9.Finish cppfoundation/cf_ipc/class MsgQ.
-10.Finish cppfoundation/class Process.
-11.Finish cppfoundation/class Application.
-12.Finish cppfoundation/class TaskPool.
-13.Finish cpplibrary/tinymq, simple message queue like ZeroMQ.
+4.Finish cpplibrary/logserver.
+5.Finish cpplibrary/servicewatch, two watchdogs watch the specified processes.
+6.Finish cpplibrary/dbaccess, using prepare statement,mysql.
+7.Finish cpplibrary/config, using shared memory.
+8.Finish cppfoundation/cf_ipc/class MsgQ.
+9.Finish cppfoundation/class Process.
+10.Finish cppfoundation/class Application.
+11.Finish cppfoundation/class TaskPool.
+12.Finish cpplibrary/tinymq, simple message queue like ZeroMQ.
 
 
 2.Hierarchy
