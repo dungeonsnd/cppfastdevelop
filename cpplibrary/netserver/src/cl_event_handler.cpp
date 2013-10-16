@@ -235,8 +235,10 @@ cf_void EventHandler::OnTimeout()
     CF_PRINT_FUNC;
     OnTimeoutComplete();
 #if 1
+#ifdef DEBUG
     printf("++++++++, OnTimeout, pid=%d \n",int(getpid()));
     DumpStatus();
+#endif
 #endif
 }
 cf_void EventHandler::OnError(cf_fd fd)

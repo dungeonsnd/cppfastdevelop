@@ -33,7 +33,7 @@ namespace serverdefs
 {
 enum
 {
-    WAIT_TIMEOUTMSEC_DEFAULT =30000
+    WAIT_TIMEOUTMSEC_DEFAULT =4000
 };
 } // namespace serverdefs
 

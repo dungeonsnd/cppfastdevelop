@@ -21,6 +21,15 @@
 
 #define SERVER_PORT 8601
 
+
+namespace testserverdefs
+{
+enum
+{
+    MAX_BODY_SIZE =819200
+};
+} // namespace serverdefs
+
 class IOCompleteHandler : public cl::EventHandler
 {
 public:
@@ -65,19 +74,29 @@ public:
             if(_headLen!=totalLen)
             {
 #if CF_SWITCH_PRINT
-                //                fprintf (stderr, "OnReadComplete,fd=%d,_headLen{%u}!=totalLen{%u} \n",
-                //                         session->Fd(),_headLen,totalLen);
+                //              fprintf (stderr, "OnReadComplete,fd=%d,_headLen{%u}!=totalLen{%u}  \n",session->Fd(),_headLen,totalLen);
 #endif
             }
             else
             {
                 cf_uint32 * p =(cf_uint32 *)(readBuffer->GetBuffer());
                 cf_uint32 size =ntohl(*p);
-                _recvHeader[session->Fd()] =false;
-                if(size>0)
-                    AsyncRead(session->Fd(), size);
+                if(size<=testserverdefs::MAX_BODY_SIZE)
+                {
+                    _recvHeader[session->Fd()] =false;
+                    if(size>0)
+                        AsyncRead(session->Fd(), size);
+                    else
+                        _THROW(cf::ValueError, "size==0 !");
+                }
                 else
-                    _THROW(cf::ValueError, "size==0 !");
+                {
+#if 1
+                    AsyncClose(session->Fd());
+                    fprintf (stderr, "Warning, OnReadComplete,fd=%d,size{%u}>MAX_BODY_SIZE{%u}  \n",
+                             session->Fd(),size,testserverdefs::MAX_BODY_SIZE);
+#endif
+                }
             }
         }
         else
