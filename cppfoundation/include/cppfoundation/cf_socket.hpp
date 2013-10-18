@@ -44,7 +44,18 @@ public:
     ~Socket()
     {
         if (_fd > 0)
+        {
             cf_close(_fd);
+#if 1
+            fprintf (stderr, "~Socket,cf_close _fd=%d, pid=%d \n", _fd,int(getpid()));
+#endif
+        }
+        else
+        {
+#if 0
+            fprintf (stderr, "Warning, ~Socket,_fd<=0{%d}, pid=%d \n", _fd,int(getpid()));
+#endif
+        }
     }
     cf_void Shutdown();
     cf_int SendAsync(cf_cpvoid data, ssize_t len);

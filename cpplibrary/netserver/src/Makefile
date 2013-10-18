@@ -5,7 +5,7 @@ include ../global.mk
 COMPER		= $(G_COMPER)
 LINKER		= $(G_LINKER)
 COMMINC		= -I. -I../include -I../../../cppfoundation/include
-CMPFLAG		= -g -O0 -c -fPIC -Wall $(COMMINC)
+CMPFLAG		=  $(G_CMPFLAG) -c -fPIC $(COMMINC)
 LNKFLAG     = -shared
 CFLIBDIR	= -L. -L../../../cppfoundation/bin
 CFLIB		= $(CFLIBDIR) -l$(G_CLASSNAME)

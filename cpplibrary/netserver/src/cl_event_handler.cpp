@@ -75,8 +75,7 @@ cf_void EventHandler::AsyncClose(cf_fd fd)
     CF_PRINT_FUNC;
     // TODO: Need test. Be careful about _rbpool.PutIntoPool() and removing k-v from _readBuf.
     // Shall we support half-close ?
-    _demux->DelConn(fd);
-    ClearSessionAndBuffer(fd);
+    OnClose(fd);
     /*
             T_MAPSESSIONS::iterator it =_mapSession.find(fd);
             if( it!=_mapSession.end() )
@@ -112,9 +111,9 @@ cf_void EventHandler::OnAccept()
         fd =session->Fd();
         if(_mapSession.find(fd)==_mapSession.end())
         {
-#if CF_SWITCH_PRINT
+            //#if CF_SWITCH_PRINT
             fprintf (stderr, "OnAccept,new connection ,fd=%d \n", fd);
-#endif
+            //#endif
             AddNewConn(fd,session);
         }
         else
@@ -217,7 +216,6 @@ cf_void EventHandler::OnClose(cf_fd fd)
         cf::T_SESSION session =it->second;
         OnCloseComplete(session);
         ClearSessionAndBuffer(fd);
-        cf_close(fd); // Need to think about the line code placed here.
     }
     else
     {
@@ -226,16 +224,13 @@ cf_void EventHandler::OnClose(cf_fd fd)
         fprintf (stderr, "OnClose,Warning ,fd=%d \n", fd);
 #endif
     }
-#if 0
-    fprintf (stderr, "OnClose,fd=%d, pid=%d \n", fd,int(getpid()));
-#endif
 }
 cf_void EventHandler::OnTimeout()
 {
     CF_PRINT_FUNC;
     OnTimeoutComplete();
 #if 1
-#ifdef DEBUG
+#ifdef _DEBUG
     printf("++++++++, OnTimeout, pid=%d \n",int(getpid()));
     DumpStatus();
 #endif
@@ -292,7 +287,8 @@ cf_void EventHandler::ClearSessionAndBuffer(cf_fd fd)
     if (1!=_mapSession.erase(fd))
     {
 #if CF_SWITCH_PRINT
-        fprintf (stderr, "AsyncClose,Warning ,fd=%d not in _mapSession \n", fd);
+        fprintf (stderr, "ClearSessionAndBuffer,Warning ,fd=%d not in _mapSession \n",
+                 fd);
 #endif
     }
 
@@ -318,7 +314,7 @@ cf_void EventHandler::ClearSessionAndBuffer(cf_fd fd)
     else
     {
 #if CF_SWITCH_PRINT
-        fprintf (stderr, "AsyncClose,Warning ,fd=%d not in _readBuf \n", fd);
+        fprintf (stderr, "ClearSessionAndBuffer,Warning ,fd=%d not in _readBuf \n", fd);
 #endif
     }
 
@@ -332,7 +328,8 @@ cf_void EventHandler::ClearSessionAndBuffer(cf_fd fd)
     else
     {
 #if CF_SWITCH_PRINT
-        fprintf (stderr, "AsyncClose,Warning ,fd=%d not in _writeBuf \n", fd);
+        fprintf (stderr, "ClearSessionAndBuffer,Warning ,fd=%d not in _writeBuf \n",
+                 fd);
 #endif
     }
 }
