@@ -6,9 +6,9 @@
 
 int main(int argc, char ** argv)
 {
-    RedisConn rc("127.0.0.1", 6379, 3);
+    cl::RedisConn rc("127.0.0.1", 6379, 3);
 
-    RedisReply rr(rc.execCommand("PING"));
+    cl::RedisReply rr(rc.execCommand("PING"));
     printf("PING: %s\n", rr.Reply()->str);
 
     rr.Reset(rc.execCommand("SET foo 'helloworld'"));
