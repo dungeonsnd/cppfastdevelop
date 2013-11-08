@@ -1081,6 +1081,40 @@ cf_int cf_epoll_create1(cf_int flags)
 {
     return epoll_create1(flags);
 }
+#endif // __linux__
 
-#endif
+
+// dll
+cf_pvoid cf_dlopen(cf_cpstr filename, cf_int flag)
+{
+    if (ISNULL(filename))
+    {
+        errno = CF_E_NULLPARAMS;
+        return NULL;
+    }
+    return dlopen(filename, flag);
+}
+cf_cpstr cf_dlerror()
+{
+    return cf_dlerror();
+}
+cf_pvoid cf_dlsym(cf_pvoid handle,cf_cpstr symbol)
+{
+    if (ISNULL(handle)||ISNULL(symbol))
+    {
+        errno = CF_E_NULLPARAMS;
+        return NULL;
+    }
+    return dlsym(handle, symbol);
+}
+cf_int cf_dlclose(cf_pvoid handle)
+{
+    if (ISNULL(handle))
+    {
+        errno = CF_E_NULLPARAMS;
+        return -1;
+    }
+    return dlclose(handle);
+}
+
 

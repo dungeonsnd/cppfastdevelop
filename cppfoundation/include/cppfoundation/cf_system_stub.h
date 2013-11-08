@@ -211,7 +211,12 @@ cf_int cf_backtrace(cf_ppvoid buffer, cf_int size);
 cf_char  ** cf_backtrace_symbols(cf_pcpvoid buffer, cf_int size);
 #endif // __linux__
 
-//
+// dll
+cf_pvoid cf_dlopen(cf_cpstr filename, cf_int flag);
+cf_cpstr cf_dlerror();
+cf_pvoid cf_dlsym(cf_pvoid handle,cf_cpstr symbol);
+cf_int cf_dlclose(cf_pvoid handle);
+
 
 #ifdef __cplusplus
 }

@@ -66,4 +66,6 @@ extern int h_errno;
 #include <sys/epoll.h>
 #endif
 
+#include <dlfcn.h>
+
 #endif // _HEADER_FILE_CFD_CF_INCLUDE_SYSTEM_H_

@@ -7,7 +7,7 @@ LINKER		= $(G_LINKER)
 COMMINC		= -I. -I../../include
 CMPFLAG		= $(G_CMPFLAG) -c -fPIC $(COMMINC)
 LNKFLAG     = -shared 
-SYTMLIB     = -lrt
+SYTMLIB     = -lrt -ldl 
 
 DLL =lib$(G_STUBNAME).so
 OBJ = cf_system_stub.o
