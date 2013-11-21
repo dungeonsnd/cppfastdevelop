@@ -19,7 +19,8 @@
 #ifndef _HEADER_FILE_DLL_HPP_
 #define _HEADER_FILE_DLL_HPP_
 
-#include "common.hpp"
+#include "cppfoundation/cf_root.hpp"
+#include "cppfoundation/cf_exception.hpp"
 
 namespace cf
 {
