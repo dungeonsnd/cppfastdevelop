@@ -24,7 +24,7 @@
 #include "cppfoundation/cf_exception.hpp"
 
 #define __PROTO__
-#define __THRIFT__
+//#define __THRIFT__
 
 #ifdef __THRIFT__
 #include <thrift/config.h>
