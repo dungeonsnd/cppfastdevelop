@@ -1096,7 +1096,7 @@ cf_pvoid cf_dlopen(cf_cpstr filename, cf_int flag)
 }
 cf_cpstr cf_dlerror()
 {
-    return cf_dlerror();
+    return dlerror();
 }
 cf_pvoid cf_dlsym(cf_pvoid handle,cf_cpstr symbol)
 {

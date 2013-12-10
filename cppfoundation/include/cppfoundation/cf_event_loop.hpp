@@ -56,6 +56,7 @@ public:
               cf_int index, cf_uint maxConnections)
         :_stop(false),_handler(handler)
     {
+        CF_PRINT_FUNC;
         CF_NEWOBJ(p, Demux, listenfd);
         if(NULL==p)
             _THROW(AllocateMemoryError, "Allocate memory failed !");

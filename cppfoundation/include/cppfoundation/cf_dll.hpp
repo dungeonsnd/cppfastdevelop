@@ -31,17 +31,32 @@ public:
     Dll(cf_cpstr filename)
     {
 #ifdef _DEBUG
-        fprintf(stdout,"DLL open,%s. \n",filename);
+        fprintf(stdout,"Dll,%s\n",filename);
 #endif
+        if (0!=cf_access(filename,R_OK))
+        {
+#ifdef _DEBUG
+            fprintf(stdout,"cf_access,%s.errno=%d,%s \n",filename,errno,strerror(errno));
+#endif
+            _THROW_FMT(SyscallExecuteError, "Failed to execute cf_access!");
+        }
+
         _handle =cf_dlopen(filename, RTLD_LAZY);
         if (!_handle)
+        {
+#ifdef _DEBUG
+            fprintf(stdout,"Failed to execute cf_dlopen , %s!",cf_dlerror());
+#endif
             _THROW_FMT(SyscallExecuteError, "Failed to execute cf_dlopen , %s!",
                        cf_dlerror());
+        }
         cf_dlerror();
     }
     ~Dll()
     {
-        //        fprintf(stdout,"DLL close . \n");
+#ifdef _DEBUG
+        fprintf(stdout,"DLL close . \n");
+#endif
         int rt =cf_dlclose(_handle);
         if (0!=rt)
         {

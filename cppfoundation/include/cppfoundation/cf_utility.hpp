@@ -45,7 +45,9 @@ inline cf_void Gettimeofday(cf_uint64 & seconds, cf_uint32 & useconds)
     useconds =(cf_uint32)tv.tv_usec;
 }
 
-#define CF_SWITCH_PRINT 0
+#ifndef _DEBUG
+#define CF_SWITCH_PRINT 1
+#endif
 
 #ifndef CF_PRINT_FUNC
 #if CF_SWITCH_PRINT

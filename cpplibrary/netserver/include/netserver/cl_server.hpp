@@ -97,6 +97,9 @@ public:
               cf_int timeoutMilliseconds =serverdefs::WAIT_TIMEOUTMSEC_DEFAULT)
         :_listenfd(listenfd)
     {
+#ifdef _DEBUG
+        printf("TcpServer::TcpServer \n");
+#endif
         CF_PRINT_FUNC;
         CF_NEWOBJ(p, Server < EventHandlerType > );
         if(NULL==p)
