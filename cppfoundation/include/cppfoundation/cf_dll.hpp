@@ -30,7 +30,9 @@ class Dll
 public:
     Dll(cf_cpstr filename)
     {
-        //        fprintf(stdout,"DLL open,%s. \n",filename);
+#ifdef _DEBUG
+        fprintf(stdout,"DLL open,%s. \n",filename);
+#endif
         _handle =cf_dlopen(filename, RTLD_LAZY);
         if (!_handle)
             _THROW_FMT(SyscallExecuteError, "Failed to execute cf_dlopen , %s!",
@@ -43,7 +45,9 @@ public:
         int rt =cf_dlclose(_handle);
         if (0!=rt)
         {
-            //            fprintf(stderr, "Failed dlclose, %s\n", cf_dlerror());
+#ifdef _DEBUG
+            fprintf(stderr, "Failed dlclose, %s\n", cf_dlerror());
+#endif
         }
     }
     void * GetFunction(const char * funcName)
@@ -51,7 +55,9 @@ public:
         void * p =cf_dlsym(_handle, funcName);
         if (NULL==p)
         {
-            //            fprintf(stderr, "Failed dlsym, %s\n", cf_dlerror());
+#ifdef _DEBUG
+            fprintf(stderr, "Failed dlsym, %s\n", cf_dlerror());
+#endif
             _THROW_FMT(SyscallExecuteError, "Failed to execute cf_dlsym , %s!",
                        cf_dlerror());
         }
