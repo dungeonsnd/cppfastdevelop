@@ -30,9 +30,6 @@ class Dll
 public:
     Dll(cf_cpstr filename)
     {
-#ifdef _DEBUG
-        fprintf(stdout,"Dll,%s\n",filename);
-#endif
         if (0!=cf_access(filename,R_OK))
         {
 #ifdef _DEBUG
@@ -54,9 +51,6 @@ public:
     }
     ~Dll()
     {
-#ifdef _DEBUG
-        fprintf(stdout,"DLL close . \n");
-#endif
         int rt =cf_dlclose(_handle);
         if (0!=rt)
         {

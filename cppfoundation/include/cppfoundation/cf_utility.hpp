@@ -45,6 +45,21 @@ inline cf_void Gettimeofday(cf_uint64 & seconds, cf_uint32 & useconds)
     useconds =(cf_uint32)tv.tv_usec;
 }
 
+inline std::string String2Hex(cf_cpstr input,cf_uint32 inputLength)
+{
+    if(inputLength<1)
+        return "";
+    std::string output;
+    std::string everyone(5,'\0');
+    for(cf_uint32 i =0; i<inputLength; i++)
+    {
+        memset(&everyone[0],0,everyone.size());
+        snprintf(&everyone[0],everyone.size(),"\\x%02x",input[i]);
+        output.append (everyone.c_str(),everyone.size()-1);
+    }
+    return output;
+}
+
 #ifndef _DEBUG
 #define CF_SWITCH_PRINT 1
 #endif
