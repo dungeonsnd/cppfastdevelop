@@ -28,6 +28,15 @@ namespace cf
 class Dll
 {
 public:
+    static std::string GetPrename()
+    {
+        return "lib";
+    }
+    static std::string GetExtname()
+    {
+        return ".so";
+    }
+    
     Dll(cf_cpstr filename)
     {
         if (0!=cf_access(filename,R_OK))
