@@ -36,7 +36,7 @@ public:
     {
         return ".so";
     }
-    
+
     Dll(cf_cpstr filename)
     {
         if (0!=cf_access(filename,R_OK))
