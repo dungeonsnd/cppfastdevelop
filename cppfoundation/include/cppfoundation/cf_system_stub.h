@@ -55,6 +55,9 @@ mode_t cf_umask(mode_t cmask);
 cf_int cf_getrlimit(cf_int resource, struct rlimit * rlp);
 cf_int cf_setrlimit(cf_int resource, cf_const struct rlimit * rlp);
 
+FILE * cf_fopen(cf_cpstr path, cf_cpstr mode);
+cf_int cf_fclose(FILE * fp);
+
 // socket operation.
 ssize_t cf_recv(cf_int socket, cf_pvoid  buffer, size_t length, cf_int flags);
 ssize_t cf_send(cf_int socket, cf_cpvoid buffer, size_t length, cf_int flags);

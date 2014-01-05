@@ -1014,6 +1014,29 @@ cf_int cf_setrlimit(cf_int resource, cf_const struct rlimit * rlp)
         return setrlimit(resource, rlp);
 }
 
+
+FILE * cf_fopen(cf_cpstr path, cf_cpstr mode)
+{
+    if(ISNULL(path)||ISNULL(mode))
+    {
+        errno = CF_E_NULLPARAMS;
+        return NULL;
+    }
+    else
+        return fopen(path, mode);
+}
+cf_int cf_fclose(FILE * fp)
+{
+    if(ISNULL(fp))
+    {
+        errno = CF_E_NULLPARAMS;
+        return -1;
+    }
+    else
+        return fclose(fp);
+}
+
+
 cf_sighandler_t cf_signal(cf_int signum, cf_sighandler_t handler)
 {
     if(ISNULL(handler))

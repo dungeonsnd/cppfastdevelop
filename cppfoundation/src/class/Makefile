@@ -32,8 +32,7 @@ cf_socket.o \
 cf_event_loop.o \
 cf_epoll.o\
 cf_kqueue.o\
-cf_poll.o\
-cf_crypto.o
+cf_poll.o
 
 BINDIR =../../bin
 

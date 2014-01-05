@@ -17,8 +17,8 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#ifndef _HEADER_FILE_CFD_CF_fdET_HPP_
-#define _HEADER_FILE_CFD_CF_fdET_HPP_
+#ifndef _HEADER_FILE_CFD_CF_SOCKET_HPP_
+#define _HEADER_FILE_CFD_CF_SOCKET_HPP_
 
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_exception.hpp"
@@ -97,4 +97,4 @@ typedef std::shared_ptr < Socket > T_SESSION;
 
 } // namespace cf
 
-#endif // _HEADER_FILE_CFD_CF_fdET_HPP_
+#endif // _HEADER_FILE_CFD_CF_SOCKET_HPP_
