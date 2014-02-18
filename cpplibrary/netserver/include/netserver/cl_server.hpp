@@ -97,7 +97,7 @@ public:
               cf_int timeoutMilliseconds =serverdefs::WAIT_TIMEOUTMSEC_DEFAULT)
         :_listenfd(listenfd)
     {
-#ifdef _DEBUG
+#if CF_SWITCH_PRINT
         printf("TcpServer::TcpServer \n");
 #endif
         CF_PRINT_FUNC;

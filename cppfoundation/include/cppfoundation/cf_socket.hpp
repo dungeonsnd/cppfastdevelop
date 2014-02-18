@@ -46,13 +46,13 @@ public:
         if (_fd > 0)
         {
             cf_close(_fd);
-#if 1
+#if CF_SWITCH_PRINT
             fprintf (stderr, "~Socket,cf_close _fd=%d, pid=%d \n", _fd,int(getpid()));
 #endif
         }
         else
         {
-#if 0
+#if CF_SWITCH_PRINT
             fprintf (stderr, "Warning, ~Socket,_fd<=0{%d}, pid=%d \n", _fd,int(getpid()));
 #endif
         }

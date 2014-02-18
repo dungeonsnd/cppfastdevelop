@@ -21,6 +21,8 @@
 #include "cppfoundation/cf_utility.hpp"
 #include "cppfoundation/cf_network.hpp"
 
+std::string g_server_host;
+int g_server_port =18600;
 int g_threadscnt =1;
 int g_times =1;
 int g_reqsize =8192;
@@ -30,7 +32,6 @@ std::vector < cf_fd > g_vecSock;
 
 #define HEADER_LEN 4
 #define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 8601
 
 cf_void InitVecStr()
 {
@@ -61,7 +62,7 @@ cf_void InitVecStr()
 
 cf_void InitVecConnection()
 {
-    cf::ConnectToServer(SERVER_IP,SERVER_PORT,g_threadscnt,g_vecSock);
+    cf::ConnectToServer(g_server_host.c_str(),g_server_port,g_threadscnt,g_vecSock);
 }
 
 
@@ -129,15 +130,17 @@ cf_pvoid Run(void * p)
 cf_int main(cf_int argc,cf_char * argv[])
 {
     //    CF_PRINT_FUNC;
-    if(argc<4)
+    if(argc<6)
     {
-        printf("Usage: program <threads count> <times per thread> <requset size> \n"
-               "e.g. ./test_client 1 10000 8192 \n");
+        printf("Usage: %s <server host> <server port> <threads count> <sending times per thread> <requset size> \n",
+               argv[0]);
         return 1;
     }
-    g_threadscnt =atoi(argv[1]);
-    g_times =atoi(argv[2]);
-    g_reqsize =atoi(argv[3]);
+    g_server_host =argv[1];
+    g_server_port =atoi(argv[2]);
+    g_threadscnt =atoi(argv[3]);
+    g_times =atoi(argv[4]);
+    g_reqsize =atoi(argv[5]);
     g_bufrecv.resize(g_reqsize);
 
     cf_uint64 seconds =0;

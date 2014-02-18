@@ -19,7 +19,10 @@
 
 #include "netserver/cl_server.hpp"
 
-#define SERVER_PORT 8601
+int g_server_port =18600;
+int g_numprocess =0;
+int g_connections_per_process =0;
+const int g_timeout_msec =2*3600*1000; // 2 hours.
 
 
 namespace testserverdefs
@@ -43,7 +46,8 @@ public:
     {
         for(std::vector < cf_fd >::const_iterator it =fds.begin(); it!=fds.end(); it++)
         {
-            AddNewConn(*it,"127.0.0.1",SERVER_PORT);
+            fprintf (stdout, "AddClientfds\n");
+            AddNewConn(*it,"127.0.0.1",g_server_port);
             _clientfds.insert(*it);
         }
     }
@@ -52,7 +56,7 @@ public:
     {
         CF_PRINT_FUNC;
 #if 0
-        fprintf (stderr, "OnAcceptComplete,fd=%d,addr=%s \n",
+        fprintf (stdout, "OnAcceptComplete,fd=%d,addr=%s \n",
                  session->Fd(),session->Addr().c_str());
 #endif
         AsyncRead(session->Fd(), _headLen);
@@ -63,7 +67,7 @@ public:
     {
         CF_PRINT_FUNC;
 #if 0
-        fprintf (stderr, "OnReadComplete,fd=%d,addr=%s,total()=%d,buf=%s \n",
+        fprintf (stdout, "OnReadComplete,fd=%d,addr=%s,total()=%d,buf=%s \n",
                  session->Fd(),session->Addr().c_str(),readBuffer->GetTotal(),
                  (cf_char *)(readBuffer->GetBuffer()));
 #endif
@@ -74,7 +78,7 @@ public:
             if(_headLen!=totalLen)
             {
 #if CF_SWITCH_PRINT
-                //              fprintf (stderr, "OnReadComplete,fd=%d,_headLen{%u}!=totalLen{%u}  \n",session->Fd(),_headLen,totalLen);
+                //              fprintf (stdout, "OnReadComplete,fd=%d,_headLen{%u}!=totalLen{%u}  \n",session->Fd(),_headLen,totalLen);
 #endif
             }
             else
@@ -93,7 +97,7 @@ public:
                 {
 #if 1
                     AsyncClose(session->Fd());
-                    fprintf (stderr, "Warning, OnReadComplete,fd=%d,size{%u}>MAX_BODY_SIZE{%u}  \n",
+                    fprintf (stdout, "Warning, OnReadComplete,fd=%d,size{%u}>MAX_BODY_SIZE{%u}  \n",
                              session->Fd(),size,testserverdefs::MAX_BODY_SIZE);
 #endif
                 }
@@ -130,11 +134,11 @@ private:
     std::unordered_set < cf_fd > _clientfds;
 };
 
-int g_numprocess =0;
+
 cf_void Run()
 {
     typedef cl::TcpServer < IOCompleteHandler > ServerType;
-    cf_fd severfd =ServerType::CreateListenSocket(SERVER_PORT);
+    cf_fd severfd =ServerType::CreateListenSocket(g_server_port);
 
     std::vector < pid_t > pids;
     pid_t pid;
@@ -146,22 +150,25 @@ cf_void Run()
             printf("fork error,error=%s \n",strerror(errno));
             break;
         }
-        else if(pid==0)
+        else if(0==pid)
         {
             IOCompleteHandler ioHandler;
-            //            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler,i,i==1?0:25));
-            std::shared_ptr < ServerType > server(new ServerType(severfd,ioHandler,i,0));
+            std::shared_ptr < ServerType > server;
+            if(g_connections_per_process>0)
+                server.reset(new ServerType(severfd,ioHandler,i,
+                                            i==g_numprocess-1?0:g_connections_per_process,g_timeout_msec));
+            else
+                server.reset(new ServerType(severfd,ioHandler,i,0,g_timeout_msec));
             std::vector<cf_fd> clientfds;
             int clientSum =0;
-            cf::ConnectToServer("127.0.0.1",SERVER_PORT,clientSum,clientfds);
+            cf::ConnectToServer("127.0.0.1",g_server_port,clientSum,clientfds);
             ioHandler.AddClientfds(clientfds);
-            printf("child, pid=%d \n",int(getpid()));
+            printf("parent pid=%d, child pid=%d,i=%d\n",int(getppid()),int(getpid()),i);
             server->Start();
             return ;
         }
         else
         {
-            printf("parent, pid=%d \n",int(getpid()));
             pids.push_back(pid);
             continue;
         }
@@ -176,12 +183,15 @@ cf_void Run()
 
 cf_int main(cf_int argc,cf_char * argv[])
 {
-    if(argc<2)
+    if(argc<4)
     {
-        printf("Usage:%s <process count> \n",argv[0]);
+        printf("Usage:%s <server port> <process count> <connections per process> \n",
+               argv[0]);
         return 0;
     }
-    g_numprocess =atoi(argv[1]);
+    g_server_port =atoi(argv[1]);
+    g_numprocess =atoi(argv[2]);
+    g_connections_per_process =atoi(argv[3]);
     Run();
     return 0;
 }

@@ -87,7 +87,7 @@ cf_void EventHandler::AsyncClose(cf_fd fd)
             {
                 //Warning
     #if CF_SWITCH_PRINT
-                fprintf (stderr, "OnClose,Warning ,fd=%d \n", fd);
+                fprintf (stdout, "OnClose,Warning ,fd=%d \n", fd);
     #endif
             }
     */
@@ -101,7 +101,7 @@ cf_void EventHandler::OnAccept()
         return;
     cf_fd fd =0;
 #if CF_SWITCH_PRINT
-    fprintf (stderr, "OnAccept,clients.size()=%u,pid=%d\n",
+    fprintf (stdout, "OnAccept,clients.size()=%u,pid=%d\n",
              (cf_uint32)clients.size(),int(getpid()));
 #endif
 
@@ -111,16 +111,16 @@ cf_void EventHandler::OnAccept()
         fd =session->Fd();
         if(_mapSession.find(fd)==_mapSession.end())
         {
-            //#if CF_SWITCH_PRINT
-            fprintf (stderr, "OnAccept,new connection ,fd=%d \n", fd);
-            //#endif
+#if CF_SWITCH_PRINT
+            fprintf (stdout, "OnAccept,new connection ,fd=%d,pid=%d \n", fd,int(getpid()));
+#endif
             AddNewConn(fd,session);
         }
         else
         {
             //Warning
-#if CF_SWITCH_PRINT
-            fprintf (stderr, "OnAccept,Warning ,fd=%d \n", fd);
+#if 1
+            fprintf (stdout, "OnAccept,Warning ,fd=%d \n", fd);
 #endif
         }
     }
@@ -133,16 +133,23 @@ cf_void EventHandler::OnAccept()
             cf_int fd =lk.GetFd();
             cf_write(); */
     cf_uint32 conncount =(cf_uint32)_mapSession.size();
+#if 1
+    fprintf ( stdout,
+              "OnAccept,_maxConnections{%lld},conncount{%lld},pid=%d\n",
+              (cf_int64)_maxConnections,(cf_int64)conncount,int(getpid()) );
+#endif
     if (_maxConnections>0&&conncount>=_maxConnections)
     {
-        fprintf (stderr, "OnAccept,conncount=%u,pid=%d\n",
-                 conncount,int(getpid()));
+        fprintf ( stdout,
+                  "OnAccept,_maxConnections{%lld}>0&&conncount{%lld}>=_maxConnections{%lld} ,pid=%d\n",
+                  (cf_int64)_maxConnections,(cf_int64)conncount,(cf_int64)_maxConnections,
+                  int(getpid()) );
         _demux->DelConn(_listenfd);
     }
 
 
 #if CF_SWITCH_PRINT
-    fprintf (stderr, "OnAccept,conncount=%u,pid=%d\n",
+    fprintf (stdout, "OnAccept,conncount=%u,pid=%d\n",
              (cf_uint32)_mapSession.size(),int(getpid()));
 #endif
 }
@@ -171,7 +178,7 @@ cf_void EventHandler::OnRead(cf_fd fd)
     {
         //Warning
 #if CF_SWITCH_PRINT
-        fprintf (stderr, "OnRead,Warning ,fd=%d \n", fd);
+        fprintf (stdout, "OnRead,Warning ,fd=%d \n", fd);
 #endif
     }
 #if 0
@@ -200,7 +207,7 @@ cf_void EventHandler::OnWrite(cf_fd fd)
     {
         //Warning
 #if CF_SWITCH_PRINT
-        fprintf (stderr, "OnWrite,Warning ,fd=%d \n", fd);
+        fprintf (stdout, "OnWrite,Warning ,fd=%d \n", fd);
 #endif
     }
 }
@@ -221,7 +228,7 @@ cf_void EventHandler::OnClose(cf_fd fd)
     {
         //Warning
 #if CF_SWITCH_PRINT
-        fprintf (stderr, "OnClose,Warning ,fd=%d \n", fd);
+        fprintf (stdout, "OnClose,Warning ,fd=%d \n", fd);
 #endif
     }
 }
@@ -253,7 +260,7 @@ cf_void EventHandler::OnError(cf_fd fd)
     {
         //Warning
 #if CF_SWITCH_PRINT
-        fprintf (stderr, "OnError,Warning ,fd=%d \n", fd);
+        fprintf (stdout, "OnError,Warning ,fd=%d \n", fd);
 #endif
     }
 }
@@ -287,19 +294,21 @@ cf_void EventHandler::ClearSessionAndBuffer(cf_fd fd)
     if (1!=_mapSession.erase(fd))
     {
 #if CF_SWITCH_PRINT
-        fprintf (stderr, "ClearSessionAndBuffer,Warning ,fd=%d not in _mapSession \n",
+        fprintf (stdout, "ClearSessionAndBuffer,Warning ,fd=%d not in _mapSession \n",
                  fd);
 #endif
     }
 
 
     // load balance.
+#if 1
+    fprintf ( stdout,
+              "ClearSessionAndBuffer,_maxConnections{%lld},conncount{%lld},pid=%d\n",
+              (cf_int64)_maxConnections,
+              (cf_int64)(_mapSession.size()),int(getpid()));
+#endif
     if(_maxConnections>0&&_mapSession.size()<_maxConnections)
     {
-#if 1
-        fprintf (stderr, "ClearSessionAndBuffer,_demux->AddConn,conncount=%u,pid=%d\n",
-                 (cf_uint32)(_mapSession.size()),int(getpid()));
-#endif
         _demux->AddConn(_listenfd, cf::networkdefs::EV_READ);
     }
 
@@ -314,7 +323,7 @@ cf_void EventHandler::ClearSessionAndBuffer(cf_fd fd)
     else
     {
 #if CF_SWITCH_PRINT
-        fprintf (stderr, "ClearSessionAndBuffer,Warning ,fd=%d not in _readBuf \n", fd);
+        fprintf (stdout, "ClearSessionAndBuffer,Warning ,fd=%d not in _readBuf \n", fd);
 #endif
     }
 
@@ -328,7 +337,7 @@ cf_void EventHandler::ClearSessionAndBuffer(cf_fd fd)
     else
     {
 #if CF_SWITCH_PRINT
-        fprintf (stderr, "ClearSessionAndBuffer,Warning ,fd=%d not in _writeBuf \n",
+        fprintf (stdout, "ClearSessionAndBuffer,Warning ,fd=%d not in _writeBuf \n",
                  fd);
 #endif
     }

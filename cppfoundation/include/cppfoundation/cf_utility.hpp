@@ -61,7 +61,7 @@ inline std::string String2Hex(cf_cpstr input,cf_uint32 inputLength)
 }
 
 #ifdef _DEBUG
-#define CF_SWITCH_PRINT 1
+#define CF_SWITCH_PRINT 0
 #endif
 
 #ifndef CF_PRINT_FUNC
