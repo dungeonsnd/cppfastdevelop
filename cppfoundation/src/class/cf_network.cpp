@@ -414,47 +414,26 @@ cf_int RecvSegmentAsync(cf_fd sockfd,cf_char * buf, ssize_t totalLen,
 // Send fd over unix domain socket.
 namespace networkdefs
 {
-union control_un_single
+union _tagcontrol_un_single
 {
     struct cmsghdr cm;
     char control[ CMSG_SPACE(sizeof(cf_int)*1) ];
-} ;
-const size_t sizeof_control_un_single =sizeof(control_un_single);
+} control_un_single;
+const size_t sizeof_control_un_single =sizeof(control_un_single.control);
 
-union control_un_tiny
-{
-    struct cmsghdr cm;
-    char control[ CMSG_SPACE(sizeof(cf_int)*SEND_FDS_SUMMAX_TINY) ];
-} ;
-const size_t sizeof_control_un_tiny =sizeof(control_un_single);
-
-union control_un_small
+union _tagcontrol_un_small
 {
     struct cmsghdr cm;
     char control[ CMSG_SPACE(sizeof(cf_int)*SEND_FDS_SUMMAX_SMALL) ];
-} ;
-const size_t sizeof_control_un_small =sizeof(control_un_single);
+} control_un_small;
+const size_t sizeof_control_un_small =sizeof(control_un_small.control);
 
-union control_un_medium
-{
-    struct cmsghdr cm;
-    char control[ CMSG_SPACE(sizeof(cf_int)*SEND_FDS_SUMMAX_MEDIUM) ];
-} ;
-const size_t sizeof_control_un_medium =sizeof(control_un_single);
-
-union control_un_large
+union _tagcontrol_un_large
 {
     struct cmsghdr cm;
     char control[ CMSG_SPACE(sizeof(cf_int)*SEND_FDS_SUMMAX_LARGE) ];
-} ;
-const size_t sizeof_control_un_large =sizeof(control_un_single);
-
-union control_un_verylarge
-{
-    struct cmsghdr cm;
-    char control[ CMSG_SPACE(sizeof(cf_int)*SEND_FDS_SUMMAX_VERYLARGE) ];
-} ;
-const size_t sizeof_control_un_verylarge =sizeof(control_un_single);
+} control_un_large;
+const size_t sizeof_control_un_large =sizeof(control_un_large.control);
 
 } // namespace networkdefs
 
@@ -465,21 +444,15 @@ ssize_t SendFds(const cf_int fd, const cf_int * sendfdarray,
     std::string control_un(0,'\0');
     if(fdarraylen==1)
         control_un.resize(networkdefs::sizeof_control_un_single);
-    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_TINY)
-        control_un.resize(networkdefs::sizeof_control_un_tiny);
     else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_SMALL)
         control_un.resize(networkdefs::sizeof_control_un_small);
-    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_MEDIUM)
-        control_un.resize(networkdefs::sizeof_control_un_medium);
     else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_LARGE)
         control_un.resize(networkdefs::sizeof_control_un_large);
-    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_VERYLARGE)
-        control_un.resize(networkdefs::sizeof_control_un_verylarge);
     else
         _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen);
 
     struct msghdr   msg;
-    msg.msg_control = (void *)(control_un[0]);
+    msg.msg_control = (void *)(&control_un[0]);
     msg.msg_controllen = control_un.size();
 
     struct cmsghdr * cmptr;
@@ -508,20 +481,14 @@ ssize_t RecvFds(const cf_int fd, cf_int * recvfdarray, const size_t fdarraylen,
     std::string control_un(0,'\0');
     if(fdarraylen==1)
         control_un.resize(networkdefs::sizeof_control_un_single);
-    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_TINY)
-        control_un.resize(networkdefs::sizeof_control_un_tiny);
     else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_SMALL)
         control_un.resize(networkdefs::sizeof_control_un_small);
-    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_MEDIUM)
-        control_un.resize(networkdefs::sizeof_control_un_medium);
     else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_LARGE)
         control_un.resize(networkdefs::sizeof_control_un_large);
-    else if(fdarraylen<=networkdefs::SEND_FDS_SUMMAX_VERYLARGE)
-        control_un.resize(networkdefs::sizeof_control_un_verylarge);
     else
         _THROW_FMT(ValueError, "fdarraylen{%llu} is too large !",(cf_uint64)fdarraylen);
     struct msghdr   msg;
-    msg.msg_control = (void *)(control_un[0]);
+    msg.msg_control = (void *)(&control_un[0]);
     msg.msg_controllen = control_un.size();
 
     struct cmsghdr * cmptr;
