@@ -43,17 +43,15 @@ class EventHandler : public cf::NonCopyable
 {
 public:
 
-    //    typedef std::map < cf_fd, cf::T_SESSION  > T_MAPSESSIONS;
     typedef std::unordered_map < cf_fd, cf::T_SESSION  > T_MAPSESSIONS;
 
     typedef std::vector < cf::T_SESSION > T_VECCLIENTS;
 
-    //    typedef std::map < cf_fd, std::shared_ptr < ReadBuffer >  > T_MAPREADBUFFER;
-    typedef std::unordered_map < cf_fd, std::shared_ptr < ReadBuffer >  >
-    T_MAPREADBUFFER;
-    //    typedef std::map < cf_fd, std::shared_ptr < WriteBuffer >  > T_MAPWRITEBUFFER;
-    typedef std::unordered_map < cf_fd, std::shared_ptr < WriteBuffer >  >
-    T_MAPWRITEBUFFER;
+    typedef std::list < std::shared_ptr < ReadBuffer > > T_READBUFFER_CHAIN;
+    typedef std::unordered_map <  cf_fd,T_READBUFFER_CHAIN  > T_MAPREADBUFFER;
+
+    typedef std::list < std::shared_ptr < WriteBuffer > > T_WRITEBUFFER_CHAIN;
+    typedef std::unordered_map <  cf_fd,T_WRITEBUFFER_CHAIN  > T_MAPWRITEBUFFER;
 
     EventHandler()
     {

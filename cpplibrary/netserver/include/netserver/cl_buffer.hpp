@@ -33,9 +33,9 @@ namespace bufferdefs
 {
 enum
 {
-    SIZE_READBUFFER_DEFAULT =1024,
+    SIZE_READBUFFER_DEFAULT =2048,
     SIZE_WRITEBUFFER_DEFAULT =4096,
-    SIZE_POOLSIZE_DEFAULT =4096
+    SIZE_POOLSIZE_DEFAULT =8192
 };
 } // namespace bufferdefs
 
@@ -118,6 +118,9 @@ public:
 
     static std::shared_ptr<BufferType> AllocOne()
     {
+#if CF_SWITCH_PRINT
+        fprintf (stdout, "BufferPool AllocOne,notice\n");
+#endif
         std::shared_ptr < BufferType > rb;
         CF_NEWOBJ(p, BufferType);
         if(NULL==p)

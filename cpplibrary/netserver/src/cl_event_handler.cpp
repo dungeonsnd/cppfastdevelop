@@ -35,39 +35,47 @@ void EventHandler::Init(cf_fd listenfd, std::shared_ptr < cf::Demux > demux,
 cf_void EventHandler::AsyncRead(cf_fd fd, cf_uint32 sizeToRead)
 {
     CF_PRINT_FUNC;
-    std::shared_ptr < ReadBuffer > rb;
     T_MAPREADBUFFER::iterator itbuf =_readBuf.find(fd);
+    std::shared_ptr < ReadBuffer > rb =_rbpool.GetFromPool();
+    rb->Clear();
+    rb->SetTotal(sizeToRead);
     if( itbuf!=_readBuf.end() )
     {
-        rb =itbuf->second;
-        rb->Clear();
+        T_READBUFFER_CHAIN & rbChain =itbuf->second;
+        rbChain.push_back(rb);
+#if CF_SWITCH_PRINT
+        fprintf (stdout, "AsyncRead , notice , add one to chain. \n");
+#endif
     }
     else
     {
-        rb =_rbpool.GetFromPool();
-        rb->Clear();
-        _readBuf.insert( std::make_pair(fd,rb) );
+        T_READBUFFER_CHAIN rbChain;
+        rbChain.push_back(rb);
+        _readBuf.insert( std::make_pair(fd,rbChain) );
     }
-    rb->SetTotal(sizeToRead);
     _demux->AddEvent(fd, cf::networkdefs::EV_READ);
 }
 cf_void EventHandler::AsyncWrite(cf_fd fd, cf_cpvoid buf,cf_uint32 bufSize)
 {
     CF_PRINT_FUNC;
-    std::shared_ptr < WriteBuffer > wb;
     T_MAPWRITEBUFFER::iterator itbuf =_writeBuf.find(fd);
+    std::shared_ptr < WriteBuffer > wb =_wbpool.GetFromPool();
+    wb->Clear();
+    wb->SetBuffer(buf,bufSize);
     if( itbuf!=_writeBuf.end() )
     {
-        wb =itbuf->second;
-        wb->Clear();
+        T_WRITEBUFFER_CHAIN & wbChain =itbuf->second;
+        wbChain.push_back(wb);
+#if CF_SWITCH_PRINT
+        fprintf (stdout, "AsyncWrite , notice , add one to chain. \n");
+#endif
     }
     else
     {
-        wb =_wbpool.GetFromPool();
-        wb->Clear();
-        _writeBuf.insert( std::make_pair(fd,wb) );
+        T_WRITEBUFFER_CHAIN WbChain;
+        WbChain.push_back(wb);
+        _writeBuf.insert( std::make_pair(fd,WbChain) );
     }
-    wb->SetBuffer(buf,bufSize);
     _demux->AddEvent(fd, cf::networkdefs::EV_WRITE);
 }
 cf_void EventHandler::AsyncClose(cf_fd fd)
@@ -173,16 +181,39 @@ cf_void EventHandler::OnRead(cf_fd fd)
     if( it!=_mapSession.end() && itbuf!=_readBuf.end() )
     {
         cf::T_SESSION session =it->second;
-        std::shared_ptr < ReadBuffer > readBuffer =itbuf->second;
-        bool peerClosedWhenRead =false;
-        readBuffer->Read(session, peerClosedWhenRead);
-        if(peerClosedWhenRead||readBuffer->IsComplete())
+        T_READBUFFER_CHAIN & rbChain =itbuf->second;
+        T_READBUFFER_CHAIN::iterator iterLastToRemove =rbChain.end();
+        T_READBUFFER_CHAIN::iterator iterEnd =rbChain.end();
+        --iterEnd;
+        for(T_READBUFFER_CHAIN::iterator iter =rbChain.begin();
+            iter!=rbChain.end(); iter++)
         {
-            _demux->DelEvent(fd, cf::networkdefs::EV_READ);
+            std::shared_ptr<ReadBuffer> rb =*iter;
+            bool peerClosedWhenRead =false;
+            rb->Read(session, peerClosedWhenRead);
+            if(peerClosedWhenRead)
+            {
+                _demux->DelEvent(fd, cf::networkdefs::EV_READ);
+                break;
+            }
+            if(rb->IsComplete())
+            {
+                OnReadComplete(session, rb);
+                iterLastToRemove =iter;
+                _rbpool.PutIntoPool(rb);
+            }
+            if(iter==iterEnd && rb->IsComplete()) // All in the chain is complete.
+            {
+                _demux->DelEvent(fd, cf::networkdefs::EV_READ);
+            }
         }
-        if(readBuffer->IsComplete())
+        if(iterLastToRemove==iterEnd) // clear all , so remove value directly.
         {
-            OnReadComplete(session, readBuffer);
+            _readBuf.erase(fd);
+        }
+        else if(iterLastToRemove!=rbChain.end())
+        {
+            rbChain.erase(rbChain.begin(),++iterLastToRemove);
         }
     }
     else
@@ -206,12 +237,33 @@ cf_void EventHandler::OnWrite(cf_fd fd)
     if( it!=_mapSession.end() && itbuf!=_writeBuf.end() )
     {
         cf::T_SESSION session =it->second;
-        std::shared_ptr < WriteBuffer > writeBuffer =itbuf->second;
-        writeBuffer->Write(session);
-        if(writeBuffer->IsComplete())
+        T_WRITEBUFFER_CHAIN & wbChain =itbuf->second;
+        T_WRITEBUFFER_CHAIN::iterator iterLastToRemove =wbChain.end();
+        T_WRITEBUFFER_CHAIN::iterator iterEnd =wbChain.end();
+        --iterEnd;
+        for(T_WRITEBUFFER_CHAIN::iterator iter =wbChain.begin();
+            iter!=wbChain.end(); iter++)
         {
-            _demux->DelEvent(fd, cf::networkdefs::EV_WRITE);
-            OnWriteComplete(session);
+            std::shared_ptr<WriteBuffer> wb =*iter;
+            wb->Write(session);
+            if(wb->IsComplete())
+            {
+                OnWriteComplete(session);
+                iterLastToRemove =iter;
+                _wbpool.PutIntoPool(wb);
+            }
+            if(iter==iterEnd && wb->IsComplete()) // All in the chain is complete.
+            {
+                _demux->DelEvent(fd, cf::networkdefs::EV_WRITE);
+            }
+        }
+        if(iterLastToRemove==iterEnd) // clear all , so remove value directly.
+        {
+            _writeBuf.erase(fd);
+        }
+        else if(iterLastToRemove!=wbChain.end())
+        {
+            wbChain.erase(wbChain.begin(),++iterLastToRemove);
         }
     }
     else
@@ -327,9 +379,14 @@ cf_void EventHandler::ClearSessionAndBuffer(cf_fd fd)
     T_MAPREADBUFFER::iterator itrd =_readBuf.find(fd);
     if( itrd!=_readBuf.end() )
     {
-        std::shared_ptr < ReadBuffer > rb =itrd->second;
-        _rbpool.PutIntoPool(rb);
-        _readBuf.erase(itrd);
+        T_READBUFFER_CHAIN & rbChain =itrd->second;
+        for(T_READBUFFER_CHAIN::iterator iter =rbChain.begin();
+            iter!=rbChain.end(); iter++)
+        {
+            std::shared_ptr < ReadBuffer > rb =*iter;
+            _rbpool.PutIntoPool(rb);
+        }
+        _readBuf.erase(fd);
     }
     else
     {
@@ -341,9 +398,14 @@ cf_void EventHandler::ClearSessionAndBuffer(cf_fd fd)
     T_MAPWRITEBUFFER::iterator itwr =_writeBuf.find(fd);
     if( itwr!=_writeBuf.end() )
     {
-        std::shared_ptr < WriteBuffer > wb =itwr->second;
-        _wbpool.PutIntoPool(wb);
-        _writeBuf.erase(itwr);
+        T_WRITEBUFFER_CHAIN & wbChain =itwr->second;
+        for(T_WRITEBUFFER_CHAIN::iterator iter =wbChain.begin();
+            iter!=wbChain.end(); iter++)
+        {
+            std::shared_ptr < WriteBuffer > wb =*iter;
+            _wbpool.PutIntoPool(wb);
+        }
+        _writeBuf.erase(fd);
     }
     else
     {
