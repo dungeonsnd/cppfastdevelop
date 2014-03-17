@@ -82,10 +82,12 @@ template <typename EventHandlerType>
 class TcpServer : public cf::NonCopyable
 {
 public:
-    static cf_fd CreateListenSocket(cf_uint32 port,const int backlog =4096)
+    static cf_fd CreateListenSocket(cf_uint32 port,bool reuseAddr =false,
+                                    const int backlog =4096)
     {
         CF_PRINT_FUNC;
-        cf_fd listenfd =cf::CreateServerSocket(port,SOCK_STREAM,false,backlog);
+        cf_fd listenfd =cf::CreateServerSocket(port,SOCK_STREAM,reuseAddr,false,
+                                               backlog);
 #if CF_SWITCH_PRINT
         fprintf (stderr, "CreateServerSocket return , listenfd=%d \n",listenfd);
 #endif

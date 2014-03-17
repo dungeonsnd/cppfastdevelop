@@ -52,7 +52,8 @@ cf_void SetBlocking(cf_int sockfd,bool blocking)
         _THROW(cf::SyscallExecuteError, "Failed to execute cf_fcntl !");
 }
 
-cf_fd CreateServerSocket (const cf_int port,const cf_int socktype,bool blocking,
+cf_fd CreateServerSocket (const cf_int port,const cf_int socktype,
+                          bool reuseAddr,bool blocking,
                           const cf_int backlog)
 {
     struct addrinfo hints;
@@ -76,6 +77,14 @@ cf_fd CreateServerSocket (const cf_int port,const cf_int socktype,bool blocking,
         listenfd = cf_socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (listenfd == -1)
             continue;
+
+        int option_value =1;
+        if( reuseAddr
+            && -1==cf_setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &option_value,
+                                 sizeof(int)) )
+            _THROW_FMT(cf::SyscallExecuteError,
+                       "Failed to execute cf_setsockopt (SO_REUSEADDR)! tmperrno=%d ",
+                       tmperrno);
 
         rt = cf_bind (listenfd, rp->ai_addr, rp->ai_addrlen);
         tmperrno =errno;

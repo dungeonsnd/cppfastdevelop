@@ -42,6 +42,7 @@ public:
     ~IOCompleteHandler()
     {
     }
+
     cf_void AddClientfds(std::vector < cf_fd > fds)
     {
         for(std::vector < cf_fd >::const_iterator it =fds.begin(); it!=fds.end(); it++)
@@ -132,13 +133,14 @@ private:
     std::map < cf_fd , bool > _recvHeader;
     const cf_uint32 _headLen;
     std::unordered_set < cf_fd > _clientfds;
+    std::unordered_set < cf_fd > _notifyPipe;
 };
 
 
 cf_void Run()
 {
     typedef cl::TcpServer < IOCompleteHandler > ServerType;
-    cf_fd severfd =ServerType::CreateListenSocket(g_server_port);
+    cf_fd severfd =ServerType::CreateListenSocket(g_server_port,true);
 
     std::vector < pid_t > pids;
     pid_t pid;
@@ -156,7 +158,7 @@ cf_void Run()
             std::shared_ptr < ServerType > server;
             if(g_connections_per_process>0)
                 server.reset(new ServerType(severfd,ioHandler,i,
-                                            i==g_numprocess-1?0:g_connections_per_process,g_timeout_msec));
+                                            g_connections_per_process,g_timeout_msec));
             else
                 server.reset(new ServerType(severfd,ioHandler,i,0,g_timeout_msec));
             std::vector<cf_fd> clientfds;

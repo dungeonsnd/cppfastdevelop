@@ -53,7 +53,7 @@ cf_void SetBlocking(cf_fd sockfd,bool blocking);
 // Create socket and bind it to the port.
 // return created socket, >0 successful, or throw exception .
 cf_fd CreateServerSocket(const cf_int port,const cf_int socktype =SOCK_STREAM,
-                         bool blocking=false,
+                         bool reuseAddr =false,bool blocking=false,
                          const cf_int backlog =32);
 
 // Create socket and bind it to the port.

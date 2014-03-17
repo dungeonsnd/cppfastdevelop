@@ -221,6 +221,11 @@ cf_int cf_shutdown(cf_int socket, cf_int how)
 cf_int cf_setsockopt(cf_int socket, cf_int level, cf_int option_name,
                      cf_cpvoid option_value, socklen_t option_len)
 {
+    if (ISNULL(option_value))
+    {
+        errno = CF_E_NULLPARAMS;
+        return -1;
+    }
     return   setsockopt( socket,  level,  option_name, option_value,  option_len);
 
 }

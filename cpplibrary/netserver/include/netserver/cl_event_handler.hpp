@@ -99,6 +99,9 @@ protected:
     cf_void AddNewConn(cf_fd fd, cf::T_SESSION & session);
     cf_void AddNewConn(cf_fd fd,cf_cpstr ip,cf_uint32 port);
 
+    cf_void StartListening();
+    cf_void StopListening();
+
 private:
     cf_void ClearSessionAndBuffer(cf_fd fd);
     cf_void DumpStatus();

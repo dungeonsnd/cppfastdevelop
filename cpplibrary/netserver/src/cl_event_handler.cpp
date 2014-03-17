@@ -93,6 +93,17 @@ cf_void EventHandler::AsyncClose(cf_fd fd)
     */
 }
 
+cf_void EventHandler::StartListening()
+{
+    CF_PRINT_FUNC;
+    _demux->AddConn(_listenfd, cf::networkdefs::EV_READ);
+}
+cf_void EventHandler::StopListening()
+{
+    CF_PRINT_FUNC;
+    _demux->DelConn(_listenfd);
+}
+
 cf_void EventHandler::OnAccept()
 {
     CF_PRINT_FUNC;
