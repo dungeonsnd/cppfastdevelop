@@ -36,6 +36,12 @@ cf_int ReadBuffer::Read(cf::T_SESSION session, bool & peerClosedWhenRead)
     CF_PRINT_FUNC;
     cf_char * p =&_buf[0];
     cf_int rdn =session->RecvAsync(p+_already, GetLeft(),peerClosedWhenRead);
+
+#if CF_SWITCH_PRINT
+    std::string s1 =cf::String2Hex(p+_already,rdn);
+    fprintf (stdout, "<<<< Read ,fd=%d,RecvAsync=%s \n", session->Fd(), s1.c_str());
+#endif
+
     _already +=rdn;
     return rdn;
 }
@@ -75,6 +81,13 @@ cf_int WriteBuffer::Write(cf::T_SESSION session)
     CF_PRINT_FUNC;
     cf_char * p =&_buf[0];
     cf_int rdn =session->SendAsync(p+_already, GetLeft());
+
+#if CF_SWITCH_PRINT
+    std::string s1 =cf::String2Hex(p+_already,rdn);
+    fprintf (stdout, ">>>> Write ,fd=%d,SendAsync=%s \n", session->Fd(),
+             s1.c_str());
+#endif
+
     _already +=rdn;
     return rdn;
 }
