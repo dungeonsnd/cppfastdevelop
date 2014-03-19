@@ -45,7 +45,31 @@ inline cf_void Gettimeofday(cf_uint64 & seconds, cf_uint32 & useconds)
     useconds =(cf_uint32)tv.tv_usec;
 }
 
+inline cf_char * GenRandString(cf_char * str,const cf_uint32 len)
+{
+    srand(time(NULL));
+    cf_uint32 i;
+    for(i=0; i<len; ++i)
+        str[i]='a'+rand()%26;
+    return str;
+}
+
 inline std::string String2Hex(cf_cpstr input,cf_uint32 inputLength)
+{
+    if(inputLength<1)
+        return "";
+    std::string output;
+    std::string everyone(3,'\0');
+    for(cf_uint32 i =0; i<inputLength; i++)
+    {
+        memset(&everyone[0],0,everyone.size());
+        snprintf(&everyone[0],everyone.size(),"%02x",input[i]);
+        output.append (everyone.c_str(),everyone.size()-1);
+    }
+    return output;
+}
+
+inline std::string String2HexD(cf_cpstr input,cf_uint32 inputLength)
 {
     if(inputLength<1)
         return "";

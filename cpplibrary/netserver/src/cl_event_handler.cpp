@@ -185,6 +185,8 @@ cf_void EventHandler::OnRead(cf_fd fd)
         T_READBUFFER_CHAIN::iterator iterLastToRemove =rbChain.end();
         T_READBUFFER_CHAIN::iterator iterEnd =rbChain.end();
         --iterEnd;
+
+        // Read data.
         for(T_READBUFFER_CHAIN::iterator iter =rbChain.begin();
             iter!=rbChain.end(); iter++)
         {
@@ -198,20 +200,35 @@ cf_void EventHandler::OnRead(cf_fd fd)
             }
             if(rb->IsComplete())
             {
-                OnReadComplete(session, rb);
                 iterLastToRemove =iter;
-                _rbpool.PutIntoPool(rb);
             }
-            else if(iter==iterEnd && rb->IsComplete()) // All in the chain is complete.
+            if(iter==iterEnd && rb->IsComplete()) // All in the chain is complete.
             {
                 _demux->DelEvent(fd, cf::networkdefs::EV_READ);
+                printf("_demux->DelEvent, fd=%d,_readBuf.size=%d \n",fd,int(_readBuf.size()));
             }
-            else
+            if(!rb->IsComplete())
                 break;
         }
+
+        // Call complete functions.
+        if(iterLastToRemove!=rbChain.end())
+        {
+            for(T_READBUFFER_CHAIN::iterator iter =rbChain.begin();; iter++)
+            {
+                std::shared_ptr<ReadBuffer> rb =*iter;
+                OnReadComplete(session, rb);
+                _rbpool.PutIntoPool(rb);
+                if(iter==iterLastToRemove)
+                    break;
+            }
+        }
+
+        // Remove chains.
         if(iterLastToRemove==iterEnd) // clear all , so remove value directly.
         {
             _readBuf.erase(fd);
+            printf("_readBuf.erase(%d),_readBuf.size=%d \n",fd,int(_readBuf.size()));
         }
         else if(iterLastToRemove!=rbChain.end())
         {
@@ -243,6 +260,8 @@ cf_void EventHandler::OnWrite(cf_fd fd)
         T_WRITEBUFFER_CHAIN::iterator iterLastToRemove =wbChain.end();
         T_WRITEBUFFER_CHAIN::iterator iterEnd =wbChain.end();
         --iterEnd;
+
+        // Write data.
         for(T_WRITEBUFFER_CHAIN::iterator iter =wbChain.begin();
             iter!=wbChain.end(); iter++)
         {
@@ -250,17 +269,30 @@ cf_void EventHandler::OnWrite(cf_fd fd)
             wb->Write(session);
             if(wb->IsComplete())
             {
-                OnWriteComplete(session);
                 iterLastToRemove =iter;
-                _wbpool.PutIntoPool(wb);
             }
-            else if(iter==iterEnd && wb->IsComplete()) // All in the chain is complete.
+            if(iter==iterEnd && wb->IsComplete()) // All in the chain is complete.
             {
                 _demux->DelEvent(fd, cf::networkdefs::EV_WRITE);
             }
-            else
+            if(!wb->IsComplete())
                 break;
         }
+
+        // Call complete functions.
+        if(iterLastToRemove!=wbChain.end())
+        {
+            for(T_WRITEBUFFER_CHAIN::iterator iter =wbChain.begin();; iter++)
+            {
+                std::shared_ptr<WriteBuffer> wb =*iter;
+                OnWriteComplete(session);
+                _wbpool.PutIntoPool(wb);
+                if(iter==iterLastToRemove)
+                    break;
+            }
+        }
+
+        // Remove chains.
         if(iterLastToRemove==iterEnd) // clear all , so remove value directly.
         {
             _writeBuf.erase(fd);
@@ -392,12 +424,6 @@ cf_void EventHandler::ClearSessionAndBuffer(cf_fd fd)
         }
         _readBuf.erase(fd);
     }
-    else
-    {
-#if CF_SWITCH_PRINT
-        fprintf (stdout, "ClearSessionAndBuffer,Warning ,fd=%d not in _readBuf \n", fd);
-#endif
-    }
 
     T_MAPWRITEBUFFER::iterator itwr =_writeBuf.find(fd);
     if( itwr!=_writeBuf.end() )
@@ -411,14 +437,18 @@ cf_void EventHandler::ClearSessionAndBuffer(cf_fd fd)
         }
         _writeBuf.erase(fd);
     }
-    else
+}
+
+/*
+cf_void EventHandler::DumpChain()
+{
+    for(T_MAPREADBUFFER::const_iterator it=_readBuf.begin();
+    it!=_readBuf.end();it++)
     {
-#if CF_SWITCH_PRINT
-        fprintf (stdout, "ClearSessionAndBuffer,Warning ,fd=%d not in _writeBuf \n",
-                 fd);
-#endif
+    for()
     }
 }
+*/
 
 cf_void EventHandler::DumpStatus()
 {

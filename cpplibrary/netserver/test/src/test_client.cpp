@@ -20,62 +20,44 @@
 #include "cppfoundation/cf_root.hpp"
 #include "cppfoundation/cf_utility.hpp"
 #include "cppfoundation/cf_network.hpp"
+#include "cppfoundation/cf_compress.hpp"
 
 std::string g_server_host;
 int g_server_port =18600;
 int g_threadscnt =1;
 int g_times =1;
 int g_reqsize =8192;
-
-std::vector < std::string > g_vecStr;
 std::vector < cf_fd > g_vecSock;
 
 #define HEADER_LEN 4
 #define SERVER_IP "127.0.0.1"
 
-cf_void InitVecStr()
-{
-    //    CF_PRINT_FUNC;
-    srand(time(NULL));
-    std::string tmp;
-    char tmp1[2];
-    int r =0;
-    for(int i=0; i<g_times; i++)
-    {
-        tmp ="";
-        for(int j=0; j<g_reqsize; j++)
-        {
-            r =rand()%26+'A';
-            memset(tmp1,0,sizeof tmp1);
-            snprintf(tmp1,sizeof tmp1,"%c",r);
-            tmp.append(tmp1);
-        }
-
-        cf_uint32 bodylen =htonl(tmp.size());
-        std::string buf(HEADER_LEN+tmp.size(),'\0');
-        memcpy(&buf[0],&bodylen,HEADER_LEN);
-        memcpy((cf_char *)(&buf[0])+HEADER_LEN,tmp.c_str(),tmp.size());
-
-        g_vecStr.push_back(buf);
-    }
-}
-
-std::string GenBody(int threadIndex,int times)
-{
-    std::string tmp(3,'\0');
-    snprintf(&tmp[0],tmp.size(),"%01d%01d",threadIndex,times);
-    cf_uint32 bodylen =htonl(tmp.size()-1);
-    std::string buf(HEADER_LEN+tmp.size()-1,'\0');
-    memcpy(&buf[0],&bodylen,HEADER_LEN);
-    memcpy((cf_char *)(&buf[0])+HEADER_LEN,tmp.c_str(),tmp.size()-1);
-    return buf;
-}
 
 cf_void InitVecConnection()
 {
     cf::ConnectToServer(g_server_host.c_str(),g_server_port,g_threadscnt,g_vecSock);
 }
 
+#define ID_SIZE 16
+#define HEADER_SIZE 4+4+ID_SIZE
+cf_void PackHeader(const char * body,unsigned bodyLen,const char * id,
+                   char * header)
+{
+    int ad =cf::CalAdler32(body,bodyLen);
+    bodyLen =htonl(bodyLen+HEADER_SIZE-4);
+    memcpy(header,&bodyLen,4);
+    ad =htonl(ad);
+    memcpy(header+4,&ad,4);
+    memcpy(header+8,id,ID_SIZE);
+}
+
+bool CheckResult(const char * header,const char * body,unsigned bodyLen)
+{
+    int ad =*( (int *)(&header[4]) );
+    int adlerBody =cf::CalAdler32(body,bodyLen);
+    adlerBody =ntohl(adlerBody);
+    return ad==adlerBody;
+}
 
 cf_pvoid Run(void * p)
 {
@@ -86,8 +68,10 @@ cf_pvoid Run(void * p)
     ssize_t hasRecv =0;
     ssize_t shouldRecv =0;
     bool peerClosedWhenRead =false;
+    int timeoutMsec =8000;
 
-    std::string _bufrecv(g_reqsize,'\0');
+    std::string bufsend(g_reqsize+HEADER_SIZE,'\0');
+    std::string bufrecv(g_reqsize+HEADER_SIZE,'\0');
 
     cf_uint64 seconds =0;
     cf_uint32 useconds =0;
@@ -95,38 +79,48 @@ cf_pvoid Run(void * p)
 
     for(int k=0; k<g_times; k++) // send times
     {
-        std::string body =GenBody(index,k);
-
+        cf::GenRandString(&bufsend[HEADER_SIZE],g_reqsize);
+        char header[HEADER_SIZE];
+        char id[ID_SIZE+1];
+        snprintf(id,sizeof(id),"[%6d ,%6d]",index,k);
+        PackHeader(&bufsend[HEADER_SIZE],g_reqsize,id,header);
+        memcpy(&bufsend[0],header,sizeof(header));
         hasSent =0;
-        bool succ =cf::SendSegmentSync(sockfd,body.c_str(), body.size(),hasSent,8000,
-                                       body.size());
+        bool succ =cf::SendSegmentSync(sockfd,
+                                       bufsend.c_str(), bufsend.size(),
+                                       hasSent,timeoutMsec,bufsend.size());
+
         if(succ)
         {
-#if 0
+#if 1
             fprintf(stderr,"Sent succeeded ! hasSent=%d ,k=%d ,",int(hasSent),k);
-            fprintf(stderr,"buff=%s \n",body.c_str()+HEADER_LEN);
+            std::string s1 =cf::String2Hex(bufsend.c_str(),bufsend.size());
+            fprintf(stderr,"buff=%s \n",s1.c_str());
+            printf("data sent=%s \n",&bufsend[8]);
 #endif
         }
         else
             fprintf(stderr,"Warning,Send timeout ! \n");
-        if(hasSent!=(cf_uint32)body.size())
-            fprintf(stderr,"Warning,hasSent len{%u}!=body.size(){%u}! \n",
-                    (cf_uint32)hasSent,(cf_uint32)(body.size()));
+        if(hasSent!=(cf_uint32)bufsend.size())
+            fprintf(stderr,"Warning,hasSent len{%u}!=bufsend.size(){%u}! \n",
+                    (cf_uint32)hasSent,(cf_uint32)(bufsend.size()));
     }
 
 
-    for(int k=0; k<g_times; k++) // send times
+    for(int k=0; k<g_times; k++)
     {
         peerClosedWhenRead =false;
         hasRecv =0;
-        shouldRecv =hasSent-HEADER_LEN;
-        bool succ =cf::RecvSegmentSync(sockfd,&_bufrecv[0], shouldRecv,hasRecv,
-                                       peerClosedWhenRead,8000);
+        shouldRecv =bufsend.size();
+        bool succ =cf::RecvSegmentSync(sockfd,&bufrecv[0], shouldRecv,hasRecv,
+                                       peerClosedWhenRead,timeoutMsec);
         if(succ)
         {
-#if 0
-            fprintf(stderr,"Recv succeeded ! hasRecv=%d ,k=%d ,",int(hasRecv),k);
-            fprintf(stderr,"buff=%s \n",_bufrecv.c_str());
+#if 1
+            fprintf(stderr,"Recv succeeded ! hasRecv=%d ,k=%d ,",int(hasSent),k);
+            std::string s1 =cf::String2Hex(bufrecv.c_str(),bufrecv.size());
+            fprintf(stderr,"buff=%s \n",s1.c_str());
+            printf("data recv=%s \n",&bufrecv[8]);
 #endif
         }
         else
@@ -135,18 +129,19 @@ cf_pvoid Run(void * p)
             fprintf(stderr,
                     "Warning,Recved hasRecv{%u}!=shouldRecv{%u}! peerClosedWhenRead=%u \n",
                     (cf_uint32)hasRecv,(cf_uint32)shouldRecv,cf_uint32(peerClosedWhenRead));
+        else
+        {
+            bool eql =CheckResult(&bufrecv[0],&bufrecv[HEADER_SIZE],g_reqsize);
+            if( !eql )
+            {
+                std::string s1 =cf::String2Hex(bufrecv.c_str(),bufrecv.size());
+                fprintf(stderr,
+                        "****** tid=%d,Warning,sockfd=%d, Sent data != Recv data(%s)\n",
+                        index,sockfd,s1.c_str());
+                break;
+            }
+        }
     }
-    /*
-    std::string s1 =cf::String2Hex(&body[HEADER_LEN],_bufrecv.size());
-    std::string s2 =cf::String2Hex(_bufrecv.c_str(),_bufrecv.size());
-    if( 0!=strncmp(&body[HEADER_LEN], _bufrecv.c_str(), _bufrecv.size()) )
-    {
-        fprintf(stderr,
-                "tid=%d,@@@@@@@@@@@@@@@@ Warning, sockfd=%d, Sent data(%s) != Recv data(%s)\n",
-                int(pthread_self()),sockfd,s1.c_str(),s2.c_str());
-        break;
-    }
-    */
 
 #if 0
     fprintf(stderr,"cf_close ! tid=%u\n",(cf_uint32)pthread_self());
@@ -180,7 +175,6 @@ cf_int main(cf_int argc,cf_char * argv[])
              (cf_uint32)g_reqsize,seconds,useconds,
              (cf_uint32)g_times);
 
-    InitVecStr();
     cf::Gettimeofday(seconds, useconds);
     fprintf (stderr, "After generate random string,time=%llu.%06u \n"
              "Going to init %u connections \n\n",
@@ -198,19 +192,27 @@ cf_int main(cf_int argc,cf_char * argv[])
     fprintf (stderr, "+++ Threads starting,time=%llu.%06u \n",
              seconds1,useconds1);
 
-    for (tnum = 0; tnum < g_threadscnt; tnum++)
+    int idex =0;
+    if(1==g_threadscnt)
     {
-        index[tnum] =tnum;
-        s = pthread_create(&tid[tnum], NULL,&Run, &(index[tnum]));
-        if (s != 0)
-            perror("pthread_create");
+        Run(&idex);
     }
-    for (tnum = 0; tnum < g_threadscnt; tnum++)
+    else
     {
-        s = pthread_join(tid[tnum], &res);
-        if (s != 0)
-            perror("pthread_join");
-        free(res);
+        for (tnum = 0; tnum < g_threadscnt; tnum++)
+        {
+            index[tnum] =tnum;
+            s = pthread_create(&tid[tnum], NULL,&Run, &(index[tnum]));
+            if (s != 0)
+                perror("pthread_create");
+        }
+        for (tnum = 0; tnum < g_threadscnt; tnum++)
+        {
+            s = pthread_join(tid[tnum], &res);
+            if (s != 0)
+                perror("pthread_join");
+            free(res);
+        }
     }
 
     cf_uint64 seconds2 =0;

@@ -107,7 +107,11 @@ public:
         else
         {
             _recvHeader[session->Fd()] =true;
-            AsyncWrite(session->Fd(), readBuffer->GetBuffer(), totalLen);
+            int t=htonl(totalLen);
+            std::string bd(totalLen+4,'\0');
+            memcpy(&bd[0],&t,sizeof(int));
+            memcpy(&bd[4],readBuffer->GetBuffer(),totalLen);
+            AsyncWrite(session->Fd(), bd.c_str(), bd.size());
             AsyncRead(session->Fd(), _headLen);
         }
     }

@@ -9,7 +9,7 @@ CMPFLAG		= $(G_CMPFLAG) -c -pthread $(COMMINC)
 LNKFLAG     = 
 LIBDIR	= -L. -L../../bin -L../../../../cppfoundation/bin
 LIB		= $(LIBDIR) -l$(G_TARGETNAME) -l$(G_STUBNAME) -l$(G_CLASSNAME)
-SYTMLIB     = -lpthread
+SYTMLIB     = -lpthread -lz
 
 EXE0 =   test_server
 EXE1 =   test_client

@@ -33,9 +33,9 @@ namespace bufferdefs
 {
 enum
 {
-    SIZE_READBUFFER_DEFAULT =8,
-    SIZE_WRITEBUFFER_DEFAULT =8,
-    SIZE_POOLSIZE_DEFAULT =8
+    SIZE_READBUFFER_DEFAULT =16,
+    SIZE_WRITEBUFFER_DEFAULT =16,
+    SIZE_POOLSIZE_DEFAULT =4
 };
 } // namespace bufferdefs
 

@@ -46,9 +46,9 @@ compressLevel Copy from zlib.h
 #define Z_BEST_COMPRESSION 9
 #define Z_DEFAULT_COMPRESSION (-1)
 */
-cf_int Compress(cf_cpstr src, cf_ulong srcLen,
-                std::string & dest, cf_ulong & destLen,
-                cf_int compressLevel =Z_DEFAULT_COMPRESSION)
+inline cf_int Compress(cf_cpstr src, cf_ulong srcLen,
+                       std::string & dest, cf_ulong & destLen,
+                       cf_int compressLevel =Z_DEFAULT_COMPRESSION)
 {
     destLen =compressBound(srcLen);
     dest.resize(destLen);
@@ -64,13 +64,21 @@ dest [out]
 destLen [in,out]
 compressLevel [in]
 */
-cf_int Uncompress(cf_cpvoid src, cf_ulong srcLen, cf_pvoid dest,
-                  cf_ulong & destLen)
+inline cf_int Uncompress(cf_cpvoid src, cf_ulong srcLen, cf_pvoid dest,
+                         cf_ulong & destLen)
 {
     return uncompress((Bytef *)dest,(uLongf *)(&destLen),
                       (Bytef *)src,(uLong)srcLen);
 }
+
+inline cf_int CalAdler32(cf_cpstr src,cf_uint32 srcLen)
+{
+    uLong adler = adler32(0L, Z_NULL, 0);
+    return adler32(adler, (const Bytef *)src, srcLen);
+}
+
 #endif // __ZLIB__
+
 
 } // namespace cf
 
