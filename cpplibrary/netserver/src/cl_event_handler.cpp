@@ -202,10 +202,12 @@ cf_void EventHandler::OnRead(cf_fd fd)
                 iterLastToRemove =iter;
                 _rbpool.PutIntoPool(rb);
             }
-            if(iter==iterEnd && rb->IsComplete()) // All in the chain is complete.
+            else if(iter==iterEnd && rb->IsComplete()) // All in the chain is complete.
             {
                 _demux->DelEvent(fd, cf::networkdefs::EV_READ);
             }
+            else
+                break;
         }
         if(iterLastToRemove==iterEnd) // clear all , so remove value directly.
         {
@@ -265,6 +267,8 @@ cf_void EventHandler::OnWrite(cf_fd fd)
         {
             wbChain.erase(wbChain.begin(),++iterLastToRemove);
         }
+        else
+            break;
     }
     else
     {
