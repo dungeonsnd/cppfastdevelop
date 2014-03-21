@@ -34,7 +34,10 @@ void EventHandler::Init(cf_fd listenfd, std::shared_ptr < cf::Demux > demux,
 
 cf_void EventHandler::AsyncRead(cf_fd fd, cf_uint32 sizeToRead)
 {
-    CF_PRINT_FUNC;
+    //    CF_PRINT_FUNC;
+#if CF_SWITCH_PRINT
+    fprintf (stdout, "AsyncRead ,fd=%d,sizeToRead=%u \n",fd,sizeToRead);
+#endif
     T_MAPREADBUFFER::iterator itbuf =_readBuf.find(fd);
     std::shared_ptr < ReadBuffer > rb =_rbpool.GetFromPool();
     rb->Clear();
@@ -57,7 +60,10 @@ cf_void EventHandler::AsyncRead(cf_fd fd, cf_uint32 sizeToRead)
 }
 cf_void EventHandler::AsyncWrite(cf_fd fd, cf_cpvoid buf,cf_uint32 bufSize)
 {
-    CF_PRINT_FUNC;
+    //    CF_PRINT_FUNC;
+#if CF_SWITCH_PRINT
+    fprintf (stdout, "AsyncWrite ,fd=%d,bufSize=%u \n",fd,bufSize);
+#endif
     T_MAPWRITEBUFFER::iterator itbuf =_writeBuf.find(fd);
     std::shared_ptr < WriteBuffer > wb =_wbpool.GetFromPool();
     wb->Clear();
@@ -186,6 +192,8 @@ cf_void EventHandler::OnRead(cf_fd fd)
         T_READBUFFER_CHAIN::iterator iterEnd =rbChain.end();
         --iterEnd;
 
+        std::vector < std::shared_ptr<ReadBuffer> > rbComplete;
+
         // Read data.
         for(T_READBUFFER_CHAIN::iterator iter =rbChain.begin();
             iter!=rbChain.end(); iter++)
@@ -201,6 +209,7 @@ cf_void EventHandler::OnRead(cf_fd fd)
             if(rb->IsComplete())
             {
                 iterLastToRemove =iter;
+                rbComplete.push_back(rb);
             }
             if(iter==iterEnd && rb->IsComplete()) // All in the chain is complete.
             {
@@ -209,19 +218,6 @@ cf_void EventHandler::OnRead(cf_fd fd)
             }
             if(!rb->IsComplete())
                 break;
-        }
-
-        // Call complete functions.
-        if(iterLastToRemove!=rbChain.end())
-        {
-            for(T_READBUFFER_CHAIN::iterator iter =rbChain.begin();; iter++)
-            {
-                std::shared_ptr<ReadBuffer> rb =*iter;
-                OnReadComplete(session, rb);
-                _rbpool.PutIntoPool(rb);
-                if(iter==iterLastToRemove)
-                    break;
-            }
         }
 
         // Remove chains.
@@ -233,6 +229,16 @@ cf_void EventHandler::OnRead(cf_fd fd)
         else if(iterLastToRemove!=rbChain.end())
         {
             rbChain.erase(rbChain.begin(),++iterLastToRemove);
+        }
+
+        // Call complete functions.
+        for ( std::vector < std::shared_ptr<ReadBuffer> >::iterator iter=
+                  rbComplete.begin();
+              iter!=rbComplete.end(); iter++)
+        {
+            std::shared_ptr<ReadBuffer> rb =*iter;
+            OnReadComplete(session, rb);
+            _rbpool.PutIntoPool(rb);
         }
     }
     else
@@ -261,6 +267,8 @@ cf_void EventHandler::OnWrite(cf_fd fd)
         T_WRITEBUFFER_CHAIN::iterator iterEnd =wbChain.end();
         --iterEnd;
 
+        std::vector < std::shared_ptr<WriteBuffer> > wbComplete;
+
         // Write data.
         for(T_WRITEBUFFER_CHAIN::iterator iter =wbChain.begin();
             iter!=wbChain.end(); iter++)
@@ -270,6 +278,7 @@ cf_void EventHandler::OnWrite(cf_fd fd)
             if(wb->IsComplete())
             {
                 iterLastToRemove =iter;
+                wbComplete.push_back(wb);
             }
             if(iter==iterEnd && wb->IsComplete()) // All in the chain is complete.
             {
@@ -277,19 +286,6 @@ cf_void EventHandler::OnWrite(cf_fd fd)
             }
             if(!wb->IsComplete())
                 break;
-        }
-
-        // Call complete functions.
-        if(iterLastToRemove!=wbChain.end())
-        {
-            for(T_WRITEBUFFER_CHAIN::iterator iter =wbChain.begin();; iter++)
-            {
-                std::shared_ptr<WriteBuffer> wb =*iter;
-                OnWriteComplete(session);
-                _wbpool.PutIntoPool(wb);
-                if(iter==iterLastToRemove)
-                    break;
-            }
         }
 
         // Remove chains.
@@ -300,6 +296,16 @@ cf_void EventHandler::OnWrite(cf_fd fd)
         else if(iterLastToRemove!=wbChain.end())
         {
             wbChain.erase(wbChain.begin(),++iterLastToRemove);
+        }
+
+        // Call complete functions.
+        for ( std::vector < std::shared_ptr<WriteBuffer> >::iterator iter=
+                  wbComplete.begin();
+              iter!=wbComplete.end(); iter++)
+        {
+            std::shared_ptr<WriteBuffer> wb =*iter;
+            OnWriteComplete(session);
+            _wbpool.PutIntoPool(wb);
         }
     }
     else
@@ -372,7 +378,6 @@ cf_void EventHandler::AddNewConn(cf_fd fd, cf::T_SESSION session,
     _demux->AddConn(fd, cf::networkdefs::EV_CLOSE);
     if(callback)
         OnAcceptComplete(session);
-    OnAcceptComplete(session);
 }
 cf::T_SESSION EventHandler::AddNewConn(cf_fd fd,cf_cpstr ip,cf_uint32 port,
                                        bool callback)

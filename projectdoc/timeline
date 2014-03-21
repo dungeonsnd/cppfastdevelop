@@ -5,23 +5,20 @@
 1.1 docs & misc
 1.Finish documents & code samples.
 2.Finish adding test-code.
-3.Checking code-style.
-4.Finish function of exception throw.
-5.Finish binary compatibity.
+3.Finish binary compatibity.
 
 1.2 code
-1.Finish cppfoundation/cf_network.
-2.Finish cppfoundation/cf_socket , wrapper of socket fd operation.
-3.Finish cppfoundation/cf_demux, epoll/kqueue/poll.
-4.Finish cpplibrary/logserver.
-5.Finish cpplibrary/servicewatch, two watchdogs watch the specified processes.
-6.Finish cpplibrary/dbaccess, using prepare statement,mysql.
-7.Finish cpplibrary/config, using shared memory.
-8.Finish cppfoundation/cf_ipc/class MsgQ.
-9.Finish cppfoundation/class Process.
-10.Finish cppfoundation/class Application.
-11.Finish cppfoundation/class TaskPool.
-12.Finish cpplibrary/tinymq, simple message queue like ZeroMQ.
+1.cpplibrary/netserver 多socket绑定支持.
+2.Finish cppfoundation, kqueue.
+3.Finish cpplibrary/logserver.
+4.Finish cpplibrary/servicewatch, two watchdogs watch the specified processes.
+5.Finish cpplibrary/dbaccess, using prepare statement,mysql.
+6.Finish cpplibrary/config, using shared memory.
+7.Finish cppfoundation/cf_ipc/class MsgQ.
+8.Finish cppfoundation/class Process.
+9.Finish cppfoundation/class Application.
+10.Finish cppfoundation/class TaskPool.
+11.Finish cpplibrary/tinymq, simple message queue like ZeroMQ.
 
 
 2.Hierarchy
