@@ -94,8 +94,9 @@ public:
     cf_void OnError(cf_fd fd);
 
 protected:
-    cf_void AddNewConn(cf_fd fd, cf::T_SESSION & session);
-    cf_void AddNewConn(cf_fd fd,cf_cpstr ip,cf_uint32 port);
+    cf_void AddNewConn(cf_fd fd, cf::T_SESSION session,bool callback =true);
+    cf::T_SESSION AddNewConn(cf_fd fd,cf_cpstr ip,cf_uint32 port,
+                             bool callback =true);
 
     cf_void StartListening();
     cf_void StopListening();

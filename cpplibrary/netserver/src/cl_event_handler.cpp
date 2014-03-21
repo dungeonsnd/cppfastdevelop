@@ -364,14 +364,18 @@ cf_void EventHandler::OnError(cf_fd fd)
     }
 }
 
-cf_void EventHandler::AddNewConn(cf_fd fd, cf::T_SESSION & session)
+cf_void EventHandler::AddNewConn(cf_fd fd, cf::T_SESSION session,
+                                 bool callback)
 {
     _mapSession.insert( std::make_pair(fd,session) );
     cf::SetBlocking(fd,false);
     _demux->AddConn(fd, cf::networkdefs::EV_CLOSE);
+    if(callback)
+        OnAcceptComplete(session);
     OnAcceptComplete(session);
 }
-cf_void EventHandler::AddNewConn(cf_fd fd,cf_cpstr ip,cf_uint32 port)
+cf::T_SESSION EventHandler::AddNewConn(cf_fd fd,cf_cpstr ip,cf_uint32 port,
+                                       bool callback)
 {
     struct sockaddr_in servaddr;
     bzero(&servaddr, sizeof(servaddr));
@@ -384,7 +388,8 @@ cf_void EventHandler::AddNewConn(cf_fd fd,cf_cpstr ip,cf_uint32 port)
     if(NULL==p)
         _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
     ses.reset(p);
-    AddNewConn(fd, ses);
+    AddNewConn(fd, ses, callback);
+    return ses;
 }
 
 
