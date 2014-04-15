@@ -17,25 +17,42 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-/*
-[pro@node001dev test]$ time bin/perf_log
+#ifndef _HEADER_FILE_CFD_CL_LOG_COMMONS_HPP_
+#define _HEADER_FILE_CFD_CL_LOG_COMMONS_HPP_
 
-real    0m8.398s
-user    0m3.761s
-sys     0m3.331s
-*/
+#include "cppfoundation/cf_root.hpp"
+#include "cppfoundation/cf_exception.hpp"
 
-#include <string>
-#include "log/cl_log.hpp"
-
-int main(int argc,char * argv[])
+namespace cl
 {
-    cl::log::LogNonCache < cf::FakeMutex > log("tmp.log");
-    std::string buf(1024,'@');
-    buf ="abcdfeg";
+namespace log
+{
 
-    for(int i=0; i<1000000; i++)
-        CLLOG(log,cl::log::WARN,buf.c_str(),buf.size());
+enum CLLEVEL
+{
+    TRACE=0,
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR,
+    FATAL,
+    COUNT // End of enum define.
+};
+enum
+{
+    CLLEVELNAME_MAX_LEN =6
+};
 
-    return 0;
-}
+enum
+{
+    CL_LOG_MAX_MSG_LEN =8192,
+    CL_LOG_MAX_LOOP =1024,
+    CL_LOG_PREFIX_LEN =33,
+    CL_LOG_SUFFIX_LEN =200
+};
+
+} //namespace cl
+} // namespace log
+
+#endif // _HEADER_FILE_CFD_CL_LOG_COMMONS_HPP_
+

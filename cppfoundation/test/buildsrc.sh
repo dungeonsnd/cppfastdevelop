@@ -17,12 +17,20 @@ if [[ $# -eq 1 ]]; then
     fi
 fi
 
-cd src
+cd network
 if [ $REBUILD_ALL -eq 1 ] ; then
     make cleanall
 fi
 make
-cd ../../
+cd ../
+
+cd utility
+if [ $REBUILD_ALL -eq 1 ] ; then
+    make cleanall
+fi
+make
+cd ../
+
 
 
 if [ $CLEAN_TMP -eq 1 ] ; then

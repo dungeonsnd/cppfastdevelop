@@ -17,7 +17,7 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-#include "cppfoundation/cf_utility.hpp"
+#include "cppfoundation/cf_utility_program.hpp"
 
 namespace cf
 {
@@ -101,14 +101,6 @@ cf_void IgnoreSignals()
             }
         }
     }
-}
-
-cf_void GenerateRandString(cf_uint32 stringLength, std::string & output)
-{
-    output.resize(stringLength,'\0');
-    cf_uint i=0;
-    for(i=0; i<stringLength; i++)
-        output[i] =rand()%26+'A';
 }
 
 } // namespace cf

@@ -62,7 +62,6 @@ public:
 class Thread: public NonCopyable
 {
 public:
-
     Thread(Runnable *, cf_int id=-1);
     ~Thread() {}
     cf_void SetStackSize(size_t) cf_const;

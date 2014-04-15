@@ -22,11 +22,13 @@
 namespace cf
 {
 
-Epoll::Epoll(cf_fd listenfd ,cf_int maxEvents)
-    :_listenfd(listenfd),_maxEvents(maxEvents)
+Epoll::Epoll(const TYPE_SETLISTENFDS & listenfds ,cf_int maxEvents)
+    :_listenfds(listenfds),_maxEvents(maxEvents)
 {
     _epfd =cf_epoll_create(epolldefs::SIZE_CREATE);
-    AddConn(_listenfd,networkdefs::EV_READ);
+    for(TYPE_SETLISTENFDS::iterator it=_listenfds.begin();
+        it!=_listenfds.end(); it++)
+        AddConn(*it,networkdefs::CFEV_READ);
     //        EpollCtl(_pipe[0],EPOLL_CTL_ADD, EPOLLIN);
     if(_maxEvents<1)
         _THROW_FMT(ValueError, "_maxEvents{%d}<1 !",_maxEvents);
@@ -39,9 +41,9 @@ cf_void Epoll::AddConn(cf_fd fd,networkdefs::EV_TYPE ev)
 {
     CF_PRINT_FUNC;
     cf_ev event =EPOLLRDHUP;
-    if(ev&networkdefs::EV_READ)
+    if(ev&networkdefs::CFEV_READ)
         event |= EPOLLIN;
-    if(ev&networkdefs::EV_WRITE)
+    if(ev&networkdefs::CFEV_WRITE)
         event |= EPOLLOUT;
 
     EpollCtl(fd,EPOLL_CTL_ADD, event);
@@ -57,9 +59,9 @@ cf_void Epoll::AddEvent(cf_fd fd,networkdefs::EV_TYPE ev)
 {
     CF_PRINT_FUNC;
     cf_ev event =0;
-    if(ev&networkdefs::EV_READ)
+    if(ev&networkdefs::CFEV_READ)
         event |= EPOLLIN;
-    if(ev&networkdefs::EV_WRITE)
+    if(ev&networkdefs::CFEV_WRITE)
         event |= EPOLLOUT;
 
     TYPE_MAPEVENT_ITER it =_mapEvent.find(fd);
@@ -86,9 +88,9 @@ cf_void Epoll::DelEvent(cf_fd fd,networkdefs::EV_TYPE ev)
 {
     CF_PRINT_FUNC;
     cf_ev event =0;
-    if(ev&networkdefs::EV_READ)
+    if(ev&networkdefs::CFEV_READ)
         event |= EPOLLIN;
-    if(ev&networkdefs::EV_WRITE)
+    if(ev&networkdefs::CFEV_WRITE)
         event |= EPOLLOUT;
 
     TYPE_MAPEVENT_ITER it =_mapEvent.find(fd);
@@ -138,13 +140,13 @@ cf_void Epoll::WaitEvent(TYPE_VECEVENT & vecEvent, cf_int timeoutMilliseconds)
     {
         for(cf_int i=0; i<n; i++)
         {
-            if(_retEvents[i].data.fd==_listenfd)
+            if( _listenfds.find(_retEvents[i].data.fd)!=_listenfds.end() )
             {
 #if CFD_SWITCH_PRINT
-                fprintf (stderr, "epoll_wait return , EV_ACCEPT\n");
+                fprintf (stderr, "epoll_wait return , CFEV_ACCEPT\n");
 #endif
                 vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
-                                                   networkdefs::EV_ACCEPT) );
+                                                   networkdefs::CFEV_ACCEPT) );
                 continue;
             }
             else if((_retEvents[i].events & EPOLLERR)||(_retEvents[i].events & EPOLLHUP))
@@ -153,7 +155,7 @@ cf_void Epoll::WaitEvent(TYPE_VECEVENT & vecEvent, cf_int timeoutMilliseconds)
                 fprintf (stderr, "epoll_wait return , EPOLLERR or EPOLLHUP\n");
 #endif
                 vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
-                                                   networkdefs::EV_ERROR) );
+                                                   networkdefs::CFEV_ERROR) );
                 continue;
             }
             /*
@@ -174,15 +176,15 @@ cf_void Epoll::WaitEvent(TYPE_VECEVENT & vecEvent, cf_int timeoutMilliseconds)
                 fprintf (stderr, "epoll_wait return , EPOLLIN\n");
 #endif
                 vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
-                                                   networkdefs::EV_READ) );
+                                                   networkdefs::CFEV_READ) );
             }
             if(_retEvents[i].events & EPOLLOUT)
             {
 #if CFD_SWITCH_PRINT
-                fprintf (stderr, "epoll_wait return , EV_WRITE\n");
+                fprintf (stderr, "epoll_wait return , CFEV_WRITE\n");
 #endif
                 vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
-                                                   networkdefs::EV_WRITE) );
+                                                   networkdefs::CFEV_WRITE) );
             }
             if(_retEvents[i].events & EPOLLRDHUP)
             {
@@ -190,7 +192,7 @@ cf_void Epoll::WaitEvent(TYPE_VECEVENT & vecEvent, cf_int timeoutMilliseconds)
                 fprintf (stderr, "epoll_wait return , EPOLLRDHUP\n");
 #endif
                 vecEvent.push_back( std::make_pair(_retEvents[i].data.fd,
-                                                   networkdefs::EV_CLOSE) );
+                                                   networkdefs::CFEV_CLOSE) );
             }
         }
     }

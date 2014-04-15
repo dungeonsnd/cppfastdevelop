@@ -12,7 +12,7 @@ CFLIB		= $(CFLIBDIR) -l$(G_CLASSNAME)
 SYTMLIB     = -lpthread
 
 DLL =   lib$(G_TARGETNAME).so
-OBJ = cl_log.o
+OBJ = cl_log.o cl_log_cache.o
 
 BINDIR =../bin
 

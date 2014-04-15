@@ -11,8 +11,13 @@ CFLIBDIR	= -L. -L../../bin -L../../../../cppfoundation/bin
 CFLIB		= $(CFLIBDIR) -l$(G_STUBNAME) -l$(G_CLASSNAME) -l$(G_TARGETNAME) 
 SYTMLIB     = -lpthread
 
-EXE =   perf_log
-OBJ = perf_log.o
+EXE1 =   perf_log
+EXE2 =   perf_log_cache
+EXE  =   $(EXE1) $(EXE2)
+
+OBJ1 = perf_log.o
+OBJ2 = perf_log_cache.o
+OBJ  = $(OBJ1) $(OBJ2)
 
 BINDIR =../bin
 
@@ -27,6 +32,11 @@ cleanall:
 %.o:%.cpp
 	$(COMPER) $(CMPFLAG) $<
 
-$(EXE):$(OBJ)
+$(EXE1):$(OBJ1)
 	$(LINKER) $(LNKFLAG) $(SYTMLIB) $(CFLIB) -o $@ $?
 	mv $@ $(BINDIR)
+    
+$(EXE2):$(OBJ2)
+	$(LINKER) $(LNKFLAG) $(SYTMLIB) $(CFLIB) -o $@ $?
+	mv $@ $(BINDIR)
+

@@ -19,7 +19,6 @@ cf_condition.o \
 cf_ipc.o  \
 cf_thread.o \
 cf_binary_search.o \
-cf_utility.o \
 cf_memory.o \
 cf_concurrency_queue.o \
 cf_concurrency_map.o \
@@ -32,7 +31,10 @@ cf_socket.o \
 cf_event_loop.o \
 cf_epoll.o\
 cf_kqueue.o\
-cf_poll.o
+cf_poll.o \
+cf_utility_misc.o \
+cf_utility_string.o \
+cf_utility_program.o
 
 BINDIR =../../bin
 

@@ -37,13 +37,29 @@ enum
 
 enum EV_TYPE
 {
-    EV_ACCEPT = 01,
-    EV_READ = 02,
-    EV_WRITE = 04,
-    EV_CLOSE = 010,
-    EV_ERROR = 020
+    CFEV_ACCEPT = 01,
+    CFEV_READ = 02,
+    CFEV_WRITE = 04,
+    CFEV_CLOSE = 010,
+    CFEV_ERROR = 020
 };
 } // namespace networkdefs
+
+inline int IPString2Int(cf_cpstr ip,cf_uint32 & rsl)
+{
+    struct in_addr s;      // IPv4地址结构体
+    int rt =inet_pton(AF_INET, ip, (void *)&s);
+    rsl =cf_uint32(s.s_addr);
+    return rt;
+}
+
+inline std::string IPInt2String(cf_uint32 ip)
+{
+    char rsl[20] = {0};
+    inet_ntop(AF_INET, (void *)&ip, rsl, sizeof(rsl));
+    return rsl;
+}
+
 
 
 cf_int GetHostByName(cf_const std::string &, struct hostent * phe);

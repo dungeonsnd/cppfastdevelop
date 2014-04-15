@@ -33,9 +33,9 @@ namespace bufferdefs
 {
 enum
 {
-    SIZE_READBUFFER_DEFAULT =1024,
-    SIZE_WRITEBUFFER_DEFAULT =2048,
-    SIZE_POOLSIZE_DEFAULT =128
+    SIZE_READBUFFER_DEFAULT =700,
+    SIZE_WRITEBUFFER_DEFAULT =1300,
+    SIZE_POOLSIZE_DEFAULT =512
 };
 } // namespace bufferdefs
 
@@ -103,13 +103,17 @@ class BufferPool : public cf::NonCopyable
 public:
     typedef std::list< std::shared_ptr< BufferType > > T_LISTFREE;
 
-    BufferPool(cf_int poolsize =bufferdefs::SIZE_POOLSIZE_DEFAULT)
+    BufferPool(cf_int poolsize =bufferdefs::SIZE_POOLSIZE_DEFAULT):
+        _WaterMark_maxAllocCnt(0)
     {
         if(poolsize<1)
             _THROW_FMT(cf::ValueError, "poolsize{%u}!=0 !", poolsize);
         for(cf_int i=0; i<poolsize; i++)
         {
             _free.push_back(AllocOne());
+
+            // Status logging.
+            _WaterMark_maxAllocCnt++;
         }
     }
     ~BufferPool()
@@ -137,6 +141,9 @@ public:
             fprintf (stderr, "BufferTypePool,GetFromPool,AllocOne \n");
 #endif
             std::shared_ptr<BufferType> rb =AllocOne();
+
+            // Status logging.
+            _WaterMark_maxAllocCnt++;
             return rb;
         }
         else
@@ -159,12 +166,15 @@ public:
 
     cf_void DumpStatus()
     {
-        //        typename T_LISTFREE::iterator it =_free.begin();
-        printf("_free.size=%u \n",(cf_uint32)(_free.size()));
+        printf("    _free.size=%u \n",(cf_uint32)(_free.size()));
+        printf("    maxAllocCnt=%d \n",_WaterMark_maxAllocCnt);
 
     }
 private:
     T_LISTFREE _free;
+
+    // Status logging.
+    int _WaterMark_maxAllocCnt;
 };
 
 

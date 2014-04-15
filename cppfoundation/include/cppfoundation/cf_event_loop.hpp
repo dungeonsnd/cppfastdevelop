@@ -52,17 +52,25 @@ template <typename EventHandlerType>
 class EventLoop : public cf::NonCopyable
 {
 public:
-    EventLoop(cf_fd listenfd, EventHandlerType & handler,
-              cf_int index, cf_uint maxConnections)
+    typedef std::unordered_map < cf_fd, cf_uint32  > T_LISTENFD_MAXCONN;
+
+    EventLoop(const T_LISTENFD_MAXCONN & listenfd_maxconn,
+              EventHandlerType & handler,
+              cf_int processid)
         :_stop(false),_handler(handler)
     {
+        std::unordered_set < cf_fd > listenfds;
+        for (T_LISTENFD_MAXCONN::const_iterator it=
+                 listenfd_maxconn.begin();
+             it!=listenfd_maxconn.end(); it++)
+            listenfds.insert(it->first);
         CF_PRINT_FUNC;
-        CF_NEWOBJ(p, Demux, listenfd);
+        CF_NEWOBJ(p, Demux, listenfds);
         if(NULL==p)
             _THROW(AllocateMemoryError, "Allocate memory failed !");
         _demux.reset(p);
 
-        _handler.Init(listenfd, _demux, index, maxConnections);
+        _handler.Init(listenfd_maxconn, _demux, processid);
     }
     cf_void Stop()
     {
@@ -73,7 +81,7 @@ public:
         _stop =true;
     }
 
-    cf_void WaitEvent(cf_int timeoutMilliseconds)
+    cf_void WaitEvent(const cf_int timeoutMilliseconds)
     {
         CF_PRINT_FUNC;
         // only for valgrind test,
@@ -86,25 +94,26 @@ public:
 
             _vecEvent.clear();
             _demux->WaitEvent(_vecEvent,timeoutMilliseconds);
+
             if(_vecEvent.size())
             {
                 for(Demux::TYPE_VECEVENT_ITER it =_vecEvent.begin(); it!=_vecEvent.end(); it++)
                 {
                     switch(it->second)
                     {
-                    case networkdefs::EV_ACCEPT:
-                        _handler.OnAccept();
+                    case networkdefs::CFEV_ACCEPT:
+                        _handler.OnAccept(it->first);
                         break;
-                    case networkdefs::EV_READ:
+                    case networkdefs::CFEV_READ:
                         _handler.OnRead(it->first);
                         break;
-                    case networkdefs::EV_WRITE:
+                    case networkdefs::CFEV_WRITE:
                         _handler.OnWrite(it->first);
                         break;
-                    case networkdefs::EV_CLOSE:
+                    case networkdefs::CFEV_CLOSE:
                         _handler.OnClose(it->first);
                         break;
-                    case networkdefs::EV_ERROR:
+                    case networkdefs::CFEV_ERROR:
                         _handler.OnError(it->first);
                         break;
                     default:

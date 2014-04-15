@@ -42,15 +42,16 @@ enum
 class Epoll : public cf::NonCopyable
 {
 public:
-    //    typedef std::map < cf_fd, cf_ev > TYPE_MAPEVENT;
+    typedef std::unordered_set < cf_fd > TYPE_SETLISTENFDS;
     typedef std::unordered_map < cf_fd, cf_ev > TYPE_MAPEVENT;
     typedef TYPE_MAPEVENT::iterator TYPE_MAPEVENT_ITER;
     typedef std::vector < std::pair < cf_fd, networkdefs::EV_TYPE > > TYPE_VECEVENT;
     typedef TYPE_VECEVENT::iterator TYPE_VECEVENT_ITER;
 
-    Epoll(cf_fd listenfd ,cf_int maxEvents =epolldefs::SIZE_MAXEVENTS);
+    Epoll(const TYPE_SETLISTENFDS & listenfds ,
+          cf_int maxEvents =epolldefs::SIZE_MAXEVENTS);
     ~Epoll();
-    cf_void AddConn(cf_fd fd,networkdefs::EV_TYPE ev=networkdefs::EV_READ);
+    cf_void AddConn(cf_fd fd,networkdefs::EV_TYPE ev=networkdefs::CFEV_READ);
     cf_void DelConn(cf_fd fd);
     cf_void AddEvent(cf_fd fd,networkdefs::EV_TYPE ev);
     cf_void DelEvent(cf_fd fd,networkdefs::EV_TYPE ev);
@@ -58,7 +59,7 @@ public:
 private:
     cf_void EpollCtl(cf_fd fd,cf_int op, cf_ev event);
 
-    cf_fd _listenfd;
+    TYPE_SETLISTENFDS _listenfds;
     cf_int _epfd;
     TYPE_MAPEVENT _mapEvent;
     cf_int _maxEvents;

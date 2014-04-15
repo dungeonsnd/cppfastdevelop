@@ -22,7 +22,7 @@
 int g_server_port =18600;
 int g_numprocess =0;
 int g_connections_per_process =0;
-const int g_timeout_msec =2*3600*1000; // 2 hours.
+const int g_timeout_msec =20*1000;
 
 
 namespace testserverdefs
@@ -48,17 +48,17 @@ public:
         for(std::vector < cf_fd >::const_iterator it =fds.begin(); it!=fds.end(); it++)
         {
             fprintf (stdout, "AddClientfds\n");
-            AddNewConn(*it,"127.0.0.1",g_server_port);
+            AddNewConn(*it,"127.0.0.1",g_server_port,true);
             _clientfds.insert(*it);
         }
     }
 
-    cf_void OnAcceptComplete(cf::T_SESSION session)
+    cf_void OnAcceptComplete(cf_fd listenfd,cf::T_SESSION session)
     {
         CF_PRINT_FUNC;
 #if 0
-        fprintf (stdout, "OnAcceptComplete,fd=%d,addr=%s \n",
-                 session->Fd(),session->Addr().c_str());
+        fprintf (stdout, "OnAcceptComplete,listenfd=%d,fd=%d,addr=%s \n",
+                 listenfd,session->Fd(),session->Addr().c_str());
 #endif
         AsyncRead(session->Fd(), _headLen);
         _recvHeader[session->Fd()] =true;
@@ -112,6 +112,10 @@ public:
             memcpy(&bd[0],&t,sizeof(int));
             memcpy(&bd[4],readBuffer->GetBuffer(),totalLen);
             AsyncWrite(session->Fd(), bd.c_str(), bd.size());
+#if 0
+            fprintf (stdout, "AsyncWrite ,fd=%d,bufSize=%d, pid=%u \n",session->Fd(),
+                     int(bd.size()),(cf_uint32)getpid());
+#endif
             AsyncRead(session->Fd(), _headLen);
         }
     }
@@ -140,11 +144,36 @@ private:
     std::unordered_set < cf_fd > _notifyPipe;
 };
 
+typedef cl::TcpServer < IOCompleteHandler > ServerType;
+
+cf_void Work(cf_fd severfd, cf_fd severfd1, int i)
+{
+    IOCompleteHandler ioHandler;
+    std::shared_ptr < ServerType > server;
+
+    cl::T_LISTENFD_MAXCONN listenfd_maxconn;
+    listenfd_maxconn[severfd] =g_connections_per_process;
+    listenfd_maxconn[severfd1] =g_connections_per_process;
+    server.reset(new ServerType(listenfd_maxconn,ioHandler,
+                                i,g_timeout_msec));
+    std::vector<cf_fd> clientfds;
+    int clientSum =0;
+    cf::ConnectToServer("127.0.0.1",g_server_port,clientSum,clientfds);
+    ioHandler.AddClientfds(clientfds);
+    printf("parent pid=%d, child pid=%d,i=%d\n",int(getppid()),int(getpid()),i);
+    server->Start();
+}
 
 cf_void Run()
 {
-    typedef cl::TcpServer < IOCompleteHandler > ServerType;
     cf_fd severfd =ServerType::CreateListenSocket(g_server_port,true);
+    cf_fd severfd1 =ServerType::CreateListenSocket(g_server_port+1,true);
+
+    if(0==g_numprocess)
+    {
+        Work(severfd,severfd1,0);
+        return ;
+    }
 
     std::vector < pid_t > pids;
     pid_t pid;
@@ -158,19 +187,7 @@ cf_void Run()
         }
         else if(0==pid)
         {
-            IOCompleteHandler ioHandler;
-            std::shared_ptr < ServerType > server;
-            if(g_connections_per_process>0)
-                server.reset(new ServerType(severfd,ioHandler,i,
-                                            g_connections_per_process,g_timeout_msec));
-            else
-                server.reset(new ServerType(severfd,ioHandler,i,0,g_timeout_msec));
-            std::vector<cf_fd> clientfds;
-            int clientSum =0;
-            cf::ConnectToServer("127.0.0.1",g_server_port,clientSum,clientfds);
-            ioHandler.AddClientfds(clientfds);
-            printf("parent pid=%d, child pid=%d,i=%d\n",int(getppid()),int(getpid()),i);
-            server->Start();
+            Work(severfd,severfd1,i);
             return ;
         }
         else

@@ -61,92 +61,104 @@ bool CheckResult(const char * header,const char * body,unsigned bodyLen)
 
 cf_pvoid Run(void * p)
 {
-    int index =*((int *)p);
-    cf_fd sockfd=g_vecSock[index];
-    //    printf("index=%d,sockfd=%d \n",index,sockfd);
-    ssize_t hasSent =0;
-    ssize_t hasRecv =0;
-    ssize_t shouldRecv =0;
-    bool peerClosedWhenRead =false;
-    int timeoutMsec =8000;
-
-    std::string bufsend(g_reqsize+HEADER_SIZE,'\0');
-    std::string bufrecv(g_reqsize+HEADER_SIZE,'\0');
-
-    cf_uint64 seconds =0;
-    cf_uint32 useconds =0;
-    cf::Gettimeofday(seconds, useconds);
-
-    for(int k=0; k<g_times; k++) // send times
+    try
     {
-        cf::GenRandString(&bufsend[HEADER_SIZE],g_reqsize);
-        char header[HEADER_SIZE];
-        char id[ID_SIZE+1];
-        snprintf(id,sizeof(id),"[%6d ,%6d]",index,k);
-        PackHeader(&bufsend[HEADER_SIZE],g_reqsize,id,header);
-        memcpy(&bufsend[0],header,sizeof(header));
-        hasSent =0;
-        bool succ =cf::SendSegmentSync(sockfd,
-                                       bufsend.c_str(), bufsend.size(),
-                                       hasSent,timeoutMsec,bufsend.size());
+        int index =*((int *)p);
+        cf_fd sockfd=g_vecSock[index];
+        //    printf("index=%d,sockfd=%d \n",index,sockfd);
+        ssize_t hasSent =0;
+        ssize_t hasRecv =0;
+        ssize_t shouldRecv =0;
+        bool peerClosedWhenRead =false;
+        int timeoutMsec =8000;
 
-        if(succ)
-        {
-#if 1
-            fprintf(stderr,"Sent succeeded ! hasSent=%d ,k=%d ,",int(hasSent),k);
-            std::string s1 =cf::String2Hex(bufsend.c_str(),bufsend.size());
-            fprintf(stderr,"buff=%s \n",s1.c_str());
-            printf("data sent=%s \n",&bufsend[8]);
-#endif
-        }
-        else
-            fprintf(stderr,"Warning,Send timeout ! \n");
-        if(hasSent!=(cf_uint32)bufsend.size())
-            fprintf(stderr,"Warning,hasSent len{%u}!=bufsend.size(){%u}! \n",
-                    (cf_uint32)hasSent,(cf_uint32)(bufsend.size()));
-    }
+        std::string bufsend(g_reqsize+HEADER_SIZE,'\0');
+        std::string bufrecv(g_reqsize+HEADER_SIZE,'\0');
 
+        cf_uint64 seconds =0;
+        cf_uint32 useconds =0;
+        cf::Gettimeofday(seconds, useconds);
 
-    for(int k=0; k<g_times; k++)
-    {
-        peerClosedWhenRead =false;
-        hasRecv =0;
-        shouldRecv =bufsend.size();
-        bool succ =cf::RecvSegmentSync(sockfd,&bufrecv[0], shouldRecv,hasRecv,
-                                       peerClosedWhenRead,timeoutMsec);
-        if(succ)
+        /// Going to send.
+        for(int k=0; k<g_times; k++) // send times
         {
-#if 1
-            fprintf(stderr,"Recv succeeded ! hasRecv=%d ,k=%d ,",int(hasSent),k);
-            std::string s1 =cf::String2Hex(bufrecv.c_str(),bufrecv.size());
-            fprintf(stderr,"buff=%s \n",s1.c_str());
-            printf("data recv=%s \n",&bufrecv[8]);
-#endif
-        }
-        else
-            fprintf(stderr,"Warning,Recv timeout ! \n");
-        if(hasRecv!=shouldRecv)
-            fprintf(stderr,
-                    "Warning,Recved hasRecv{%u}!=shouldRecv{%u}! peerClosedWhenRead=%u \n",
-                    (cf_uint32)hasRecv,(cf_uint32)shouldRecv,cf_uint32(peerClosedWhenRead));
-        else
-        {
-            bool eql =CheckResult(&bufrecv[0],&bufrecv[HEADER_SIZE],g_reqsize);
-            if( !eql )
+            cf::GenRandString(&bufsend[HEADER_SIZE],g_reqsize);
+            char header[HEADER_SIZE];
+            char id[ID_SIZE+1];
+            snprintf(id,sizeof(id),"[%6d ,%6d]",index,k);
+            PackHeader(&bufsend[HEADER_SIZE],g_reqsize,id,header);
+            memcpy(&bufsend[0],header,sizeof(header));
+            hasSent =0;
+            bool succ =cf::SendSegmentSync(sockfd,
+                                           bufsend.c_str(), bufsend.size(),
+                                           hasSent,timeoutMsec,bufsend.size());
+
+            if(succ)
             {
+#if 0
+                fprintf(stderr,"Sent succeeded ! hasSent=%d ,k=%d ,",int(hasSent),k);
+                std::string s1 =cf::String2Hex(bufsend.c_str(),bufsend.size());
+                fprintf(stderr,"buff=%s \n",s1.c_str());
+                printf("data sent=%s \n",&bufsend[8]);
+#endif
+            }
+            else
+                fprintf(stderr,"Warning,Send timeout ! \n");
+            if(hasSent!=(cf_uint32)bufsend.size())
+                fprintf(stderr,"Warning,hasSent len{%u}!=bufsend.size(){%u}! \n",
+                        (cf_uint32)hasSent,(cf_uint32)(bufsend.size()));
+        }
+
+        /// Going to recv.
+        for(int k=0; k<g_times; k++)
+        {
+            peerClosedWhenRead =false;
+            hasRecv =0;
+            shouldRecv =bufsend.size();
+            bool succ =cf::RecvSegmentSync(sockfd,&bufrecv[0], shouldRecv,hasRecv,
+                                           peerClosedWhenRead,timeoutMsec);
+            if(succ)
+            {
+#if 0
+                fprintf(stderr,"Recv succeeded ! hasRecv=%d ,k=%d ,",int(hasSent),k);
                 std::string s1 =cf::String2Hex(bufrecv.c_str(),bufrecv.size());
+                fprintf(stderr,"buff=%s \n",s1.c_str());
+                printf("data recv=%s \n",&bufrecv[8]);
+#endif
+            }
+            else
+                fprintf(stderr,"Warning,Recv timeout ! \n");
+            if(hasRecv!=shouldRecv)
                 fprintf(stderr,
-                        "****** tid=%d,Warning,sockfd=%d, Sent data != Recv data(%s)\n",
-                        index,sockfd,s1.c_str());
-                break;
+                        "Warning,Recved hasRecv{%u}!=shouldRecv{%u}! peerClosedWhenRead=%u \n",
+                        (cf_uint32)hasRecv,(cf_uint32)shouldRecv,cf_uint32(peerClosedWhenRead));
+            else
+            {
+                bool eql =CheckResult(&bufrecv[0],&bufrecv[HEADER_SIZE],g_reqsize);
+                if( !eql )
+                {
+                    std::string s1 =cf::String2Hex(bufrecv.c_str(),bufrecv.size());
+                    fprintf(stderr,
+                            "****** tid=%d,Warning,sockfd=%d, Sent data != Recv data(%s)\n",
+                            index,sockfd,s1.c_str());
+                    break;
+                }
             }
         }
-    }
 
 #if 0
-    fprintf(stderr,"cf_close ! tid=%u\n",(cf_uint32)pthread_self());
+        fprintf(stderr,"cf_close ! tid=%u\n",(cf_uint32)pthread_self());
 #endif
-    cf_close(sockfd);
+        cf_close(sockfd);
+    }
+    catch (cf::BaseException & e)
+    {
+        printf("Caught exception:\n%s\n",e.what());
+    }
+    catch (...)
+    {
+        printf("Caught unknow exception.\n");
+    }
     return NULL;
 }
 

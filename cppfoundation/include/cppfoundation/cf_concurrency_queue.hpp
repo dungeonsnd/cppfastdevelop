@@ -248,6 +248,7 @@ struct TYPEQueue
     FastFindQueue;
 };
 
+//typedef TYPEQueue < std::string , PthreadMutex >::Queue CQueue;
 
 } // namespace cf
 

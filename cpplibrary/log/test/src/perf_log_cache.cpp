@@ -26,16 +26,34 @@ sys     0m3.331s
 */
 
 #include <string>
-#include "log/cl_log.hpp"
+#include "log/cl_log_cache.hpp"
 
 int main(int argc,char * argv[])
 {
-    cl::log::LogNonCache < cf::FakeMutex > log("tmp.log");
-    std::string buf(1024,'@');
-    buf ="abcdfeg";
+    CLLOGC_INIT("tmp.log");
+    std::string buf(32,'a');
+
+    struct timeval tv1;
+    if(-1==gettimeofday(&tv1, NULL))
+        _THROW(cf::SyscallExecuteError, "Failed to execute gettimeofday !");
 
     for(int i=0; i<1000000; i++)
-        CLLOG(log,cl::log::WARN,buf.c_str(),buf.size());
+    {
+        CLLOGC(cl::log::TRACE,buf.c_str());
+        //        CLLOGC_FLUSH();
+    }
+
+    CLLOGC_FLUSH();
+
+    struct timeval tv2;
+    if(-1==gettimeofday(&tv2, NULL))
+        _THROW(cf::SyscallExecuteError, "Failed to execute gettimeofday !");
+
+    long long int usec =tv2.tv_sec*1000000+tv2.tv_usec -(tv1.tv_sec*1000000
+                        +tv1.tv_usec);
+    long long int sec = usec/1000000;
+    usec = usec%1000000;
+    printf("Using time: %lld sec , %lld usec \n", sec,usec);
 
     return 0;
 }

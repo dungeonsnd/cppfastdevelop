@@ -37,10 +37,13 @@ enum
 };
 } // namespace serverdefs
 
+typedef std::unordered_map < cf_fd, cf_uint32  > T_LISTENFD_MAXCONN;
+
 template <typename EventHandlerType>
 class Server : public cf::NonCopyable
 {
 public:
+
     Server()
     {
     }
@@ -48,13 +51,14 @@ public:
     {
     }
 
-    cf_void Init(cf_fd listenfd, EventHandlerType & handler,
-                 cf_int index, cf_uint maxConnections,
+    cf_void Init(const T_LISTENFD_MAXCONN & listenfd_maxconn,
+                 EventHandlerType & handler,
+                 cf_int processid,
                  cf_int timeoutMilliseconds)
     {
         CF_PRINT_FUNC;
         CF_NEWOBJ(p, cf::EventLoop< EventHandlerType > ,
-                  listenfd, handler, index, maxConnections);
+                  listenfd_maxconn, handler, processid);
         if(NULL==p)
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
         _eventloop.reset(p);
@@ -94,10 +98,11 @@ public:
         return listenfd;
     }
 
-    TcpServer(cf_fd listenfd, EventHandlerType & handler,
-              cf_int index, cf_uint maxConnections,
+    TcpServer(const T_LISTENFD_MAXCONN & listenfd_maxconn,
+              EventHandlerType & handler,
+              cf_int processid,
               cf_int timeoutMilliseconds =serverdefs::WAIT_TIMEOUTMSEC_DEFAULT)
-        :_listenfd(listenfd)
+        :_listenfd_maxconn(listenfd_maxconn)
     {
 #if CF_SWITCH_PRINT
         printf("TcpServer::TcpServer \n");
@@ -108,11 +113,15 @@ public:
             _THROW(cf::AllocateMemoryError, "Allocate memory failed !");
         _server.reset(p);
 
-        _server->Init(_listenfd, handler, index, maxConnections,timeoutMilliseconds);
+        _server->Init(_listenfd_maxconn, handler, processid,
+                      timeoutMilliseconds);
     }
     ~TcpServer()
     {
-        close(_listenfd);
+        for (T_LISTENFD_MAXCONN::iterator it=
+                 _listenfd_maxconn.begin();
+             it!=_listenfd_maxconn.end(); it++)
+            close(it->first);
     }
     cf_void Start()
     {
@@ -124,7 +133,7 @@ public:
     }
 private:
     std::shared_ptr < Server < EventHandlerType > > _server;
-    cf_fd _listenfd;
+    T_LISTENFD_MAXCONN _listenfd_maxconn;
 };
 
 

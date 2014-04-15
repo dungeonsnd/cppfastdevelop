@@ -56,57 +56,40 @@ cf_fd CreateServerSocket (const cf_int port,const cf_int socktype,
                           bool reuseAddr,bool blocking,
                           const cf_int backlog)
 {
-    struct addrinfo hints;
-    struct addrinfo * result, *rp;
-    memset (&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_UNSPEC;/* Return IPv4 and IPv6 choices */
-    hints.ai_socktype = SOCK_STREAM; /* We want a TCP socket */
-    hints.ai_flags = AI_PASSIVE;/* All interfaces */
+    cf_fd listenfd = cf_socket(AF_INET, SOCK_STREAM, 0);
+    if (listenfd == -1)
+        _THROW(cf::SyscallExecuteError, "Failed to execute cf_socket !");
 
-    std::string portstr(8,'\0');
-    snprintf(&portstr[0],portstr.size(),"%d",port);
-    cf_int rt = cf_getaddrinfo (NULL, portstr.c_str(), &hints, &result);
-    if (rt != 0)
-        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_getaddrinfo ! %s.",
-                   gai_strerror (rt));
-
-    cf_fd listenfd;
-    cf_int tmperrno =0;
-    for (rp = result; rp != NULL; rp = rp->ai_next)
+    int option_value =1;
+    if( reuseAddr &&
+        -1==cf_setsockopt(listenfd,SOL_SOCKET,
+                          SO_REUSEADDR,&option_value,sizeof(int)) )
     {
-        listenfd = cf_socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (listenfd == -1)
-            continue;
-
-        int option_value =1;
-        if( reuseAddr
-            && -1==cf_setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &option_value,
-                                 sizeof(int)) )
-            _THROW_FMT(cf::SyscallExecuteError,
-                       "Failed to execute cf_setsockopt (SO_REUSEADDR)! tmperrno=%d ",
-                       tmperrno);
-
-        rt = cf_bind (listenfd, rp->ai_addr, rp->ai_addrlen);
-        tmperrno =errno;
-        if (rt == 0)
-            break;/* We managed to bind successfully! */
         cf_close (listenfd);
+        _THROW(cf::SyscallExecuteError,
+               "Failed to execute cf_setsockopt (SO_REUSEADDR)! ");
     }
 
-    if (rp == NULL)
+    struct sockaddr_in servaddr;
+    bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = htonl (INADDR_ANY);
+    servaddr.sin_port = htons (port);
+
+    if (-1 == cf_bind (listenfd, (struct sockaddr *) &servaddr, sizeof(servaddr)))
     {
-        //fprintf (stderr, "Could not bind\n");
-        cf_freeaddrinfo (result);
-        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_bind ! tmperrno=%d ",
-                   tmperrno);
+        cf_close (listenfd);
+        _THROW(cf::SyscallExecuteError, "Failed to execute cf_bind !");
     }
-    cf_freeaddrinfo (result);
-    if ( 0!=cf_listen(listenfd, backlog) )
-        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !");
 
     if(listenfd>0&&false==blocking)
         SetBlocking(listenfd,blocking);
 
+    if (-1 == cf_listen(listenfd, backlog) )
+    {
+        cf_close (listenfd);
+        _THROW_FMT(cf::SyscallExecuteError, "Failed to execute cf_listen !");
+    }
     return listenfd;
 }
 
@@ -204,11 +187,13 @@ bool SendSegmentSync(cf_fd sockfd,cf_cpstr buf, ssize_t totalLen,
         return true;
     ssize_t len=0;
     ssize_t lenLeft =0;
-    time_t end,begin;
+    cf_uint64 end,begin;
     for(hasDone=0; hasDone < totalLen;)
     {
-        if ( (time_t)(-1)==(begin=cf_time(NULL)) )
-            _THROW(SyscallExecuteError, "Failed to execute cf_time !");
+        cf_uint64 seconds =0;
+        cf_uint32 useconds =0;
+        cf::Gettimeofday(seconds, useconds);
+        begin =seconds*1000+useconds%1000;
 
         if(0==OutputWait(sockfd,timeoutMilliSeconds)) // timeout!
             return false;
@@ -223,8 +208,9 @@ bool SendSegmentSync(cf_fd sockfd,cf_cpstr buf, ssize_t totalLen,
         //        printf("after cf_write , totalLen=%u,hasDone=%u,len=%u,lenLeft=%u \n",
         //            (cf_uint32)totalLen,(cf_uint32)hasDone,(cf_uint32)len,(cf_uint32)lenLeft);
 
-        if ( (time_t)(-1)==(end=cf_time(NULL)) )
-            _THROW(SyscallExecuteError, "Failed to execute cf_time !");
+        cf::Gettimeofday(seconds, useconds);
+        end =seconds*1000+useconds%1000;
+
         timeoutMilliSeconds -=(end-begin);
         if (timeoutMilliSeconds <= 0)
             return false;
@@ -241,11 +227,13 @@ bool RecvSegmentSync(cf_fd sockfd,cf_char * buf, ssize_t totalLen,
     peerClosedWhenRead =false;
     ssize_t len=0;
     ssize_t lenLeft =0;
-    time_t end,begin;
+    cf_uint64 end,begin;
     for(hasDone=0; hasDone < totalLen;)
     {
-        if ( (time_t)(-1)==(begin=cf_time(NULL)) )
-            _THROW(SyscallExecuteError, "Failed to execute cf_time !");
+        cf_uint64 seconds =0;
+        cf_uint32 useconds =0;
+        cf::Gettimeofday(seconds, useconds);
+        begin =seconds*1000+useconds%1000;
 
         if(0==InputWait(sockfd,timeoutMilliSeconds)) // timeout!
             return false;
@@ -267,8 +255,9 @@ bool RecvSegmentSync(cf_fd sockfd,cf_char * buf, ssize_t totalLen,
             return true;
         }
 
-        if ( (time_t)(-1)==(end=cf_time(NULL)) )
-            _THROW(SyscallExecuteError, "Failed to execute cf_time !");
+        cf::Gettimeofday(seconds, useconds);
+        end =seconds*1000+useconds%1000;
+
         timeoutMilliSeconds -=(end-begin);
         if (timeoutMilliSeconds <= 0)
             return false;

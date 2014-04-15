@@ -17,25 +17,10 @@
 //// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
 ////
 
-/*
-[pro@node001dev test]$ time bin/perf_log
+#include "cppfoundation/cf_utility_misc.hpp"
 
-real    0m8.398s
-user    0m3.761s
-sys     0m3.331s
-*/
-
-#include <string>
-#include "log/cl_log.hpp"
-
-int main(int argc,char * argv[])
+namespace cf
 {
-    cl::log::LogNonCache < cf::FakeMutex > log("tmp.log");
-    std::string buf(1024,'@');
-    buf ="abcdfeg";
 
-    for(int i=0; i<1000000; i++)
-        CLLOG(log,cl::log::WARN,buf.c_str(),buf.size());
 
-    return 0;
-}
+} // namespace cf
