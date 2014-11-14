@@ -45,7 +45,7 @@ inline std::string String2Hex(cf_cpstr input,cf_uint32 inputLength)
     for(cf_uint32 i =0; i<inputLength; i++)
     {
         memset(&everyone[0],0,everyone.size());
-        snprintf(&everyone[0],everyone.size(),"%02x",input[i]);
+        snprintf(&everyone[0],everyone.size(),"%02x",(unsigned char)(input[i]));
         output.append (everyone.c_str(),everyone.size()-1);
     }
     return output;
@@ -60,7 +60,7 @@ inline std::string String2HexD(cf_cpstr input,cf_uint32 inputLength)
     for(cf_uint32 i =0; i<inputLength; i++)
     {
         memset(&everyone[0],0,everyone.size());
-        snprintf(&everyone[0],everyone.size(),"\\x%02x",input[i]);
+        snprintf(&everyone[0],everyone.size(),"\\x%02x",(unsigned char)(input[i]));
         output.append (everyone.c_str(),everyone.size()-1);
     }
     return output;

@@ -38,3 +38,31 @@ https://sourceforge.net/projects/cppfastdevelop/
 project sponsor: Jeffery
 email: dungeonsnd@gmail.com
 
+
+作者根据多年c++开发经历总结提炼了一套类似于jdk的c++类库, 方便程序开发者使用.
+cppfoundation是对常用类的封装,并形成了将好的继承体系,cpplibrary是作者封装一些库.
+
+本项目目前仅支持linux环境,作者暂无支持其它环境的开发计划.
+项目目前基本稳定, 作者已经将其用于某生产环境且运行良好. 暂无大规模修改计划. 但是请注意, 网络库cpplibrary/netserver/有bug, 作者目前没有时间来完善. 其它的类和库已经基本稳定,如cppfoundation/及cpplibrary, 可用于非苛刻条件下的商业生产环境.
+
+
+
+/*
+ * Copyright 2014, Jeffery Qiu. All rights reserved.
+ *
+ * Licensed under the GNU LESSER GENERAL PUBLIC LICENSE(the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.gnu.org/licenses/lgpl.html
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//// Author: Jeffery Qiu (dungeonsnd at gmail dot com)
+////
+
